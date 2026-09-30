@@ -1,0 +1,222 @@
+[
+  {
+    "slug": "png-to-jpg",
+    "title": "PNG to JPG",
+    "purpose": "Ubah PNG jadi JPG untuk ukuran lebih kecil.",
+    "category": "Gambar",
+    "need": "browser",
+    "engine": "canvas",
+    "inputs": ["png"],
+    "output": "jpg",
+    "v1": true
+  },
+  {
+    "slug": "jpg-to-png",
+    "title": "JPG to PNG",
+    "purpose": "Ubah JPG jadi PNG.",
+    "category": "Gambar",
+    "need": "browser",
+    "engine": "canvas",
+    "inputs": ["jpg", "jpeg"],
+    "output": "png",
+    "v1": true
+  },
+  {
+    "slug": "webp-to-png",
+    "title": "WebP to PNG",
+    "purpose": "Ubah WebP jadi PNG yang mudah dibuka.",
+    "category": "Gambar",
+    "need": "browser",
+    "engine": "canvas",
+    "inputs": ["webp"],
+    "output": "png",
+    "v1": true
+  },
+  {
+    "slug": "png-to-webp",
+    "title": "PNG to WebP",
+    "purpose": "Kompres PNG ke WebP untuk web.",
+    "category": "Gambar",
+    "need": "browser",
+    "engine": "canvas",
+    "inputs": ["png"],
+    "output": "webp",
+    "v1": true
+  },
+  {
+    "slug": "jpg-to-webp",
+    "title": "JPG to WebP",
+    "purpose": "Ubah JPG jadi WebP.",
+    "category": "Gambar",
+    "need": "browser",
+    "engine": "canvas",
+    "inputs": ["jpg", "jpeg"],
+    "output": "webp",
+    "v1": true
+  },
+  {
+    "slug": "image-compressor",
+    "title": "Image compressor",
+    "purpose": "Kecilkan JPG, PNG, atau WebP di browser.",
+    "category": "Gambar",
+    "need": "browser",
+    "engine": "canvas",
+    "inputs": ["jpg", "jpeg", "png", "webp"],
+    "output": "jpg",
+    "v1": true
+  },
+  {
+    "slug": "image-resizer",
+    "title": "Image resizer",
+    "purpose": "Ubah lebar gambar, tinggi mengikuti rasio.",
+    "category": "Gambar",
+    "need": "browser",
+    "engine": "canvas",
+    "inputs": ["jpg", "jpeg", "png", "webp", "gif", "bmp"],
+    "output": "png",
+    "v1": true
+  },
+  {
+    "slug": "gif-compressor",
+    "title": "GIF compressor",
+    "purpose": "Kecilkan GIF lewat canvas (frame pertama bila animasi kompleks).",
+    "category": "Gambar",
+    "need": "browser",
+    "engine": "canvas",
+    "inputs": ["gif"],
+    "output": "gif",
+    "v1": true
+  },
+  {
+    "slug": "jpg-to-pdf",
+    "title": "JPG to PDF",
+    "purpose": "Gabung foto jadi satu PDF.",
+    "category": "PDF",
+    "need": "browser",
+    "engine": "pdf-lib",
+    "inputs": ["jpg", "jpeg", "png", "webp"],
+    "output": "pdf",
+    "v1": true
+  },
+  {
+    "slug": "merge-pdf",
+    "title": "Merge PDF",
+    "purpose": "Gabung beberapa PDF jadi satu file.",
+    "category": "PDF",
+    "need": "browser",
+    "engine": "pdf-lib",
+    "inputs": ["pdf"],
+    "output": "pdf",
+    "v1": true
+  },
+  {
+    "slug": "split-pdf",
+    "title": "Split PDF",
+    "purpose": "Ambil setiap halaman jadi PDF terpisah (ZIP).",
+    "category": "PDF",
+    "need": "browser",
+    "engine": "pdf-lib",
+    "inputs": ["pdf"],
+    "output": "zip",
+    "v1": true
+  },
+  {
+    "slug": "rotate-pdf",
+    "title": "Rotate PDF",
+    "purpose": "Putar semua halaman 90 derajat searah jarum jam.",
+    "category": "PDF",
+    "need": "browser",
+    "engine": "pdf-lib",
+    "inputs": ["pdf"],
+    "output": "pdf",
+    "v1": true
+  },
+  {
+    "slug": "ttf-to-woff2",
+    "title": "TTF to WOFF2",
+    "purpose": "Font TrueType jadi webfont.",
+    "category": "Font",
+    "need": "browser",
+    "engine": "wawoff2",
+    "inputs": ["ttf"],
+    "output": "woff2",
+    "v1": true
+  },
+  {
+    "slug": "otf-to-woff2",
+    "title": "OTF to WOFF2",
+    "purpose": "Font OpenType jadi webfont.",
+    "category": "Font",
+    "need": "browser",
+    "engine": "wawoff2",
+    "inputs": ["otf"],
+    "output": "woff2",
+    "v1": true
+  },
+  {
+    "slug": "webp-to-jpg",
+    "title": "WebP to JPG",
+    "purpose": "Ubah WebP jadi JPG.",
+    "category": "Gambar",
+    "need": "browser",
+    "engine": "canvas",
+    "inputs": ["webp"],
+    "output": "jpg",
+    "v1": true
+  },
+  {
+    "slug": "bmp-to-jpg",
+    "title": "BMP to JPG",
+    "purpose": "Ubah BMP jadi JPG.",
+    "category": "Gambar",
+    "need": "browser",
+    "engine": "canvas",
+    "inputs": ["bmp"],
+    "output": "jpg",
+    "v1": true
+  },
+  {
+    "slug": "mp4-to-mp3",
+    "title": "MP4 to MP3",
+    "purpose": "Ambil audio dari video. Worker VPS menyusul.",
+    "category": "Audio",
+    "need": "vps",
+    "engine": "ffmpeg",
+    "inputs": ["mp4"],
+    "output": "mp3",
+    "v1": true
+  },
+  {
+    "slug": "video-compressor",
+    "title": "Video compressor",
+    "purpose": "Kecilkan video. Worker VPS menyusul.",
+    "category": "Video",
+    "need": "vps",
+    "engine": "ffmpeg",
+    "inputs": ["mp4", "mov", "mkv", "webm"],
+    "output": "mp4",
+    "v1": true
+  },
+  {
+    "slug": "mov-to-mp4",
+    "title": "MOV to MP4",
+    "purpose": "Video iPhone ke MP4. Worker VPS menyusul.",
+    "category": "Video",
+    "need": "vps",
+    "engine": "ffmpeg",
+    "inputs": ["mov"],
+    "output": "mp4",
+    "v1": true
+  },
+  {
+    "slug": "heic-to-jpg",
+    "title": "HEIC to JPG",
+    "purpose": "Foto iPhone ke JPG. Browser terbatas; VPS menyusul bila gagal.",
+    "category": "Gambar",
+    "need": "browser",
+    "engine": "canvas",
+    "inputs": ["heic", "heif"],
+    "output": "jpg",
+    "v1": true
+  }
+]
