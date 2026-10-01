@@ -10,7 +10,16 @@ const compat = new FlatCompat({
 });
 
 const eslintConfig = [
-  { ignores: [".next/**", "node_modules/**", "next-env.d.ts", "public/pdf.worker.min.mjs"] },
+  {
+    ignores: [
+      ".next/**",
+      ".next-dev/**",
+      ".vercel/**",
+      "node_modules/**",
+      "next-env.d.ts",
+      "public/pdf.worker.min.mjs",
+    ],
+  },
   ...compat.extends("next/core-web-vitals", "next/typescript"),
 ];
 

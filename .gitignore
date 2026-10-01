@@ -11,3 +11,6 @@ out
 *.tsbuildinfo
 fonts-in
 fonts-out
+
+.vercel
+.env*
