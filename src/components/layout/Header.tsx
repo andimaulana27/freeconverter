@@ -18,7 +18,7 @@ export function Header() {
   const path = usePathname();
   return (
     <header className="sticky top-0 z-20 border-b border-[#ede8e5] bg-white/85 backdrop-blur-xl">
-      <Container className="flex h-14 items-center gap-5 sm:gap-8">
+      <Container className="flex h-14 max-w-[1440px] items-center gap-5 sm:gap-8">
         <Link href="/" className="group flex shrink-0 items-center gap-2.5 text-[15px] font-bold tracking-[-0.02em] text-ink">
           <span className="relative flex h-8 w-8 items-center justify-center overflow-hidden rounded-[10px] bg-accent text-white shadow-[0_5px_14px_rgba(229,50,45,0.25)] transition duration-280 group-hover:rotate-[-6deg] group-hover:scale-105">
             <svg viewBox="0 0 24 24" className="h-[18px] w-[18px]" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>

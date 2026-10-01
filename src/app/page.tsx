@@ -43,7 +43,7 @@ export default function HomePage() {
   }));
 
   return (
-    <div className="flex flex-col gap-20 pb-8 sm:gap-28">
+    <div className="relative left-1/2 flex w-[calc(100vw-2rem)] max-w-[1440px] -translate-x-1/2 flex-col gap-20 pb-8 sm:w-[calc(100vw-3rem)] sm:gap-28">
       <JsonLd data={websiteJsonLd()} />
 
       <section className="relative isolate overflow-hidden rounded-[32px] bg-[#171311] text-white shadow-[0_32px_90px_rgba(42,28,22,0.18)]">

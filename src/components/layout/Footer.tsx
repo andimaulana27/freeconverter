@@ -47,7 +47,7 @@ const FOOTER_GROUPS = [
 export function Footer() {
   return (
     <footer className="mt-10 overflow-hidden bg-[#171311] text-white">
-      <Container className="py-12 sm:py-16">
+      <Container className="max-w-[1440px] py-12 sm:py-16">
         <div className="grid gap-12 border-b border-white/10 pb-12 lg:grid-cols-[1.25fr_3fr] lg:gap-16">
           <div>
             <Link href="/" className="group inline-flex items-center gap-3 text-lg font-bold tracking-[-0.025em] text-white">
