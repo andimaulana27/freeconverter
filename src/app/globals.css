@@ -13,6 +13,14 @@ html {
 
 body {
   overflow-x: hidden;
+  background-color: #fbfaf9;
+  background-image:
+    radial-gradient(circle at 50% -8rem, rgba(217, 45, 40, 0.055), transparent 34rem),
+    linear-gradient(rgba(24, 20, 18, 0.022) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(24, 20, 18, 0.022) 1px, transparent 1px);
+  background-size: 100% 100%, 64px 64px, 64px 64px;
+  background-position: center top, center top, center top;
+  background-attachment: fixed;
 }
 
 ::selection {
@@ -24,6 +32,23 @@ button,
 a,
 input {
   -webkit-tap-highlight-color: transparent;
+}
+
+@keyframes privacy-route {
+  0% {
+    left: 0;
+    opacity: 0;
+  }
+
+  12%,
+  88% {
+    opacity: 1;
+  }
+
+  100% {
+    left: calc(100% - 0.5rem);
+    opacity: 0;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

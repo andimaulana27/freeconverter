@@ -22,16 +22,88 @@ const CATEGORY_LINKS = [
 ] as const;
 
 const FAQS = [
-  ["Are my files uploaded?", "Most image, PDF, font, and utility tools run locally in your browser. The tool page always tells you when a dedicated worker is required."],
-  ["Is AllYouConvert really free?", "Yes. You can use the available browser tools without an account, subscription, or hidden watermark."],
-  ["Which formats are supported?", "The catalog covers 200+ formats across images, PDF, documents, sheets, slides, ebooks, archives, vector, CAD, fonts, video, and audio. Browser-ready tools run locally. Worker-backed formats stay listed honestly until that converter is online."],
-  ["Can I use it on mobile?", "Yes. The upload area, format controls, and downloads are designed for phones, tablets, and desktop browsers."],
+  {
+    label: "Privacy",
+    question: "Are my files uploaded?",
+    answer: "Most image, PDF, font, and utility tools run locally in your browser. The tool page always tells you when a dedicated worker is required.",
+  },
+  {
+    label: "Pricing",
+    question: "Is AllYouConvert really free?",
+    answer: "Yes. You can use the available browser tools without an account, subscription, or hidden watermark.",
+  },
+  {
+    label: "Formats",
+    question: "Which formats are supported?",
+    answer: "The catalog covers 200+ formats across images, PDF, documents, sheets, slides, ebooks, archives, vector, CAD, fonts, video, and audio. Browser-ready tools run locally. Worker-backed formats stay listed honestly until that converter is online.",
+  },
+  {
+    label: "Devices",
+    question: "Can I use it on mobile?",
+    answer: "Yes. The upload area, format controls, and downloads are designed for phones, tablets, and desktop browsers.",
+  },
+] as const;
+
+const PRIVACY_POINTS = [
+  { number: "01", title: "No account", note: "Start without a sign-up" },
+  { number: "02", title: "No watermark", note: "Keep a clean output" },
+  { number: "03", title: "Clear choices", note: "See the format before converting" },
+  { number: "04", title: "Any device", note: "Built for desktop and mobile" },
+] as const;
+
+const HERO_SIGNALS = [
+  { value: String(tools.length), title: "purpose-built tools", note: "A focused route for every job" },
+  { value: "Zero", title: "account walls", note: "Convert first—no sign-up detour" },
+  { value: "On-device", title: "private by default", note: "Supported files stay with you" },
 ] as const;
 
 function ArrowIcon() {
   return (
     <svg viewBox="0 0 20 20" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden>
       <path d="M3 10h13m-5-5 5 5-5 5" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+function PrivacyIcon({ index }: { index: number }) {
+  const paths = [
+    <><circle key="a" cx="10" cy="7" r="3" /><path key="b" d="M4.5 17c.8-3 2.6-4.5 5.5-4.5s4.7 1.5 5.5 4.5" /></>,
+    <><path key="a" d="M5 10.5V7a5 5 0 0 1 10 0v3.5" /><rect key="b" x="3.5" y="10.5" width="13" height="7" rx="2" /></>,
+    <><path key="a" d="M4 5h12M4 10h12M4 15h12" /><circle key="b" cx="8" cy="5" r="1.5" fill="currentColor" stroke="none" /><circle key="c" cx="13" cy="10" r="1.5" fill="currentColor" stroke="none" /><circle key="d" cx="7" cy="15" r="1.5" fill="currentColor" stroke="none" /></>,
+    <><rect key="a" x="3" y="4" width="14" height="10" rx="2" /><path key="b" d="M7 17h6M10 14v3" /></>,
+  ];
+
+  return (
+    <svg viewBox="0 0 20 20" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      {paths[index]}
+    </svg>
+  );
+}
+
+function HeroSignalIcon({ index }: { index: number }) {
+  const paths = [
+    <><rect key="a" x="3" y="3" width="5" height="5" rx="1" /><rect key="b" x="12" y="3" width="5" height="5" rx="1" /><rect key="c" x="3" y="12" width="5" height="5" rx="1" /><path key="d" d="M12 14.5h5M14.5 12v5" /></>,
+    <><circle key="a" cx="10" cy="7" r="3" /><path key="b" d="M4.5 17c.8-3 2.6-4.5 5.5-4.5 1.3 0 2.4.3 3.3.9M15 13l3 3m0-3-3 3" /></>,
+    <><path key="a" d="M10 2.5 17 5v5.4c0 4.2-2.8 6.3-7 7.8-4.2-1.5-7-3.6-7-7.8V5z" /><path key="b" d="m6.8 10.4 2.1 2.1 4.5-4.5" /></>,
+  ];
+
+  return (
+    <svg viewBox="0 0 20 20" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.45" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      {paths[index]}
+    </svg>
+  );
+}
+
+function WorkflowIcon({ index }: { index: number }) {
+  const paths = [
+    <><path key="a" d="M5 2.5h6l4 4v11H5z" /><path key="b" d="M11 2.5v4h4M8 11h4M8 14h3" /></>,
+    <><path key="a" d="M3.5 5.5h13M3.5 10h13M3.5 14.5h13" /><circle key="b" cx="8" cy="5.5" r="1.5" fill="currentColor" stroke="none" /><circle key="c" cx="13" cy="10" r="1.5" fill="currentColor" stroke="none" /><circle key="d" cx="7" cy="14.5" r="1.5" fill="currentColor" stroke="none" /></>,
+    <><path key="a" d="M10 2.5 17 5v5.4c0 4.2-2.8 6.3-7 7.8-4.2-1.5-7-3.6-7-7.8V5z" /><path key="b" d="m6.8 10.4 2.1 2.1 4.5-4.5" /></>,
+  ];
+
+  return (
+    <svg viewBox="0 0 20 20" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      {paths[index]}
     </svg>
   );
 }
@@ -101,49 +173,85 @@ export default function HomePage() {
               </div>
             </div>
 
-            <dl className="mt-9 grid max-w-lg grid-cols-3 border-t border-white/10 pt-5">
-              {[
-                [String(tools.length), "focused tools"],
-                ["0", "sign-ups"],
-                ["On-device", "when supported"],
-              ].map(([value, label]) => (
-                <div key={label}>
-                  <dt className="text-base font-semibold tracking-tight text-white">{value}</dt>
-                  <dd className="mt-1 text-[9px] uppercase tracking-[0.13em] text-white/35">{label}</dd>
+            <dl className="mt-9 grid max-w-xl grid-cols-3 overflow-hidden rounded-2xl border border-white/10 bg-black/15">
+              {HERO_SIGNALS.map((item, index) => (
+                <div
+                  key={item.title}
+                  className="group/signal relative min-h-[112px] border-r border-white/10 p-3 transition duration-280 last:border-r-0 hover:bg-white/[0.06] sm:min-h-[126px] sm:p-4"
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <span className="flex h-7 w-7 items-center justify-center rounded-lg border border-white/10 bg-white/[0.06] text-[#ff8c87] transition duration-280 group-hover/signal:-translate-y-0.5 group-hover/signal:rotate-3 group-hover/signal:border-[#ff8c87]/35 sm:h-8 sm:w-8 sm:rounded-xl">
+                      <HeroSignalIcon index={index} />
+                    </span>
+                    <span className="hidden font-mono text-[8px] tracking-[0.14em] text-white/20 sm:block">0{index + 1}</span>
+                  </div>
+                  <dt className="mt-3 text-[11px] font-semibold tracking-tight text-white sm:mt-4 sm:text-base">{item.value}</dt>
+                  <dd>
+                    <span className="mt-1 block text-[7px] font-bold uppercase leading-3 tracking-[0.08em] text-white/50 sm:text-[9px] sm:tracking-[0.12em]">{item.title}</span>
+                    <span className="mt-1.5 hidden text-[9px] leading-4 text-white/30 sm:block">{item.note}</span>
+                  </dd>
                 </div>
               ))}
             </dl>
           </div>
 
-          <div id="converter" className="relative scroll-mt-24 lg:pl-3">
-            <div className="pointer-events-none absolute -inset-3 rotate-2 rounded-[30px] border border-white/10 bg-white/[0.035]" aria-hidden />
-            <div className="relative overflow-hidden rounded-[24px] border border-white/10 bg-white shadow-[0_28px_70px_rgba(0,0,0,0.38)]">
-              <div className="flex items-center justify-between border-b border-white/10 bg-[#211c19] px-5 py-3.5 text-white">
+          <div id="converter" className="group/console relative scroll-mt-24 lg:pl-6">
+            <div
+              className="pointer-events-none absolute -inset-5 rotate-2 rounded-[34px] border border-white/10 bg-white/[0.025] transition duration-700 group-hover/console:rotate-1"
+              aria-hidden
+            />
+            <div
+              className="pointer-events-none absolute -inset-2 -rotate-1 rounded-[30px] border border-white/[0.07] transition duration-700 group-hover/console:-rotate-2"
+              aria-hidden
+            />
+
+            <div className="pointer-events-none absolute -left-2 top-14 z-10 hidden -translate-x-1/2 -rotate-90 items-center gap-2 rounded-full border border-white/10 bg-[#181412] px-3 py-1.5 font-mono text-[7px] uppercase tracking-[0.18em] text-white/35 shadow-lg lg:flex" aria-hidden>
+              <span className="h-1.5 w-1.5 rounded-full bg-accent" />
+              Drop / route / done
+            </div>
+
+            <div className="relative rounded-[28px] border border-white/10 bg-[#211c19]/90 p-2 shadow-[0_30px_80px_rgba(0,0,0,0.42)] backdrop-blur-sm">
+              <div className="flex items-center justify-between px-3 py-2.5 text-white sm:px-4">
                 <div className="flex items-center gap-3">
                   <span className="flex gap-1.5" aria-hidden>
                     <span className="h-2 w-2 rounded-full bg-[#ff6a64]" />
                     <span className="h-2 w-2 rounded-full bg-white/20" />
                     <span className="h-2 w-2 rounded-full bg-white/20" />
                   </span>
-                  <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-white/70">Live workbench</p>
+                  <span className="h-3 w-px bg-white/15" aria-hidden />
+                  <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-white/70">Live conversion desk</p>
                 </div>
-                <p className="flex items-center gap-2 text-[9px] font-bold uppercase tracking-[0.16em] text-white/45">
-                  <span className="h-1.5 w-1.5 rounded-full bg-[#55d69a]" />
-                  Local ready
+                <p className="font-mono text-[8px] font-semibold uppercase tracking-[0.16em] text-white/40">
+                  Session 01
                 </p>
               </div>
-              <DropEngine />
-              <div className="grid grid-cols-3 border-t border-[#ece7e4] bg-[#faf8f7]">
-                {[
-                  ["01", "Choose"],
-                  ["02", "Convert"],
-                  ["03", "Download"],
-                ].map(([number, label]) => (
-                  <p key={number} className="border-r border-[#ece7e4] px-3 py-3 text-center text-[9px] font-bold uppercase tracking-[0.14em] text-[#817975] last:border-r-0">
-                    <span className="mr-1.5 font-mono text-accent">{number}</span>
-                    {label}
-                  </p>
-                ))}
+
+              <div className="overflow-hidden rounded-[21px] bg-white">
+                <DropEngine />
+                <div className="grid grid-cols-3 border-t border-[#ece7e4] bg-[#faf8f7]">
+                  {[
+                    ["01", "Choose", "Your file"],
+                    ["02", "Shape", "Pick format"],
+                    ["03", "Take", "Download"],
+                  ].map(([number, label, note]) => (
+                    <div key={number} className="group/step relative border-r border-[#ece7e4] px-3 py-3 text-center last:border-r-0">
+                      <span className="absolute inset-x-0 top-0 h-px origin-left scale-x-0 bg-accent transition-transform duration-280 group-hover/step:scale-x-100" />
+                      <p className="text-[9px] font-bold uppercase tracking-[0.14em] text-[#514a47]">
+                        <span className="mr-1.5 font-mono text-accent">{number}</span>
+                        {label}
+                      </p>
+                      <p className="mt-1 hidden text-[8px] text-[#9a918c] sm:block">{note}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between px-3 pb-1.5 pt-3 font-mono text-[7px] uppercase tracking-[0.15em] text-white/30 sm:px-4">
+                <span>Browser workspace / v1</span>
+                <span className="flex items-center gap-2">
+                  <span className="text-[#75e0b1]">Ready</span>
+                  Files stay local when supported
+                </span>
               </div>
             </div>
           </div>
@@ -171,83 +279,216 @@ export default function HomePage() {
 
       <ToolGroups initialLimit={4} popularLimit={8} />
 
-      <section className="grid gap-4 lg:grid-cols-[0.8fr_1.2fr]">
-        <div className="flex min-h-[420px] flex-col justify-between overflow-hidden rounded-[28px] bg-[#181412] p-7 text-white sm:p-10">
+      <section className="group/workflow relative isolate overflow-hidden rounded-[30px] border border-white/10 bg-[#181412] p-6 text-white shadow-[0_28px_80px_rgba(40,27,22,0.14)] sm:p-9 lg:p-11">
+        <div
+          className="pointer-events-none absolute inset-0 -z-10 opacity-35 [background-image:linear-gradient(rgba(255,255,255,0.05)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.05)_1px,transparent_1px)] [background-size:44px_44px]"
+          aria-hidden
+        />
+        <div
+          className="pointer-events-none absolute inset-y-0 right-0 -z-10 w-[32rem] opacity-30 [background-image:radial-gradient(circle,rgba(255,106,100,0.55)_1px,transparent_1.2px)] [background-size:11px_11px] [mask-image:linear-gradient(to_left,black,transparent)]"
+          aria-hidden
+        />
+        <div className="pointer-events-none absolute -right-24 -top-28 -z-10 h-72 w-72 rounded-full border-[42px] border-white/[0.035] transition duration-700 group-hover/workflow:scale-110" aria-hidden />
+
+        <div className="relative flex flex-col justify-between gap-7 lg:flex-row lg:items-end">
           <div>
-            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#ff8c87]">A clearer workflow</p>
-            <h2 className="mt-4 max-w-sm text-4xl font-semibold leading-[1.05] tracking-[-0.05em] sm:text-5xl">
-              From file to finished in three moves.
+            <p className="flex items-center gap-3 text-[10px] font-bold uppercase tracking-[0.2em] text-[#ff8c87]">
+              <span className="h-px w-7 bg-[#ff6a64]" />
+              A clearer workflow
+            </p>
+            <h2 className="mt-4 max-w-2xl text-4xl font-semibold leading-[1.02] tracking-[-0.05em] sm:text-5xl">
+              One straight line from file to finished.
             </h2>
+            <p className="mt-4 max-w-xl text-sm leading-6 text-white/50">
+              No maze of settings. Make the three choices that matter, then keep moving.
+            </p>
           </div>
-          <div className="relative mt-16 flex items-end gap-2" aria-hidden>
-            {["PDF", "JPG", "WEBP"].map((format, index) => (
-              <span
-                key={format}
-                className={`flex h-28 w-24 items-end rounded-2xl border border-white/15 p-3 text-[10px] font-bold tracking-[0.16em] ${
-                  index === 1 ? "-translate-y-6 rotate-3 bg-accent" : "bg-white/5"
-                }`}
-              >
-                {format}
-              </span>
-            ))}
+          <div className="flex w-fit items-center gap-3 rounded-full border border-white/10 bg-white/[0.05] px-4 py-2.5 font-mono text-[8px] uppercase tracking-[0.15em] text-white/40">
+            <span className="relative flex h-2 w-2">
+              <span className="absolute inline-flex h-full w-full rounded-full bg-[#55d69a]/60 motion-safe:animate-ping" />
+              <span className="relative inline-flex h-2 w-2 rounded-full bg-[#55d69a]" />
+            </span>
+            Three moves / zero detours
           </div>
         </div>
-        <div className="grid gap-px overflow-hidden rounded-[28px] border border-[#e5dfdc] bg-[#e5dfdc]">
+
+        <div className="relative mt-10 grid gap-3 lg:grid-cols-3">
+          <div className="pointer-events-none absolute left-[16%] right-[16%] top-9 hidden h-px border-t border-dashed border-white/15 lg:block" aria-hidden>
+            <span className="absolute left-0 top-1/2 h-2 w-2 -translate-y-1/2 rounded-full bg-[#ff6a64] shadow-[0_0_0_5px_rgba(255,106,100,0.1)] motion-safe:animate-[privacy-route_3.4s_ease-in-out_infinite]" />
+          </div>
           {[
-            ["01", "Drop it", "Choose a file or drag it straight into the workspace."],
-            ["02", "Shape it", "Pick the output and adjust only the settings that matter."],
-            ["03", "Take it", "Download the finished file and keep moving."],
-          ].map(([number, title, copy]) => (
-            <div key={number} className="group grid gap-4 bg-white p-6 transition hover:bg-[#fff8f7] sm:grid-cols-[64px_1fr] sm:p-8">
-              <span className="font-mono text-xs text-accent">{number}</span>
-              <div>
-                <h3 className="text-xl font-semibold tracking-tight text-ink">{title}</h3>
-                <p className="mt-2 max-w-md text-sm leading-6 text-mute">{copy}</p>
+            ["Drop it", "Choose a file or drag it straight into the conversion desk.", "Input ready"],
+            ["Shape it", "Pick the output and adjust only the settings that matter.", "Route set"],
+            ["Take it", "Download a clean result and continue with your work.", "Output done"],
+          ].map(([title, copy, state], index) => (
+            <article
+              key={title}
+              className="group/step relative overflow-hidden rounded-[22px] border border-white/10 bg-white/[0.045] p-5 backdrop-blur-sm transition duration-280 hover:-translate-y-1 hover:border-white/20 hover:bg-white/[0.075] sm:p-6"
+            >
+              <span className="absolute -right-10 -top-10 h-24 w-24 rounded-full bg-accent/0 transition duration-500 group-hover/step:bg-accent/10" aria-hidden />
+              <div className="relative flex items-center justify-between">
+                <span className="flex h-12 w-12 items-center justify-center rounded-2xl border border-white/10 bg-[#211c19] text-[#ff8c87] shadow-[0_10px_25px_rgba(0,0,0,0.18)] transition duration-280 group-hover/step:-rotate-3 group-hover/step:scale-105">
+                  <WorkflowIcon index={index} />
+                </span>
+                <span className="font-mono text-[9px] tracking-[0.15em] text-white/25">0{index + 1}</span>
               </div>
-            </div>
+              <h3 className="relative mt-8 text-xl font-semibold tracking-[-0.025em]">{title}</h3>
+              <p className="relative mt-2 max-w-sm text-sm leading-6 text-white/45">{copy}</p>
+              <p className="relative mt-6 flex items-center gap-2 border-t border-white/10 pt-4 font-mono text-[8px] uppercase tracking-[0.15em] text-white/30">
+                <span className={`h-1.5 w-1.5 rounded-full ${index === 2 ? "bg-[#55d69a]" : "bg-[#ff6a64]"}`} />
+                {state}
+              </p>
+            </article>
           ))}
         </div>
       </section>
 
       <AdSlot />
 
-      <section className="grid gap-10 border-y border-[#e5dfdc] py-14 lg:grid-cols-2 lg:gap-20 lg:py-20">
-        <div>
-          <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-accent">Private by design</p>
-          <h2 className="mt-4 text-4xl font-semibold leading-[1.05] tracking-[-0.05em] sm:text-5xl">
-            Your files should stay yours.
-          </h2>
-        </div>
-        <div>
-          <p className="text-base leading-7 text-mute">
-            Browser-based tools keep common conversions on your device. That means less waiting, fewer transfers, and a workflow that feels immediate.
-          </p>
-          <div className="mt-7 grid gap-3 sm:grid-cols-2">
-            {["No account required", "No hidden watermark", "Clear output choices", "Works across devices"].map((item) => (
-              <p key={item} className="flex items-center gap-3 rounded-xl bg-white p-3 text-xs font-semibold text-ink">
-                <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-[#e7f8ef] text-[#16885c]">✓</span>
-                {item}
+      <section className="group/privacy relative isolate overflow-hidden rounded-[30px] border border-[#ded7d3] bg-white shadow-[0_28px_80px_rgba(40,27,22,0.08)]">
+        <div
+          className="pointer-events-none absolute inset-0 -z-10 opacity-60 [background-image:linear-gradient(rgba(24,20,18,0.035)_1px,transparent_1px),linear-gradient(90deg,rgba(24,20,18,0.035)_1px,transparent_1px)] [background-size:40px_40px]"
+          aria-hidden
+        />
+        <div className="grid lg:grid-cols-[0.9fr_1.1fr]">
+          <div className="relative flex flex-col justify-between overflow-hidden bg-[#181412] p-7 text-white sm:p-10 lg:min-h-[490px]">
+            <div
+              className="pointer-events-none absolute inset-0 opacity-30 [background-image:radial-gradient(circle,rgba(255,255,255,0.14)_1px,transparent_1px)] [background-size:10px_10px] [mask-image:linear-gradient(to_bottom_right,transparent,black)]"
+              aria-hidden
+            />
+            <div className="relative">
+              <div className="flex items-center justify-between gap-4">
+                <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#ff7771]">Private by design</p>
+                <p className="flex items-center gap-2 font-mono text-[8px] uppercase tracking-[0.16em] text-white/45">
+                  <span className="relative flex h-2 w-2">
+                    <span className="absolute inline-flex h-full w-full rounded-full bg-[#55d69a]/60 motion-safe:animate-ping" />
+                    <span className="relative inline-flex h-2 w-2 rounded-full bg-[#55d69a]" />
+                  </span>
+                  Local mode
+                </p>
+              </div>
+              <h2 className="mt-5 max-w-md text-4xl font-semibold leading-[0.98] tracking-[-0.055em] sm:text-5xl">
+                Your file takes the short route.
+              </h2>
+              <p className="mt-5 max-w-md text-sm leading-6 text-white/55">
+                Common conversions happen inside your browser. No account detour, no mystery queue, and no unnecessary trip to a third-party API.
               </p>
-            ))}
+            </div>
+
+            <div className="relative mt-14 rounded-[22px] border border-white/10 bg-black/20 p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]">
+              <div className="flex items-center justify-between gap-3">
+                <div className="group/file relative flex h-20 w-20 shrink-0 items-end overflow-hidden rounded-2xl border border-white/15 bg-white/[0.07] p-3 transition duration-280 group-hover/privacy:-translate-y-1 group-hover/privacy:-rotate-3">
+                  <span className="absolute right-3 top-3 h-2 w-2 rounded-full bg-accent" />
+                  <svg viewBox="0 0 24 24" className="absolute left-3 top-3 h-6 w-6 text-white/65 transition duration-280 group-hover/privacy:text-white" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden>
+                    <path d="M6.5 3.5h7l4 4v13h-11z" strokeLinejoin="round" />
+                    <path d="M13.5 3.5v4.5H18M9 12h6M9 15.5h4" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                  <span className="font-mono text-[9px] font-bold tracking-[0.14em] text-white/75">FILE</span>
+                </div>
+
+                <div className="relative h-px min-w-14 flex-1 overflow-visible bg-[linear-gradient(to_right,rgba(255,255,255,0.15)_50%,transparent_50%)] bg-[length:8px_1px]" aria-hidden>
+                  <span className="absolute left-0 top-1/2 h-2 w-2 -translate-y-1/2 rounded-full bg-[#ff6a64] shadow-[0_0_0_4px_rgba(255,106,100,0.12)] motion-safe:animate-[privacy-route_2.8s_ease-in-out_infinite]" />
+                </div>
+
+                <div className="relative flex h-20 w-20 shrink-0 items-center justify-center rounded-2xl border border-[#55d69a]/25 bg-[#55d69a]/10 transition duration-280 group-hover/privacy:-translate-y-1 group-hover/privacy:rotate-3">
+                  <svg viewBox="0 0 24 24" className="h-7 w-7 text-[#75e0b1]" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden>
+                    <path d="M12 3.5 19 6v5.4c0 4.2-2.8 7.4-7 9.1-4.2-1.7-7-4.9-7-9.1V6z" strokeLinejoin="round" />
+                    <path d="m8.8 12 2.1 2.1 4.5-4.6" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                </div>
+              </div>
+              <div className="mt-4 flex items-center justify-between font-mono text-[8px] uppercase tracking-[0.15em] text-white/35">
+                <span>Choose locally</span>
+                <span className="text-[#75e0b1]">Finish locally</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex flex-col justify-between p-7 sm:p-10 lg:p-12">
+            <div>
+              <p className="font-mono text-[9px] font-semibold uppercase tracking-[0.17em] text-faint">What stays simple</p>
+              <h3 className="mt-4 max-w-md text-3xl font-semibold leading-[1.05] tracking-[-0.045em] text-ink">
+                Fewer hand-offs.<br />More control.
+              </h3>
+              <p className="mt-5 max-w-lg text-sm leading-7 text-mute">
+                Browser-based tools keep supported jobs on this device. That means less waiting, fewer transfers, and a workflow that feels immediate.
+              </p>
+            </div>
+
+            <div className="mt-10 grid gap-3 sm:grid-cols-2">
+              {PRIVACY_POINTS.map((item, index) => (
+                <div
+                  key={item.number}
+                  className="group/benefit relative overflow-hidden rounded-2xl border border-[#e8e2df] bg-white p-4 transition duration-280 hover:-translate-y-1 hover:border-[#d8cfca] hover:shadow-[0_12px_28px_rgba(40,27,22,0.08)]"
+                >
+                  <span className="absolute -right-8 -top-8 h-20 w-20 rounded-full bg-accent-soft transition duration-500 group-hover/benefit:scale-[1.8]" aria-hidden />
+                  <span className="absolute right-3 top-3 font-mono text-[9px] text-accent/50 transition group-hover/benefit:text-accent">{item.number}</span>
+                  <span className="relative flex h-8 w-8 items-center justify-center rounded-lg bg-[#e7f8ef] text-[#16885c] transition duration-280 group-hover/benefit:scale-110 group-hover/benefit:rotate-6 group-hover/benefit:bg-accent group-hover/benefit:text-white">
+                    <PrivacyIcon index={index} />
+                  </span>
+                  <h4 className="relative mt-5 text-xs font-semibold text-ink">{item.title}</h4>
+                  <p className="relative mt-1 text-[10px] leading-4 text-faint">{item.note}</p>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </section>
 
-      <section className="grid gap-10 lg:grid-cols-[0.7fr_1.3fr] lg:gap-20">
-        <div>
-          <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-accent">Good to know</p>
-          <h2 className="mt-4 text-3xl font-semibold tracking-[-0.04em] text-ink">Questions, answered.</h2>
-        </div>
-        <div className="divide-y divide-[#e5dfdc] border-y border-[#e5dfdc]">
-          {FAQS.map(([question, answer]) => (
-            <details key={question} className="group py-5">
-              <summary className="flex cursor-pointer list-none items-center justify-between gap-4 text-sm font-semibold text-ink">
-                {question}
-                <span className="text-lg text-faint transition group-open:rotate-45">+</span>
-              </summary>
-              <p className="max-w-2xl pt-3 text-sm leading-6 text-mute">{answer}</p>
-            </details>
-          ))}
+      <section className="relative isolate overflow-hidden rounded-[30px] border border-[#ded7d3] bg-[#f6f3f1] p-5 sm:p-8 lg:p-10">
+        <div
+          className="pointer-events-none absolute -right-16 -top-20 -z-10 h-72 w-72 rounded-full border-[46px] border-white/70"
+          aria-hidden
+        />
+        <div
+          className="pointer-events-none absolute inset-0 -z-10 opacity-50 [background-image:radial-gradient(circle,rgba(24,20,18,0.1)_1px,transparent_1px)] [background-size:12px_12px] [mask-image:linear-gradient(to_right,black,transparent_48%)]"
+          aria-hidden
+        />
+
+        <div className="grid gap-10 lg:grid-cols-[0.62fr_1.38fr] lg:gap-14">
+          <div className="flex flex-col justify-between">
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-accent">Good to know</p>
+              <h2 className="mt-4 max-w-sm text-4xl font-semibold leading-[1.02] tracking-[-0.05em] text-ink sm:text-5xl">
+                The small print, made useful.
+              </h2>
+              <p className="mt-5 max-w-sm text-sm leading-6 text-mute">
+                Clear answers about your files, supported formats, and how the workbench behaves.
+              </p>
+            </div>
+            <div className="mt-10 hidden items-center gap-3 lg:flex">
+              <span className="flex h-9 w-9 items-center justify-center rounded-full border border-[#d8d0cc] bg-white font-mono text-xs text-accent">?</span>
+              <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-faint">
+                Tap a question<br />to reveal the answer
+              </p>
+            </div>
+          </div>
+
+          <div className="space-y-3">
+            {FAQS.map((item, index) => (
+              <details
+                key={item.question}
+                className="group overflow-hidden rounded-2xl border border-[#e1dad6] bg-white transition duration-280 open:border-[#cfc5c0] open:shadow-[0_14px_34px_rgba(40,27,22,0.08)] hover:-translate-y-0.5 hover:border-[#cfc5c0]"
+              >
+                <summary className="flex cursor-pointer list-none items-center gap-4 p-4 text-sm font-semibold text-ink sm:p-5 [&::-webkit-details-marker]:hidden">
+                  <span className="font-mono text-[9px] font-semibold text-accent/70">0{index + 1}</span>
+                  <span className="hidden w-14 text-[8px] font-bold uppercase tracking-[0.16em] text-faint sm:block">{item.label}</span>
+                  <span className="flex-1 transition duration-180 group-hover:translate-x-0.5">{item.question}</span>
+                  <span className="relative flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-[#e3ddda] bg-[#faf8f7] transition duration-280 group-hover:border-[#d3cac6] group-open:rotate-45 group-open:border-accent group-open:bg-accent group-open:text-white">
+                    <span className="absolute h-px w-3 bg-current" />
+                    <span className="absolute h-3 w-px bg-current" />
+                  </span>
+                </summary>
+                <div className="grid grid-rows-[0fr] transition-[grid-template-rows] duration-300 ease-out group-open:grid-rows-[1fr]">
+                  <div className="overflow-hidden">
+                    <p className="border-t border-[#eee9e6] px-4 pb-5 pt-4 text-sm leading-6 text-mute sm:ml-[100px] sm:px-5">
+                      {item.answer}
+                    </p>
+                  </div>
+                </div>
+              </details>
+            ))}
+          </div>
         </div>
       </section>
 
