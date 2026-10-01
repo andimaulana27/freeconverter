@@ -28,7 +28,7 @@ export function Header() {
       />
       <span className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-accent/70 to-transparent" aria-hidden />
 
-      <Container className="flex h-[68px] max-w-[1440px] items-stretch gap-5 sm:gap-8">
+      <Container className="flex h-[68px] w-[calc(100%_-_2rem)] max-w-[1440px] items-stretch gap-5 px-0 sm:w-[calc(100%_-_3rem)] sm:gap-8 sm:px-0">
         <Link href="/" className="group flex shrink-0 items-center gap-3 text-ink" aria-label={`${SITE_NAME} home`}>
           <span className="relative flex h-10 w-10 items-center justify-center">
             <span className="absolute inset-[3px] translate-x-1.5 -rotate-6 rounded-[11px] border border-[#d7cfcb] bg-[#f3efed] transition duration-280 group-hover:translate-x-2 group-hover:-rotate-12" aria-hidden />
