@@ -45,6 +45,7 @@ Different from Smallpdf (rounded dashed card) and iLovePDF (icon grid):
 
 - Nav: Linear/Stripe — text links, no pills, one red **Convert** to `/`. Homepage groups and hash links include Utilitas.
 - Homepage hero is a dark conversion workbench: concrete file-format copy, live upload machine, route shortcuts, and no generic gradient/AI landing-page treatment.
+- Footer is a dark, multi-column tool directory. Every link must resolve to a real tool, category, or legal page; worker-backed tools remain honestly labeled on their destination page.
 - Tool page: two columns. Left = category, giant mono `FROM → TO`, H1. Right = workbench with corner marks, not a boxed dropzone.
 - Workbench illustration is functional: source card → animated route → output card. Glyphs follow image, PDF, font, video, and audio types. ICO and SVG use the image glyph.
 - A three-item signal strip states where processing happens, queue behavior, and whether output can switch.
