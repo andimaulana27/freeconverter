@@ -6,7 +6,9 @@
     "category": "Gambar",
     "need": "browser",
     "engine": "canvas",
-    "inputs": ["png"],
+    "inputs": [
+      "png"
+    ],
     "output": "jpg",
     "v1": true
   },
@@ -17,7 +19,10 @@
     "category": "Gambar",
     "need": "browser",
     "engine": "canvas",
-    "inputs": ["jpg", "jpeg"],
+    "inputs": [
+      "jpg",
+      "jpeg"
+    ],
     "output": "png",
     "v1": true
   },
@@ -28,7 +33,9 @@
     "category": "Gambar",
     "need": "browser",
     "engine": "canvas",
-    "inputs": ["webp"],
+    "inputs": [
+      "webp"
+    ],
     "output": "png",
     "v1": true
   },
@@ -39,7 +46,9 @@
     "category": "Gambar",
     "need": "browser",
     "engine": "canvas",
-    "inputs": ["png"],
+    "inputs": [
+      "png"
+    ],
     "output": "webp",
     "v1": true
   },
@@ -50,18 +59,34 @@
     "category": "Gambar",
     "need": "browser",
     "engine": "canvas",
-    "inputs": ["jpg", "jpeg"],
+    "inputs": [
+      "jpg",
+      "jpeg"
+    ],
     "output": "webp",
     "v1": true
   },
   {
     "slug": "image-compressor",
     "title": "Image compressor",
-    "purpose": "Kecilkan JPG, PNG, atau WebP di browser.",
+    "purpose": "Kecilkan JPG, PNG, WebP, BMP, ICO, SVG, HEIC, AVIF, atau TIFF di browser.",
     "category": "Gambar",
     "need": "browser",
     "engine": "canvas",
-    "inputs": ["jpg", "jpeg", "png", "webp"],
+    "inputs": [
+      "jpg",
+      "jpeg",
+      "png",
+      "webp",
+      "bmp",
+      "ico",
+      "svg",
+      "heic",
+      "heif",
+      "avif",
+      "tif",
+      "tiff"
+    ],
     "output": "jpg",
     "v1": true
   },
@@ -72,29 +97,173 @@
     "category": "Gambar",
     "need": "browser",
     "engine": "canvas",
-    "inputs": ["jpg", "jpeg", "png", "webp", "gif", "bmp"],
+    "inputs": [
+      "jpg",
+      "jpeg",
+      "png",
+      "webp",
+      "gif",
+      "bmp",
+      "ico",
+      "svg",
+      "heic",
+      "heif",
+      "avif",
+      "tif",
+      "tiff"
+    ],
+    "output": "png",
+    "v1": true
+  },
+  {
+    "slug": "crop-image",
+    "title": "Crop image",
+    "purpose": "Potong area gambar di browser.",
+    "category": "Gambar",
+    "need": "browser",
+    "engine": "canvas",
+    "inputs": [
+      "jpg",
+      "jpeg",
+      "png",
+      "webp",
+      "gif",
+      "bmp",
+      "ico",
+      "svg",
+      "heic",
+      "heif",
+      "avif",
+      "tif",
+      "tiff"
+    ],
+    "output": "png",
+    "v1": true
+  },
+  {
+    "slug": "color-picker",
+    "title": "Color picker",
+    "purpose": "Ambil kode warna dari gambar, salin HEX, unduh swatch.",
+    "category": "Gambar",
+    "need": "browser",
+    "engine": "canvas",
+    "inputs": [
+      "jpg",
+      "jpeg",
+      "png",
+      "webp",
+      "gif",
+      "bmp",
+      "ico",
+      "svg",
+      "heic",
+      "heif",
+      "avif",
+      "tif",
+      "tiff"
+    ],
+    "output": "png",
+    "v1": true
+  },
+  {
+    "slug": "rotate-image",
+    "title": "Rotate image",
+    "purpose": "Putar gambar 90, 180, atau 270 derajat.",
+    "category": "Gambar",
+    "need": "browser",
+    "engine": "canvas",
+    "inputs": [
+      "jpg",
+      "jpeg",
+      "png",
+      "webp",
+      "gif",
+      "bmp",
+      "ico",
+      "svg",
+      "heic",
+      "heif",
+      "avif",
+      "tif",
+      "tiff"
+    ],
+    "output": "png",
+    "v1": true
+  },
+  {
+    "slug": "flip-image",
+    "title": "Flip image",
+    "purpose": "Balik gambar horizontal atau vertikal.",
+    "category": "Gambar",
+    "need": "browser",
+    "engine": "canvas",
+    "inputs": [
+      "jpg",
+      "jpeg",
+      "png",
+      "webp",
+      "gif",
+      "bmp",
+      "ico",
+      "svg",
+      "heic",
+      "heif",
+      "avif",
+      "tif",
+      "tiff"
+    ],
+    "output": "png",
+    "v1": true
+  },
+  {
+    "slug": "collage-maker",
+    "title": "Collage maker",
+    "purpose": "Susun beberapa foto jadi satu kanvas.",
+    "category": "Gambar",
+    "need": "browser",
+    "engine": "canvas",
+    "inputs": [
+      "jpg",
+      "jpeg",
+      "png",
+      "webp",
+      "gif",
+      "bmp",
+      "ico",
+      "svg",
+      "heic",
+      "heif",
+      "avif",
+      "tif",
+      "tiff"
+    ],
     "output": "png",
     "v1": true
   },
   {
     "slug": "gif-compressor",
     "title": "GIF compressor",
-    "purpose": "Kecilkan GIF lewat canvas (frame pertama bila animasi kompleks).",
+    "purpose": "Kecilkan GIF: bingkai pertama jadi JPG. GIF animasi penuh di-skip sampai ada encoder.",
     "category": "Gambar",
     "need": "browser",
     "engine": "canvas",
-    "inputs": ["gif"],
-    "output": "gif",
+    "inputs": [
+      "gif"
+    ],
+    "output": "jpg",
     "v1": true
   },
   {
     "slug": "jpg-to-pdf",
     "title": "JPG to PDF",
-    "purpose": "Gabung foto jadi satu PDF.",
+    "purpose": "Gabung foto JPG jadi satu PDF.",
     "category": "PDF",
     "need": "browser",
     "engine": "pdf-lib",
-    "inputs": ["jpg", "jpeg", "png", "webp"],
+    "inputs": [
+      "jpg",
+      "jpeg"
+    ],
     "output": "pdf",
     "v1": true
   },
@@ -105,7 +274,9 @@
     "category": "PDF",
     "need": "browser",
     "engine": "pdf-lib",
-    "inputs": ["pdf"],
+    "inputs": [
+      "pdf"
+    ],
     "output": "pdf",
     "v1": true
   },
@@ -116,7 +287,9 @@
     "category": "PDF",
     "need": "browser",
     "engine": "pdf-lib",
-    "inputs": ["pdf"],
+    "inputs": [
+      "pdf"
+    ],
     "output": "zip",
     "v1": true
   },
@@ -127,8 +300,272 @@
     "category": "PDF",
     "need": "browser",
     "engine": "pdf-lib",
-    "inputs": ["pdf"],
+    "inputs": [
+      "pdf"
+    ],
     "output": "pdf",
+    "v1": true
+  },
+  {
+    "slug": "delete-pdf-pages",
+    "title": "Delete PDF pages",
+    "purpose": "Buang halaman yang tidak dipakai.",
+    "category": "PDF",
+    "need": "browser",
+    "engine": "pdf-lib",
+    "inputs": [
+      "pdf"
+    ],
+    "output": "pdf",
+    "v1": true
+  },
+  {
+    "slug": "extract-pdf-pages",
+    "title": "Extract PDF pages",
+    "purpose": "Ambil halaman terpilih jadi file baru.",
+    "category": "PDF",
+    "need": "browser",
+    "engine": "pdf-lib",
+    "inputs": [
+      "pdf"
+    ],
+    "output": "pdf",
+    "v1": true
+  },
+  {
+    "slug": "watermark-pdf",
+    "title": "Watermark PDF",
+    "purpose": "Tempel teks di setiap halaman.",
+    "category": "PDF",
+    "need": "browser",
+    "engine": "pdf-lib",
+    "inputs": [
+      "pdf"
+    ],
+    "output": "pdf",
+    "v1": true
+  },
+  {
+    "slug": "pdf-page-numbers",
+    "title": "PDF page numbers",
+    "purpose": "Tambah nomor di setiap halaman.",
+    "category": "PDF",
+    "need": "browser",
+    "engine": "pdf-lib",
+    "inputs": [
+      "pdf"
+    ],
+    "output": "pdf",
+    "v1": true
+  },
+  {
+    "slug": "crop-pdf",
+    "title": "Crop PDF",
+    "purpose": "Potong margin setiap halaman.",
+    "category": "PDF",
+    "need": "browser",
+    "engine": "pdf-lib",
+    "inputs": [
+      "pdf"
+    ],
+    "output": "pdf",
+    "v1": true
+  },
+  {
+    "slug": "unlock-pdf",
+    "title": "Unlock PDF",
+    "purpose": "Buka pembatasan cetak dan copy. Sandi pembuka sering tidak bisa di browser.",
+    "category": "PDF",
+    "need": "browser",
+    "engine": "pdf-lib",
+    "inputs": [
+      "pdf"
+    ],
+    "output": "pdf",
+    "v1": true
+  },
+  {
+    "slug": "organize-pdf",
+    "title": "Organize PDF",
+    "purpose": "Urutkan ulang halaman, atau balik dari belakang.",
+    "category": "PDF",
+    "need": "browser",
+    "engine": "pdf-lib",
+    "inputs": [
+      "pdf"
+    ],
+    "output": "pdf",
+    "v1": true
+  },
+  {
+    "slug": "flatten-pdf",
+    "title": "Flatten PDF",
+    "purpose": "Kunci form field jadi halaman biasa.",
+    "category": "PDF",
+    "need": "browser",
+    "engine": "pdf-lib",
+    "inputs": [
+      "pdf"
+    ],
+    "output": "pdf",
+    "v1": true
+  },
+  {
+    "slug": "redact-pdf",
+    "title": "Redact PDF",
+    "purpose": "Tutup area dengan kotak hitam. Teks di bawah masih ada di file.",
+    "category": "PDF",
+    "need": "browser",
+    "engine": "pdf-lib",
+    "inputs": [
+      "pdf"
+    ],
+    "output": "pdf",
+    "v1": true
+  },
+  {
+    "slug": "sign-pdf",
+    "title": "Sign PDF",
+    "purpose": "Tempel nama sebagai tanda tangan di setiap halaman.",
+    "category": "PDF",
+    "need": "browser",
+    "engine": "pdf-lib",
+    "inputs": [
+      "pdf"
+    ],
+    "output": "pdf",
+    "v1": true
+  },
+  {
+    "slug": "fill-pdf",
+    "title": "Fill PDF",
+    "purpose": "Isi form field AcroForm, lalu unduh PDF yang sudah terisi.",
+    "category": "PDF",
+    "need": "browser",
+    "engine": "pdf-lib",
+    "inputs": [
+      "pdf"
+    ],
+    "output": "pdf",
+    "v1": true
+  },
+  {
+    "slug": "extract-pdf-images",
+    "title": "Extract PDF images",
+    "purpose": "Ambil gambar tertanam di PDF. Bukan raster halaman.",
+    "category": "PDF",
+    "need": "browser",
+    "engine": "pdfjs",
+    "inputs": [
+      "pdf"
+    ],
+    "output": "png",
+    "v1": true
+  },
+  {
+    "slug": "pdf-to-jpg",
+    "title": "PDF to JPG",
+    "purpose": "Raster setiap halaman PDF jadi JPG.",
+    "category": "PDF",
+    "need": "browser",
+    "engine": "pdfjs",
+    "inputs": [
+      "pdf"
+    ],
+    "output": "jpg",
+    "v1": true
+  },
+  {
+    "slug": "pdf-to-png",
+    "title": "PDF to PNG",
+    "purpose": "Raster setiap halaman PDF jadi PNG.",
+    "category": "PDF",
+    "need": "browser",
+    "engine": "pdfjs",
+    "inputs": [
+      "pdf"
+    ],
+    "output": "png",
+    "v1": true
+  },
+  {
+    "slug": "pdf-to-webp",
+    "title": "PDF to WebP",
+    "purpose": "Raster setiap halaman PDF jadi WebP.",
+    "category": "PDF",
+    "need": "browser",
+    "engine": "pdfjs",
+    "inputs": [
+      "pdf"
+    ],
+    "output": "webp",
+    "v1": true
+  },
+  {
+    "slug": "pdf-to-bmp",
+    "title": "PDF to BMP",
+    "purpose": "Raster setiap halaman PDF jadi BMP.",
+    "category": "PDF",
+    "need": "browser",
+    "engine": "pdfjs",
+    "inputs": [
+      "pdf"
+    ],
+    "output": "bmp",
+    "v1": true
+  },
+  {
+    "slug": "txt-to-pdf",
+    "title": "TXT to PDF",
+    "purpose": "Ubah teks biasa jadi PDF A4.",
+    "category": "PDF",
+    "need": "browser",
+    "engine": "pdf-lib",
+    "inputs": [
+      "txt"
+    ],
+    "output": "pdf",
+    "v1": true
+  },
+  {
+    "slug": "csv-to-pdf",
+    "title": "CSV to PDF",
+    "purpose": "Ubah tabel CSV jadi PDF.",
+    "category": "PDF",
+    "need": "browser",
+    "engine": "pdf-lib",
+    "inputs": [
+      "csv"
+    ],
+    "output": "pdf",
+    "v1": true
+  },
+  {
+    "slug": "html-to-pdf",
+    "title": "HTML to PDF",
+    "purpose": "Raster HTML sederhana jadi PDF. CSS eksternal sering terlewat.",
+    "category": "PDF",
+    "need": "browser",
+    "engine": "canvas",
+    "inputs": [
+      "html",
+      "htm"
+    ],
+    "output": "pdf",
+    "v1": true
+  },
+  {
+    "slug": "html-to-txt",
+    "title": "HTML to TXT",
+    "purpose": "Ambil teks dari HTML jadi file TXT.",
+    "category": "Dokumen",
+    "need": "browser",
+    "engine": "html",
+    "inputs": [
+      "html",
+      "htm"
+    ],
+    "output": "txt",
     "v1": true
   },
   {
@@ -137,8 +574,10 @@
     "purpose": "Font TrueType jadi webfont.",
     "category": "Font",
     "need": "browser",
-    "engine": "wawoff2",
-    "inputs": ["ttf"],
+    "engine": "woff2",
+    "inputs": [
+      "ttf"
+    ],
     "output": "woff2",
     "v1": true
   },
@@ -148,8 +587,23 @@
     "purpose": "Font OpenType jadi webfont.",
     "category": "Font",
     "need": "browser",
-    "engine": "wawoff2",
-    "inputs": ["otf"],
+    "engine": "woff2",
+    "inputs": [
+      "otf"
+    ],
+    "output": "woff2",
+    "v1": true
+  },
+  {
+    "slug": "woff-to-woff2",
+    "title": "WOFF to WOFF2",
+    "purpose": "Ubah WOFF1 jadi WOFF2.",
+    "category": "Font",
+    "need": "browser",
+    "engine": "woff2",
+    "inputs": [
+      "woff"
+    ],
     "output": "woff2",
     "v1": true
   },
@@ -160,7 +614,9 @@
     "category": "Gambar",
     "need": "browser",
     "engine": "canvas",
-    "inputs": ["webp"],
+    "inputs": [
+      "webp"
+    ],
     "output": "jpg",
     "v1": true
   },
@@ -171,52 +627,1015 @@
     "category": "Gambar",
     "need": "browser",
     "engine": "canvas",
-    "inputs": ["bmp"],
+    "inputs": [
+      "bmp"
+    ],
     "output": "jpg",
     "v1": true
   },
   {
     "slug": "mp4-to-mp3",
     "title": "MP4 to MP3",
-    "purpose": "Ambil audio dari video. Worker VPS menyusul.",
+    "purpose": "Ambil audio dari video. Encode di-skip sampai ada VPS converter.",
     "category": "Audio",
     "need": "vps",
     "engine": "ffmpeg",
-    "inputs": ["mp4"],
+    "inputs": [
+      "mp4"
+    ],
     "output": "mp3",
     "v1": true
   },
   {
     "slug": "video-compressor",
     "title": "Video compressor",
-    "purpose": "Kecilkan video. Worker VPS menyusul.",
+    "purpose": "Kecilkan video. Encode di-skip sampai ada VPS converter.",
     "category": "Video",
     "need": "vps",
     "engine": "ffmpeg",
-    "inputs": ["mp4", "mov", "mkv", "webm"],
+    "inputs": [
+      "mp4",
+      "mov",
+      "mkv",
+      "webm"
+    ],
     "output": "mp4",
     "v1": true
   },
   {
     "slug": "mov-to-mp4",
     "title": "MOV to MP4",
-    "purpose": "Video iPhone ke MP4. Worker VPS menyusul.",
+    "purpose": "Video iPhone ke MP4. Encode di-skip sampai ada VPS converter.",
     "category": "Video",
     "need": "vps",
     "engine": "ffmpeg",
-    "inputs": ["mov"],
+    "inputs": [
+      "mov"
+    ],
     "output": "mp4",
     "v1": true
   },
   {
     "slug": "heic-to-jpg",
     "title": "HEIC to JPG",
-    "purpose": "Foto iPhone ke JPG. Browser terbatas; VPS menyusul bila gagal.",
+    "purpose": "Foto iPhone ke JPG. Hanya jika browser bisa decode HEIC.",
     "category": "Gambar",
     "need": "browser",
     "engine": "canvas",
-    "inputs": ["heic", "heif"],
+    "inputs": [
+      "heic",
+      "heif"
+    ],
     "output": "jpg",
+    "v1": true
+  },
+  {
+    "slug": "heic-to-png",
+    "title": "HEIC to PNG",
+    "purpose": "Foto iPhone ke PNG. Hanya jika browser bisa decode HEIC.",
+    "category": "Gambar",
+    "need": "browser",
+    "engine": "canvas",
+    "inputs": [
+      "heic",
+      "heif"
+    ],
+    "output": "png",
+    "v1": true
+  },
+  {
+    "slug": "heic-to-webp",
+    "title": "HEIC to WebP",
+    "purpose": "Foto iPhone ke WebP. Hanya jika browser bisa decode HEIC.",
+    "category": "Gambar",
+    "need": "browser",
+    "engine": "canvas",
+    "inputs": [
+      "heic",
+      "heif"
+    ],
+    "output": "webp",
+    "v1": true
+  },
+  {
+    "slug": "heic-to-bmp",
+    "title": "HEIC to BMP",
+    "purpose": "Foto iPhone ke BMP. Hanya jika browser bisa decode HEIC.",
+    "category": "Gambar",
+    "need": "browser",
+    "engine": "canvas",
+    "inputs": [
+      "heic",
+      "heif"
+    ],
+    "output": "bmp",
+    "v1": true
+  },
+  {
+    "slug": "heic-to-ico",
+    "title": "HEIC to ICO",
+    "purpose": "Foto iPhone ke ICO 16/32/48. Hanya jika browser bisa decode HEIC.",
+    "category": "Gambar",
+    "need": "browser",
+    "engine": "canvas",
+    "inputs": [
+      "heic",
+      "heif"
+    ],
+    "output": "ico",
+    "v1": true
+  },
+  {
+    "slug": "png-to-ico",
+    "title": "PNG to ICO",
+    "purpose": "Ubah PNG jadi ICO 16/32/48 untuk favicon.",
+    "category": "Gambar",
+    "need": "browser",
+    "engine": "canvas",
+    "inputs": [
+      "png"
+    ],
+    "output": "ico",
+    "v1": true
+  },
+  {
+    "slug": "jpg-to-ico",
+    "title": "JPG to ICO",
+    "purpose": "Ubah JPG jadi ICO 16/32/48 untuk favicon.",
+    "category": "Gambar",
+    "need": "browser",
+    "engine": "canvas",
+    "inputs": [
+      "jpg",
+      "jpeg"
+    ],
+    "output": "ico",
+    "v1": true
+  },
+  {
+    "slug": "webp-to-ico",
+    "title": "WebP to ICO",
+    "purpose": "Ubah WebP jadi ICO untuk favicon.",
+    "category": "Gambar",
+    "need": "browser",
+    "engine": "canvas",
+    "inputs": [
+      "webp"
+    ],
+    "output": "ico",
+    "v1": true
+  },
+  {
+    "slug": "ico-to-png",
+    "title": "ICO to PNG",
+    "purpose": "Ubah ikon ICO jadi PNG.",
+    "category": "Gambar",
+    "need": "browser",
+    "engine": "canvas",
+    "inputs": [
+      "ico"
+    ],
+    "output": "png",
+    "v1": true
+  },
+  {
+    "slug": "ico-to-jpg",
+    "title": "ICO to JPG",
+    "purpose": "Ubah ikon ICO jadi JPG.",
+    "category": "Gambar",
+    "need": "browser",
+    "engine": "canvas",
+    "inputs": [
+      "ico"
+    ],
+    "output": "jpg",
+    "v1": true
+  },
+  {
+    "slug": "ico-to-webp",
+    "title": "ICO to WebP",
+    "purpose": "Ubah ikon ICO jadi WebP.",
+    "category": "Gambar",
+    "need": "browser",
+    "engine": "canvas",
+    "inputs": [
+      "ico"
+    ],
+    "output": "webp",
+    "v1": true
+  },
+  {
+    "slug": "ico-to-bmp",
+    "title": "ICO to BMP",
+    "purpose": "Ubah ikon ICO jadi BMP.",
+    "category": "Gambar",
+    "need": "browser",
+    "engine": "canvas",
+    "inputs": [
+      "ico"
+    ],
+    "output": "bmp",
+    "v1": true
+  },
+  {
+    "slug": "gif-to-png",
+    "title": "GIF to PNG",
+    "purpose": "Ambil bingkai GIF jadi PNG.",
+    "category": "Gambar",
+    "need": "browser",
+    "engine": "canvas",
+    "inputs": [
+      "gif"
+    ],
+    "output": "png",
+    "v1": true
+  },
+  {
+    "slug": "gif-to-jpg",
+    "title": "GIF to JPG",
+    "purpose": "Ambil bingkai GIF jadi JPG.",
+    "category": "Gambar",
+    "need": "browser",
+    "engine": "canvas",
+    "inputs": [
+      "gif"
+    ],
+    "output": "jpg",
+    "v1": true
+  },
+  {
+    "slug": "gif-to-webp",
+    "title": "GIF to WebP",
+    "purpose": "Ambil bingkai GIF jadi WebP.",
+    "category": "Gambar",
+    "need": "browser",
+    "engine": "canvas",
+    "inputs": [
+      "gif"
+    ],
+    "output": "webp",
+    "v1": true
+  },
+  {
+    "slug": "gif-to-bmp",
+    "title": "GIF to BMP",
+    "purpose": "Ambil bingkai GIF jadi BMP.",
+    "category": "Gambar",
+    "need": "browser",
+    "engine": "canvas",
+    "inputs": [
+      "gif"
+    ],
+    "output": "bmp",
+    "v1": true
+  },
+  {
+    "slug": "gif-to-ico",
+    "title": "GIF to ICO",
+    "purpose": "Ambil bingkai GIF jadi ICO 16/32/48.",
+    "category": "Gambar",
+    "need": "browser",
+    "engine": "canvas",
+    "inputs": [
+      "gif"
+    ],
+    "output": "ico",
+    "v1": true
+  },
+  {
+    "slug": "svg-to-png",
+    "title": "SVG to PNG",
+    "purpose": "Raster SVG jadi PNG di browser.",
+    "category": "Gambar",
+    "need": "browser",
+    "engine": "canvas",
+    "inputs": [
+      "svg"
+    ],
+    "output": "png",
+    "v1": true
+  },
+  {
+    "slug": "svg-to-jpg",
+    "title": "SVG to JPG",
+    "purpose": "Raster SVG jadi JPG di browser.",
+    "category": "Gambar",
+    "need": "browser",
+    "engine": "canvas",
+    "inputs": [
+      "svg"
+    ],
+    "output": "jpg",
+    "v1": true
+  },
+  {
+    "slug": "svg-to-webp",
+    "title": "SVG to WebP",
+    "purpose": "Raster SVG jadi WebP di browser.",
+    "category": "Gambar",
+    "need": "browser",
+    "engine": "canvas",
+    "inputs": [
+      "svg"
+    ],
+    "output": "webp",
+    "v1": true
+  },
+  {
+    "slug": "svg-to-bmp",
+    "title": "SVG to BMP",
+    "purpose": "Raster SVG jadi BMP di browser.",
+    "category": "Gambar",
+    "need": "browser",
+    "engine": "canvas",
+    "inputs": [
+      "svg"
+    ],
+    "output": "bmp",
+    "v1": true
+  },
+  {
+    "slug": "svg-to-ico",
+    "title": "SVG to ICO",
+    "purpose": "Raster SVG jadi ICO 16/32/48.",
+    "category": "Gambar",
+    "need": "browser",
+    "engine": "canvas",
+    "inputs": [
+      "svg"
+    ],
+    "output": "ico",
+    "v1": true
+  },
+  {
+    "slug": "bmp-to-png",
+    "title": "BMP to PNG",
+    "purpose": "Ubah BMP jadi PNG.",
+    "category": "Gambar",
+    "need": "browser",
+    "engine": "canvas",
+    "inputs": [
+      "bmp"
+    ],
+    "output": "png",
+    "v1": true
+  },
+  {
+    "slug": "bmp-to-webp",
+    "title": "BMP to WebP",
+    "purpose": "Ubah BMP jadi WebP.",
+    "category": "Gambar",
+    "need": "browser",
+    "engine": "canvas",
+    "inputs": [
+      "bmp"
+    ],
+    "output": "webp",
+    "v1": true
+  },
+  {
+    "slug": "bmp-to-ico",
+    "title": "BMP to ICO",
+    "purpose": "Ubah BMP jadi ICO 16/32/48.",
+    "category": "Gambar",
+    "need": "browser",
+    "engine": "canvas",
+    "inputs": [
+      "bmp"
+    ],
+    "output": "ico",
+    "v1": true
+  },
+  {
+    "slug": "png-to-bmp",
+    "title": "PNG to BMP",
+    "purpose": "Ubah PNG jadi BMP.",
+    "category": "Gambar",
+    "need": "browser",
+    "engine": "canvas",
+    "inputs": [
+      "png"
+    ],
+    "output": "bmp",
+    "v1": true
+  },
+  {
+    "slug": "jpg-to-bmp",
+    "title": "JPG to BMP",
+    "purpose": "Ubah JPG jadi BMP.",
+    "category": "Gambar",
+    "need": "browser",
+    "engine": "canvas",
+    "inputs": [
+      "jpg",
+      "jpeg"
+    ],
+    "output": "bmp",
+    "v1": true
+  },
+  {
+    "slug": "webp-to-bmp",
+    "title": "WebP to BMP",
+    "purpose": "Ubah WebP jadi BMP.",
+    "category": "Gambar",
+    "need": "browser",
+    "engine": "canvas",
+    "inputs": [
+      "webp"
+    ],
+    "output": "bmp",
+    "v1": true
+  },
+  {
+    "slug": "png-to-pdf",
+    "title": "PNG to PDF",
+    "purpose": "Ubah PNG jadi PDF.",
+    "category": "PDF",
+    "need": "browser",
+    "engine": "pdf-lib",
+    "inputs": [
+      "png"
+    ],
+    "output": "pdf",
+    "v1": true
+  },
+  {
+    "slug": "webp-to-pdf",
+    "title": "WebP to PDF",
+    "purpose": "Ubah WebP jadi PDF.",
+    "category": "PDF",
+    "need": "browser",
+    "engine": "pdf-lib",
+    "inputs": [
+      "webp"
+    ],
+    "output": "pdf",
+    "v1": true
+  },
+  {
+    "slug": "gif-to-pdf",
+    "title": "GIF to PDF",
+    "purpose": "Ubah bingkai GIF jadi PDF.",
+    "category": "PDF",
+    "need": "browser",
+    "engine": "pdf-lib",
+    "inputs": [
+      "gif"
+    ],
+    "output": "pdf",
+    "v1": true
+  },
+  {
+    "slug": "bmp-to-pdf",
+    "title": "BMP to PDF",
+    "purpose": "Ubah BMP jadi PDF.",
+    "category": "PDF",
+    "need": "browser",
+    "engine": "pdf-lib",
+    "inputs": [
+      "bmp"
+    ],
+    "output": "pdf",
+    "v1": true
+  },
+  {
+    "slug": "svg-to-pdf",
+    "title": "SVG to PDF",
+    "purpose": "Raster SVG jadi PDF.",
+    "category": "PDF",
+    "need": "browser",
+    "engine": "pdf-lib",
+    "inputs": [
+      "svg"
+    ],
+    "output": "pdf",
+    "v1": true
+  },
+  {
+    "slug": "heic-to-pdf",
+    "title": "HEIC to PDF",
+    "purpose": "Foto iPhone jadi PDF. Hanya jika browser bisa decode HEIC.",
+    "category": "PDF",
+    "need": "browser",
+    "engine": "pdf-lib",
+    "inputs": [
+      "heic",
+      "heif"
+    ],
+    "output": "pdf",
+    "v1": true
+  },
+  {
+    "slug": "ico-to-pdf",
+    "title": "ICO to PDF",
+    "purpose": "Ubah ikon ICO jadi PDF.",
+    "category": "PDF",
+    "need": "browser",
+    "engine": "pdf-lib",
+    "inputs": [
+      "ico"
+    ],
+    "output": "pdf",
+    "v1": true
+  },
+  {
+    "slug": "json-formatter",
+    "title": "JSON formatter",
+    "purpose": "Rapikan dan validasi file JSON.",
+    "category": "Utilitas",
+    "need": "browser",
+    "engine": "json",
+    "inputs": [
+      "json"
+    ],
+    "output": "json",
+    "v1": true
+  },
+  {
+    "slug": "unit-converter",
+    "title": "Unit converter",
+    "purpose": "Ubah kg, lb, meter, kaki, Celsius, dan Fahrenheit.",
+    "category": "Utilitas",
+    "need": "browser",
+    "engine": "math",
+    "inputs": [],
+    "output": "txt",
+    "v1": true
+  },
+  {
+    "slug": "png-to-tiff",
+    "title": "PNG to TIFF",
+    "purpose": "Ubah PNG jadi TIFF.",
+    "category": "Gambar",
+    "need": "browser",
+    "engine": "canvas",
+    "inputs": [
+      "png"
+    ],
+    "output": "tiff",
+    "v1": true
+  },
+  {
+    "slug": "jpg-to-tiff",
+    "title": "JPG to TIFF",
+    "purpose": "Ubah JPG jadi TIFF.",
+    "category": "Gambar",
+    "need": "browser",
+    "engine": "canvas",
+    "inputs": [
+      "jpg",
+      "jpeg"
+    ],
+    "output": "tiff",
+    "v1": true
+  },
+  {
+    "slug": "webp-to-tiff",
+    "title": "WebP to TIFF",
+    "purpose": "Ubah WebP jadi TIFF.",
+    "category": "Gambar",
+    "need": "browser",
+    "engine": "canvas",
+    "inputs": [
+      "webp"
+    ],
+    "output": "tiff",
+    "v1": true
+  },
+  {
+    "slug": "gif-to-tiff",
+    "title": "GIF to TIFF",
+    "purpose": "Ambil bingkai GIF jadi TIFF.",
+    "category": "Gambar",
+    "need": "browser",
+    "engine": "canvas",
+    "inputs": [
+      "gif"
+    ],
+    "output": "tiff",
+    "v1": true
+  },
+  {
+    "slug": "bmp-to-tiff",
+    "title": "BMP to TIFF",
+    "purpose": "Ubah BMP jadi TIFF.",
+    "category": "Gambar",
+    "need": "browser",
+    "engine": "canvas",
+    "inputs": [
+      "bmp"
+    ],
+    "output": "tiff",
+    "v1": true
+  },
+  {
+    "slug": "ico-to-tiff",
+    "title": "ICO to TIFF",
+    "purpose": "Ubah ikon ICO jadi TIFF.",
+    "category": "Gambar",
+    "need": "browser",
+    "engine": "canvas",
+    "inputs": [
+      "ico"
+    ],
+    "output": "tiff",
+    "v1": true
+  },
+  {
+    "slug": "svg-to-tiff",
+    "title": "SVG to TIFF",
+    "purpose": "Raster SVG jadi TIFF.",
+    "category": "Gambar",
+    "need": "browser",
+    "engine": "canvas",
+    "inputs": [
+      "svg"
+    ],
+    "output": "tiff",
+    "v1": true
+  },
+  {
+    "slug": "heic-to-tiff",
+    "title": "HEIC to TIFF",
+    "purpose": "Foto iPhone ke TIFF. Hanya jika browser bisa decode HEIC.",
+    "category": "Gambar",
+    "need": "browser",
+    "engine": "canvas",
+    "inputs": [
+      "heic",
+      "heif"
+    ],
+    "output": "tiff",
+    "v1": true
+  },
+  {
+    "slug": "avif-to-jpg",
+    "title": "AVIF to JPG",
+    "purpose": "Ubah AVIF jadi JPG. Hanya jika browser bisa decode AVIF.",
+    "category": "Gambar",
+    "need": "browser",
+    "engine": "canvas",
+    "inputs": [
+      "avif"
+    ],
+    "output": "jpg",
+    "v1": true
+  },
+  {
+    "slug": "avif-to-png",
+    "title": "AVIF to PNG",
+    "purpose": "Ubah AVIF jadi PNG. Hanya jika browser bisa decode AVIF.",
+    "category": "Gambar",
+    "need": "browser",
+    "engine": "canvas",
+    "inputs": [
+      "avif"
+    ],
+    "output": "png",
+    "v1": true
+  },
+  {
+    "slug": "avif-to-webp",
+    "title": "AVIF to WebP",
+    "purpose": "Ubah AVIF jadi WebP. Hanya jika browser bisa decode AVIF.",
+    "category": "Gambar",
+    "need": "browser",
+    "engine": "canvas",
+    "inputs": [
+      "avif"
+    ],
+    "output": "webp",
+    "v1": true
+  },
+  {
+    "slug": "avif-to-bmp",
+    "title": "AVIF to BMP",
+    "purpose": "Ubah AVIF jadi BMP. Hanya jika browser bisa decode AVIF.",
+    "category": "Gambar",
+    "need": "browser",
+    "engine": "canvas",
+    "inputs": [
+      "avif"
+    ],
+    "output": "bmp",
+    "v1": true
+  },
+  {
+    "slug": "avif-to-ico",
+    "title": "AVIF to ICO",
+    "purpose": "Ubah AVIF jadi ICO 16/32/48.",
+    "category": "Gambar",
+    "need": "browser",
+    "engine": "canvas",
+    "inputs": [
+      "avif"
+    ],
+    "output": "ico",
+    "v1": true
+  },
+  {
+    "slug": "avif-to-tiff",
+    "title": "AVIF to TIFF",
+    "purpose": "Ubah AVIF jadi TIFF. Hanya jika browser bisa decode AVIF.",
+    "category": "Gambar",
+    "need": "browser",
+    "engine": "canvas",
+    "inputs": [
+      "avif"
+    ],
+    "output": "tiff",
+    "v1": true
+  },
+  {
+    "slug": "avif-to-pdf",
+    "title": "AVIF to PDF",
+    "purpose": "Ubah AVIF jadi PDF. Hanya jika browser bisa decode AVIF.",
+    "category": "PDF",
+    "need": "browser",
+    "engine": "pdf-lib",
+    "inputs": [
+      "avif"
+    ],
+    "output": "pdf",
+    "v1": true
+  },
+  {
+    "slug": "tiff-to-jpg",
+    "title": "TIFF to JPG",
+    "purpose": "Ubah TIFF jadi JPG.",
+    "category": "Gambar",
+    "need": "browser",
+    "engine": "canvas",
+    "inputs": [
+      "tiff",
+      "tif"
+    ],
+    "output": "jpg",
+    "v1": true
+  },
+  {
+    "slug": "tiff-to-png",
+    "title": "TIFF to PNG",
+    "purpose": "Ubah TIFF jadi PNG.",
+    "category": "Gambar",
+    "need": "browser",
+    "engine": "canvas",
+    "inputs": [
+      "tiff",
+      "tif"
+    ],
+    "output": "png",
+    "v1": true
+  },
+  {
+    "slug": "tiff-to-webp",
+    "title": "TIFF to WebP",
+    "purpose": "Ubah TIFF jadi WebP.",
+    "category": "Gambar",
+    "need": "browser",
+    "engine": "canvas",
+    "inputs": [
+      "tiff",
+      "tif"
+    ],
+    "output": "webp",
+    "v1": true
+  },
+  {
+    "slug": "tiff-to-bmp",
+    "title": "TIFF to BMP",
+    "purpose": "Ubah TIFF jadi BMP.",
+    "category": "Gambar",
+    "need": "browser",
+    "engine": "canvas",
+    "inputs": [
+      "tiff",
+      "tif"
+    ],
+    "output": "bmp",
+    "v1": true
+  },
+  {
+    "slug": "tiff-to-ico",
+    "title": "TIFF to ICO",
+    "purpose": "Ubah TIFF jadi ICO 16/32/48.",
+    "category": "Gambar",
+    "need": "browser",
+    "engine": "canvas",
+    "inputs": [
+      "tiff",
+      "tif"
+    ],
+    "output": "ico",
+    "v1": true
+  },
+  {
+    "slug": "tiff-to-pdf",
+    "title": "TIFF to PDF",
+    "purpose": "Ubah TIFF jadi PDF.",
+    "category": "PDF",
+    "need": "browser",
+    "engine": "pdf-lib",
+    "inputs": [
+      "tiff",
+      "tif"
+    ],
+    "output": "pdf",
+    "v1": true
+  },
+  {
+    "slug": "pdf-to-tiff",
+    "title": "PDF to TIFF",
+    "purpose": "Raster setiap halaman PDF jadi TIFF.",
+    "category": "PDF",
+    "need": "browser",
+    "engine": "pdfjs",
+    "inputs": [
+      "pdf"
+    ],
+    "output": "tiff",
+    "v1": true
+  },
+  {
+    "slug": "pdf-to-txt",
+    "title": "PDF to TXT",
+    "purpose": "Ambil teks dari PDF. File scan butuh OCR nanti.",
+    "category": "PDF",
+    "need": "browser",
+    "engine": "pdfjs",
+    "inputs": [
+      "pdf"
+    ],
+    "output": "txt",
+    "v1": true
+  },
+  {
+    "slug": "pdf-to-docx",
+    "title": "PDF to Word",
+    "purpose": "Ubah teks PDF jadi DOCX. Bukan layout asli.",
+    "category": "PDF",
+    "need": "browser",
+    "engine": "pdfjs",
+    "inputs": [
+      "pdf"
+    ],
+    "output": "docx",
+    "v1": true
+  },
+  {
+    "slug": "docx-to-pdf",
+    "title": "Word to PDF",
+    "purpose": "Ubah DOCX jadi PDF. Layout rumit sering terlewat.",
+    "category": "Dokumen",
+    "need": "browser",
+    "engine": "mammoth",
+    "inputs": [
+      "docx"
+    ],
+    "output": "pdf",
+    "v1": true
+  },
+  {
+    "slug": "docx-to-txt",
+    "title": "Word to TXT",
+    "purpose": "Ambil teks dari DOCX.",
+    "category": "Dokumen",
+    "need": "browser",
+    "engine": "mammoth",
+    "inputs": [
+      "docx"
+    ],
+    "output": "txt",
+    "v1": true
+  },
+  {
+    "slug": "docx-to-html",
+    "title": "Word to HTML",
+    "purpose": "Ubah DOCX jadi HTML sederhana.",
+    "category": "Dokumen",
+    "need": "browser",
+    "engine": "mammoth",
+    "inputs": [
+      "docx"
+    ],
+    "output": "html",
+    "v1": true
+  },
+  {
+    "slug": "xlsx-to-pdf",
+    "title": "Excel to PDF",
+    "purpose": "Ubah sheet pertama XLSX jadi PDF.",
+    "category": "Spreadsheet",
+    "need": "browser",
+    "engine": "xlsx",
+    "inputs": [
+      "xlsx"
+    ],
+    "output": "pdf",
+    "v1": true
+  },
+  {
+    "slug": "xlsx-to-csv",
+    "title": "Excel to CSV",
+    "purpose": "Ubah sheet pertama XLSX jadi CSV.",
+    "category": "Spreadsheet",
+    "need": "browser",
+    "engine": "xlsx",
+    "inputs": [
+      "xlsx"
+    ],
+    "output": "csv",
+    "v1": true
+  },
+  {
+    "slug": "xlsx-to-json",
+    "title": "Excel to JSON",
+    "purpose": "Ubah sheet pertama XLSX jadi JSON.",
+    "category": "Spreadsheet",
+    "need": "browser",
+    "engine": "xlsx",
+    "inputs": [
+      "xlsx"
+    ],
+    "output": "json",
+    "v1": true
+  },
+  {
+    "slug": "csv-to-xlsx",
+    "title": "CSV to Excel",
+    "purpose": "Ubah CSV jadi XLSX.",
+    "category": "Spreadsheet",
+    "need": "browser",
+    "engine": "xlsx",
+    "inputs": [
+      "csv"
+    ],
+    "output": "xlsx",
+    "v1": true
+  },
+  {
+    "slug": "csv-to-json",
+    "title": "CSV to JSON",
+    "purpose": "Ubah tabel CSV jadi JSON.",
+    "category": "Utilitas",
+    "need": "browser",
+    "engine": "json",
+    "inputs": [
+      "csv"
+    ],
+    "output": "json",
+    "v1": true
+  },
+  {
+    "slug": "json-to-csv",
+    "title": "JSON to CSV",
+    "purpose": "Ubah array JSON jadi CSV.",
+    "category": "Utilitas",
+    "need": "browser",
+    "engine": "json",
+    "inputs": [
+      "json"
+    ],
+    "output": "csv",
+    "v1": true
+  },
+  {
+    "slug": "json-to-xlsx",
+    "title": "JSON to Excel",
+    "purpose": "Ubah array JSON jadi XLSX.",
+    "category": "Spreadsheet",
+    "need": "browser",
+    "engine": "xlsx",
+    "inputs": [
+      "json"
+    ],
+    "output": "xlsx",
+    "v1": true
+  },
+  {
+    "slug": "pptx-to-pdf",
+    "title": "PowerPoint to PDF",
+    "purpose": "Ubah teks slide PPTX jadi PDF. Bukan layout asli.",
+    "category": "Presentasi",
+    "need": "browser",
+    "engine": "pptx",
+    "inputs": [
+      "pptx"
+    ],
+    "output": "pdf",
+    "v1": true
+  },
+  {
+    "slug": "pptx-to-txt",
+    "title": "PowerPoint to TXT",
+    "purpose": "Ambil teks dari slide PPTX.",
+    "category": "Presentasi",
+    "need": "browser",
+    "engine": "pptx",
+    "inputs": [
+      "pptx"
+    ],
+    "output": "txt",
     "v1": true
   }
 ]

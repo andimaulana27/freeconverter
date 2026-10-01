@@ -15,7 +15,7 @@ export function Chip({ href, children, soon, className }: Props) {
     <Link
       href={href}
       className={cn(
-        "inline-flex items-center rounded-full border border-line bg-paper px-3 py-1.5 text-sm text-ink shadow-sm transition duration-180 hover:-translate-y-px hover:border-accent hover:shadow-drop",
+        "inline-flex items-center border-b border-transparent py-1 text-sm text-mute transition duration-180 hover:border-accent hover:text-ink",
         soon && "text-mute",
         className,
       )}

@@ -10,7 +10,7 @@
 import { mkdir, readdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import process from 'node:process';
-import * as wawoff2 from 'wawoff2';
+import { compress } from 'woff2-encoder';
 
 const args = process.argv.slice(2);
 const has = (flag) => args.includes(flag);
@@ -107,7 +107,7 @@ async function convertOne(file) {
   }
 
   try {
-    const woff2 = Buffer.from(await wawoff2.compress(input));
+    const woff2 = Buffer.from(await compress(input));
     await mkdir(path.dirname(outPath), { recursive: true });
     await writeFile(outPath, woff2);
     row.status = 'ok';

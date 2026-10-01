@@ -4,7 +4,7 @@ import { cn } from "@/lib/cn";
 
 export const buttonVariants = {
   primary:
-    "bg-accent text-white shadow-sm hover:bg-accent-ink focus-visible:ring-accent",
+    "bg-accent text-white hover:bg-accent-ink focus-visible:ring-accent",
   secondary:
     "border border-line bg-paper text-ink hover:border-accent hover:bg-accent-soft focus-visible:ring-accent",
   ghost: "text-mute hover:bg-paper hover:text-ink focus-visible:ring-line",
@@ -19,7 +19,7 @@ export type ButtonVariant = keyof typeof buttonVariants;
 export type ButtonSize = keyof typeof buttonSizes;
 
 const BASE =
-  "inline-flex items-center justify-center font-medium outline-none transition duration-180 active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-bone disabled:pointer-events-none disabled:opacity-50";
+  "inline-flex items-center justify-center font-medium outline-none transition duration-180 active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-paper disabled:pointer-events-none disabled:opacity-50";
 
 export function buttonClass({
   variant = "primary",

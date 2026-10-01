@@ -3,7 +3,7 @@ import { cn } from "@/lib/cn";
 
 const TONE = {
   mute: "bg-bone text-mute",
-  accent: "bg-accent-soft text-accent-ink",
+  accent: "bg-accent-soft text-accent",
   warn: "bg-bone text-warn",
   ok: "bg-bone text-ok",
 } as const;

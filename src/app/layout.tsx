@@ -1,32 +1,26 @@
 import type { ReactNode } from "react";
-import { Inter } from "next/font/google";
 import type { Metadata } from "next";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { Container } from "@/components/ui/Container";
+import { ConvertSessionProvider } from "@/components/convert/ConvertSession";
+import { brandMetadata } from "@/lib/seo";
 import "./globals.css";
 
-const sans = Inter({ subsets: ["latin"], variable: "--font-sans" });
-
-export const metadata: Metadata = {
-  title: {
-    default: "FreeConverter — Convert files in the browser",
-    template: "%s · FreeConverter",
-  },
-  description:
-    "Drop a file and convert it. Images, PDF, and fonts run on your device. Video follows when the worker is ready.",
-};
+export const metadata: Metadata = brandMetadata();
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en">
-      <body className={`${sans.variable} font-sans min-h-screen bg-bone text-ink antialiased`}>
+      <body className="min-h-screen bg-[#fbfaf9] font-sans text-ink antialiased">
         <div className="flex min-h-screen flex-col">
-          <Header />
-          <main className="flex-1 animate-enter">
-            <Container className="py-10 sm:py-12">{children}</Container>
-          </main>
-          <Footer />
+          <ConvertSessionProvider>
+            <Header />
+            <main className="flex-1">
+              <Container className="py-10 sm:py-14 lg:py-16">{children}</Container>
+            </main>
+            <Footer />
+          </ConvertSessionProvider>
         </div>
       </body>
     </html>

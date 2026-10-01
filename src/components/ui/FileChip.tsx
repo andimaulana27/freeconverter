@@ -11,9 +11,10 @@ type Props = {
 
 export function FileChip({ name, size, onRemove }: Props) {
   return (
-    <li className="flex min-w-0 items-center gap-2 rounded-control border border-line bg-bone px-3 py-2 text-sm animate-enter">
+    <li className="flex min-w-0 items-center gap-2 border-b border-line py-2.5 text-sm animate-chip">
+      <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-accent" />
       <span className="min-w-0 flex-1 truncate font-medium text-ink">{name}</span>
-      <span className="shrink-0 text-xs text-faint">{formatBytes(size)}</span>
+      <span className="shrink-0 font-mono text-xs text-faint">{formatBytes(size)}</span>
       {onRemove ? (
         <Button type="button" variant="ghost" size="sm" className="h-7 w-7 px-0" onClick={onRemove} aria-label={`Remove ${name}`}>
           ×
