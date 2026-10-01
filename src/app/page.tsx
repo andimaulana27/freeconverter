@@ -46,60 +46,106 @@ export default function HomePage() {
     <div className="flex flex-col gap-20 pb-8 sm:gap-28">
       <JsonLd data={websiteJsonLd()} />
 
-      <section className="grid items-center gap-12 border-b border-[#e7e1de] pb-14 lg:grid-cols-[0.95fr_1.05fr] lg:gap-14 lg:pb-20">
-        <div className="relative">
-          <p className="flex items-center gap-3 text-[10px] font-bold uppercase tracking-[0.22em] text-[#6f6763]">
-            <span className="h-px w-8 bg-accent" />
-            Browser file studio
-          </p>
-          <h1 className="mt-7 text-5xl font-semibold leading-[0.94] tracking-[-0.065em] text-ink sm:text-7xl lg:text-[70px]">
-            Make every file
-            <span className="block text-accent">work harder.</span>
-          </h1>
-          <p className="mt-7 max-w-md text-base leading-7 text-mute">
-            Convert, compress, and edit everyday files in a workspace built for speed—not sign-ups, limits, or unnecessary steps.
-          </p>
-          <div className="mt-8 flex flex-wrap items-center gap-3">
-            <a
-              href="#converter"
-              className="group inline-flex items-center gap-3 rounded-xl bg-ink px-5 py-3.5 text-sm font-semibold text-white transition duration-180 hover:-translate-y-0.5 hover:bg-accent"
-            >
-              Convert a file
-              <span className="transition group-hover:translate-x-1"><ArrowIcon /></span>
-            </a>
-            <a
-              href="#tools"
-              className="inline-flex items-center rounded-xl border border-[#dcd5d1] bg-white px-5 py-3.5 text-sm font-semibold text-ink transition hover:border-[#bdb3ae] hover:bg-[#f8f5f3]"
-            >
-              Explore all tools
-            </a>
-          </div>
-          <dl className="mt-10 grid max-w-md grid-cols-3 border-t border-[#e5dfdc] pt-5">
-            {[
-              [String(tools.length), "tools"],
-              ["0", "sign-ups"],
-              ["Local", "processing"],
-            ].map(([value, label]) => (
-              <div key={label}>
-                <dt className="text-lg font-semibold tracking-tight text-ink">{value}</dt>
-                <dd className="mt-0.5 text-[10px] uppercase tracking-[0.13em] text-faint">{label}</dd>
-              </div>
-            ))}
-          </dl>
-        </div>
+      <section className="relative isolate overflow-hidden rounded-[32px] bg-[#171311] text-white shadow-[0_32px_90px_rgba(42,28,22,0.18)]">
+        <div
+          className="pointer-events-none absolute inset-0 opacity-35 [background-image:linear-gradient(rgba(255,255,255,0.05)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.05)_1px,transparent_1px)] [background-size:48px_48px]"
+          aria-hidden
+        />
+        <div className="pointer-events-none absolute -left-24 top-24 h-72 w-72 rounded-full border border-white/10" aria-hidden />
+        <div className="pointer-events-none absolute -left-12 top-36 h-48 w-48 rounded-full border border-white/10" aria-hidden />
 
-        <div id="converter" className="relative scroll-mt-24">
-          <div className="absolute -right-5 -top-5 h-24 w-24 rounded-[28px] bg-[#ffd74a]" aria-hidden />
-          <div className="absolute -bottom-5 -left-5 h-32 w-32 rounded-full bg-[#8b6cff]" aria-hidden />
-          <div className="relative overflow-hidden rounded-[28px] border border-[#dfd8d4] bg-white shadow-[0_30px_80px_rgba(45,30,24,0.15)]">
-            <div className="flex items-center justify-between border-b border-[#eee9e6] bg-[#191513] px-5 py-3.5 text-white">
-              <p className="text-[10px] font-bold uppercase tracking-[0.18em]">Quick converter</p>
-              <p className="flex items-center gap-2 text-[10px] text-white/55">
-                <span className="h-1.5 w-1.5 rounded-full bg-[#55d69a]" />
-                Ready
-              </p>
+        <div className="relative grid gap-12 px-6 py-8 sm:px-10 sm:py-12 lg:grid-cols-[0.8fr_1.2fr] lg:items-center lg:gap-12 lg:px-12 lg:py-14">
+          <div>
+            <h1 className="max-w-xl text-[42px] font-semibold leading-[0.97] tracking-[-0.06em] sm:text-6xl sm:leading-[0.95] lg:text-[64px]">
+              Drop the file.
+              <span className="mt-1 block text-[#ff6a64]">Leave with the format you need.</span>
+            </h1>
+            <p className="mt-6 max-w-lg text-[15px] leading-7 text-white/65">
+              Choose a file, pick an output, and download. Common conversions run on this device—without an account or a detour through a third-party API.
+            </p>
+
+            <div className="mt-8 flex flex-wrap gap-3">
+              <a
+                href="#converter"
+                className="group inline-flex items-center gap-3 rounded-xl bg-accent px-5 py-3.5 text-sm font-semibold text-white shadow-[0_12px_28px_rgba(217,45,40,0.3)] transition duration-180 hover:-translate-y-0.5 hover:bg-[#ef3b35]"
+              >
+                Open the workbench
+                <span className="transition group-hover:translate-x-1"><ArrowIcon /></span>
+              </a>
+              <Link
+                href="/tools"
+                className="inline-flex items-center rounded-xl border border-white/15 bg-white/[0.06] px-5 py-3.5 text-sm font-semibold text-white transition hover:border-white/30 hover:bg-white/10"
+              >
+                Browse {tools.length} tools
+              </Link>
             </div>
-            <DropEngine />
+
+            <div className="mt-9">
+              <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-white/35">Start with a popular route</p>
+              <div className="mt-3 flex flex-wrap gap-2">
+                {[
+                  ["png-to-jpg", "PNG", "JPG"],
+                  ["pdf-to-docx", "PDF", "WORD"],
+                  ["heic-to-jpg", "HEIC", "JPG"],
+                ].map(([slug, from, to]) => (
+                  <Link
+                    key={slug}
+                    href={`/${slug}`}
+                    className="group inline-flex items-center gap-2 rounded-lg border border-white/10 bg-black/15 px-3 py-2 font-mono text-[10px] font-semibold text-white/65 transition hover:-translate-y-0.5 hover:border-white/25 hover:bg-white/10 hover:text-white"
+                  >
+                    {from}
+                    <span className="text-[#ff6a64] transition group-hover:translate-x-0.5">→</span>
+                    {to}
+                  </Link>
+                ))}
+              </div>
+            </div>
+
+            <dl className="mt-9 grid max-w-lg grid-cols-3 border-t border-white/10 pt-5">
+              {[
+                [String(tools.length), "focused tools"],
+                ["0", "sign-ups"],
+                ["On-device", "when supported"],
+              ].map(([value, label]) => (
+                <div key={label}>
+                  <dt className="text-base font-semibold tracking-tight text-white">{value}</dt>
+                  <dd className="mt-1 text-[9px] uppercase tracking-[0.13em] text-white/35">{label}</dd>
+                </div>
+              ))}
+            </dl>
+          </div>
+
+          <div id="converter" className="relative scroll-mt-24 lg:pl-3">
+            <div className="pointer-events-none absolute -inset-3 rotate-2 rounded-[30px] border border-white/10 bg-white/[0.035]" aria-hidden />
+            <div className="relative overflow-hidden rounded-[24px] border border-white/10 bg-white shadow-[0_28px_70px_rgba(0,0,0,0.38)]">
+              <div className="flex items-center justify-between border-b border-white/10 bg-[#211c19] px-5 py-3.5 text-white">
+                <div className="flex items-center gap-3">
+                  <span className="flex gap-1.5" aria-hidden>
+                    <span className="h-2 w-2 rounded-full bg-[#ff6a64]" />
+                    <span className="h-2 w-2 rounded-full bg-white/20" />
+                    <span className="h-2 w-2 rounded-full bg-white/20" />
+                  </span>
+                  <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-white/70">Live workbench</p>
+                </div>
+                <p className="flex items-center gap-2 text-[9px] font-bold uppercase tracking-[0.16em] text-white/45">
+                  <span className="h-1.5 w-1.5 rounded-full bg-[#55d69a]" />
+                  Local ready
+                </p>
+              </div>
+              <DropEngine />
+              <div className="grid grid-cols-3 border-t border-[#ece7e4] bg-[#faf8f7]">
+                {[
+                  ["01", "Choose"],
+                  ["02", "Convert"],
+                  ["03", "Download"],
+                ].map(([number, label]) => (
+                  <p key={number} className="border-r border-[#ece7e4] px-3 py-3 text-center text-[9px] font-bold uppercase tracking-[0.14em] text-[#817975] last:border-r-0">
+                    <span className="mr-1.5 font-mono text-accent">{number}</span>
+                    {label}
+                  </p>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
       </section>
