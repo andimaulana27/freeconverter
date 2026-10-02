@@ -1,0 +1,17 @@
+---
+description: Keep blog, admin, ads, and AI roadmap artifacts synchronized with implementation
+alwaysApply: true
+---
+
+# Blog roadmap source of truth
+
+When changing the blog, admin CMS, ad manager, AI generation, publishing, or related database schema:
+
+- Read `docs/BLOG-ADMIN-AI-ARCHITECTURE.md` before implementation.
+- Treat the architecture document and `blog-admin-ai-architecture.canvas.tsx` as shared source-of-truth artifacts.
+- Update the affected phase status, decisions, schema, routes, security notes, and verification evidence.
+- Update both the document and Canvas in the same task when a phase or meaningful sub-phase changes.
+- Never mark a phase complete until implementation and verification are complete.
+- Commit implementation and its matching roadmap updates together.
+- Keep AI provider keys and service credentials server-only.
+- Keep public Blog navigation in the homepage guide section and footer, not the primary header.
