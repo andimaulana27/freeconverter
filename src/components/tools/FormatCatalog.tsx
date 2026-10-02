@@ -103,7 +103,7 @@ export function FormatCatalog({ onPickFormat }: Props) {
         </p>
       </div>
 
-      <div className="relative mt-6 grid grid-cols-2 gap-1 overflow-hidden rounded-card border border-[#ebe5e1] bg-[#faf8f7] p-1.5 sm:grid-cols-3 md:grid-cols-6" aria-label="Format categories">
+      <div className="relative mt-6 grid grid-cols-2 gap-1 overflow-hidden rounded-card border border-[#ebe5e1] bg-[#faf8f7] p-1.5 sm:grid-cols-3 lg:grid-cols-6" aria-label="Format categories">
         {FORMAT_CATALOG.map((item) => (
           <button
             key={item.category}
@@ -111,16 +111,16 @@ export function FormatCatalog({ onPickFormat }: Props) {
             onClick={() => setActive(item.category)}
             aria-pressed={item.category === active}
             className={cn(
-              "inline-flex h-9 w-full min-w-0 items-center justify-center gap-1.5 whitespace-nowrap rounded-control px-2 text-[11px] font-semibold transition duration-180 sm:h-10 sm:px-2.5 sm:text-xs",
+              "flex h-10 w-full min-w-0 items-center gap-2 rounded-control px-2.5 text-left text-[11px] font-semibold transition duration-180 sm:h-11 sm:px-3 sm:text-xs",
               item.category === active
                 ? "bg-ink text-white shadow-[0_8px_18px_rgba(24,20,18,0.16)]"
-                : "text-mute hover:bg-white hover:text-ink",
+                : "text-ink hover:bg-white",
             )}
           >
             <CategoryIcon category={item.category} active={item.category === active} />
-            {item.label}
-            <span className={cn("font-mono text-[10px]", item.category === active ? "text-white/60" : "text-faint")}>
-              {item.formats.length}
+            <span className="flex min-w-0 items-baseline gap-1.5 leading-none">
+              <span className="truncate">{item.label}</span>
+              <span className="shrink-0 font-mono text-[10px] font-semibold tabular-nums">{item.formats.length}</span>
             </span>
           </button>
         ))}
