@@ -13,12 +13,16 @@ export default function config(phase: string): NextConfig {
     poweredByHeader: false,
     distDir: development ? ".next-dev" : ".next",
     allowedDevOrigins: ["127.0.0.1"],
-    transpilePackages: ["pdfjs-dist", "utif", "mammoth", "pako"],
+    transpilePackages: ["pdfjs-dist", "utif", "mammoth", "pako", "@jsquash/avif", "gifenc"],
     webpack: (webpackConfig, { isServer }) => {
       webpackConfig.resolve.alias = {
         ...webpackConfig.resolve.alias,
         utif: utifFile,
         pako: pakoFile,
+      };
+      webpackConfig.experiments = {
+        ...webpackConfig.experiments,
+        asyncWebAssembly: true,
       };
       if (!isServer) {
         webpackConfig.resolve.fallback = {

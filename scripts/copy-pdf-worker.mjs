@@ -4,8 +4,19 @@ import { createRequire } from "node:module";
 import { fileURLToPath } from "node:url";
 
 const require = createRequire(import.meta.url);
-const src = require.resolve("pdfjs-dist/build/pdf.worker.min.mjs");
-const dest = join(dirname(fileURLToPath(import.meta.url)), "..", "public", "pdf.worker.min.mjs");
-mkdirSync(dirname(dest), { recursive: true });
-copyFileSync(src, dest);
-console.log(`pdf worker → ${dest}`);
+const publicDir = join(dirname(fileURLToPath(import.meta.url)), "..", "public");
+mkdirSync(publicDir, { recursive: true });
+
+function copyAsset(id, destName) {
+  const src = require.resolve(id);
+  const dest = join(publicDir, destName);
+  copyFileSync(src, dest);
+  console.log(`${destName} → ${dest}`);
+}
+
+copyAsset("pdfjs-dist/build/pdf.worker.min.mjs", "pdf.worker.min.mjs");
+copyFileSync(
+  join(dirname(require.resolve("@jsquash/avif/package.json")), "codec/enc/avif_enc.wasm"),
+  join(publicDir, "avif_enc.wasm"),
+);
+console.log(`avif_enc.wasm → ${join(publicDir, "avif_enc.wasm")}`);

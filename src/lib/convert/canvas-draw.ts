@@ -49,17 +49,29 @@ export async function blobFromCanvas(canvas: HTMLCanvasElement, mime: string, qu
   if (mime === "image/webp") {
     throw new Error("This browser cannot write WebP. Choose PNG or JPG instead.");
   }
+  if (mime === "image/avif") {
+    throw new Error("This browser cannot write AVIF natively.");
+  }
   throw new Error("Could not encode the image.");
 }
 
-export async function canvasFromImageFile(file: File, opts?: { width?: number; background?: string }) {
+export async function canvasFromImageFile(file: File, opts?: { width?: number; height?: number; stretch?: boolean; background?: string }) {
   const img = await loadImage(file);
   const natural = sizeOf(img);
   const maxEdge = 8192;
   const fit = Math.min(1, maxEdge / Math.max(natural.width, natural.height));
-  const scale = (opts?.width ? Math.min(1, opts.width / natural.width) : 1) * fit;
-  const width = Math.max(1, Math.round(natural.width * scale));
-  const height = Math.max(1, Math.round(natural.height * scale));
+  let width = Math.max(1, Math.round(natural.width * fit));
+  let height = Math.max(1, Math.round(natural.height * fit));
+  if (opts?.stretch && opts.width && opts.height) {
+    width = Math.max(1, Math.min(maxEdge, Math.round(opts.width)));
+    height = Math.max(1, Math.min(maxEdge, Math.round(opts.height)));
+  } else if (opts?.width || opts?.height) {
+    const scaleX = opts.width ? opts.width / natural.width : Infinity;
+    const scaleY = opts.height ? opts.height / natural.height : Infinity;
+    const scale = Math.min(scaleX, scaleY, maxEdge / Math.max(natural.width, natural.height));
+    width = Math.max(1, Math.round(natural.width * scale));
+    height = Math.max(1, Math.round(natural.height * scale));
+  }
   const { canvas, ctx } = canvasContext(width, height);
   if (opts?.background) {
     ctx.fillStyle = opts.background;
