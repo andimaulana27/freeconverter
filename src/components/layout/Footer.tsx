@@ -47,7 +47,7 @@ const FOOTER_GROUPS = [
 
 export function Footer() {
   return (
-    <footer className="relative isolate mt-16 overflow-hidden border-t border-white/10 bg-[#171311] text-white">
+    <footer className="relative isolate mt-10 overflow-hidden border-t border-white/10 bg-[#171311] text-white sm:mt-12">
       <div
         className="pointer-events-none absolute inset-0 -z-10 opacity-45 [background-image:linear-gradient(rgba(255,255,255,0.045)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.045)_1px,transparent_1px)] [background-size:52px_52px]"
         aria-hidden
@@ -59,11 +59,11 @@ export function Footer() {
       <div className="pointer-events-none absolute -right-32 -top-36 -z-10 h-[28rem] w-[28rem] rounded-full border-[64px] border-white/[0.025]" aria-hidden />
 
       <Container className="max-w-[1440px] py-7 sm:py-10">
-        <div className="group/cta relative overflow-hidden rounded-[28px] border border-white/10 bg-white/[0.045] p-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] sm:p-8 lg:p-10">
+        <div className="group/cta relative overflow-hidden rounded-panel border border-white/10 bg-white/[0.045] p-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] sm:p-8 lg:p-10">
           <div className="pointer-events-none absolute -bottom-24 right-[22%] h-56 w-56 rounded-full border border-white/[0.07] transition duration-700 group-hover/cta:scale-110" aria-hidden />
           <div className="relative grid items-end gap-8 lg:grid-cols-[1fr_auto]">
             <div>
-              <p className="flex items-center gap-3 text-[9px] font-bold uppercase tracking-[0.2em] text-accent">
+              <p className="flex items-center gap-3 text-eyebrow font-bold uppercase text-accent">
                 <span className="h-px w-7 bg-accent" />
                 Your next format is one move away
               </p>
@@ -82,8 +82,8 @@ export function Footer() {
                     key={item + index}
                     className={
                       item === "→"
-                        ? "px-1 font-mono text-sm text-[#ff6a64]"
-                        : "flex h-12 w-12 items-end rounded-xl border border-white/10 bg-black/20 p-2 font-mono text-[8px] font-bold tracking-[0.12em] text-white/55 transition duration-280 group-hover/cta:-translate-y-1"
+                        ? "px-1 font-mono text-sm text-accent-light"
+                        : "flex h-12 w-12 items-end rounded-control border border-white/10 bg-black/20 p-2 font-mono text-micro font-bold text-white/60 transition duration-280 group-hover/cta:-translate-y-1"
                     }
                   >
                     {item}
@@ -92,7 +92,7 @@ export function Footer() {
               </div>
               <Link
                 href="/#converter"
-                className="group inline-flex items-center gap-3 rounded-xl bg-accent px-5 py-3.5 text-sm font-semibold text-white shadow-[0_12px_30px_rgba(217,45,40,0.28)] transition duration-180 hover:-translate-y-0.5 hover:bg-[#ef3b35]"
+                className="group inline-flex items-center gap-3 rounded-control bg-accent px-5 py-3.5 text-sm font-semibold text-white shadow-action transition duration-180 hover:-translate-y-0.5 hover:bg-accent-ink"
               >
                 Open the workbench
                 <svg viewBox="0 0 16 16" className="h-4 w-4 transition group-hover:translate-x-1" fill="none" stroke="currentColor" strokeWidth="1.7" aria-hidden>
@@ -116,8 +116,8 @@ export function Footer() {
           <div className="grid grid-cols-2 gap-x-5 gap-y-10 sm:grid-cols-4">
             {FOOTER_GROUPS.map((group, index) => (
               <nav key={group.title} className="border-l border-white/10 pl-4 sm:pl-5" aria-label={group.title}>
-                <p className="flex items-center gap-2 text-[9px] font-bold uppercase tracking-[0.17em] text-white/35">
-                  <span className="font-mono text-[#ff6a64]">0{index + 1}</span>
+                <p className="flex items-center gap-2 text-micro font-bold uppercase text-white/50">
+                  <span className="font-mono text-accent-light">0{index + 1}</span>
                   {group.title}
                 </p>
                 <ul className="mt-5 space-y-3">
@@ -127,7 +127,7 @@ export function Footer() {
                         href={link.href}
                         className="group inline-flex items-center gap-2 text-xs text-white/55 transition duration-180 hover:translate-x-1 hover:text-white"
                       >
-                        <span className="h-1 w-1 rounded-full bg-white/20 transition duration-180 group-hover:scale-150 group-hover:bg-[#ff6a64]" aria-hidden />
+                        <span className="h-1 w-1 rounded-full bg-white/20 transition duration-180 group-hover:scale-150 group-hover:bg-accent-light" aria-hidden />
                         {link.label}
                       </Link>
                     </li>
@@ -138,11 +138,11 @@ export function Footer() {
           </div>
         </div>
 
-        <div className="flex flex-col gap-4 pt-6 font-mono text-[8px] uppercase tracking-[0.12em] text-white/30 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-col gap-4 pt-6 font-mono text-micro uppercase text-white/45 sm:flex-row sm:items-center sm:justify-between">
           <p>© 2026 {SITE_NAME} / Free file tools, clearly labeled.</p>
           <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
-            <p className="flex items-center gap-2"><span className="h-1 w-1 rounded-full bg-[#ff6a64]" />No metered API</p>
-            <p className="flex items-center gap-2"><span className="h-1 w-1 rounded-full bg-[#ff6a64]" />No account required</p>
+            <p className="flex items-center gap-2"><span className="h-1 w-1 rounded-full bg-accent-light" />No metered API</p>
+            <p className="flex items-center gap-2"><span className="h-1 w-1 rounded-full bg-accent-light" />No account required</p>
             <Link href="/privacy" className="transition hover:text-white">Privacy by design ↗</Link>
           </div>
         </div>
