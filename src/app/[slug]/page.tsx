@@ -3,7 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { DropEngine } from "@/components/convert/DropEngine";
 import { FormatGlyph } from "@/components/convert/FormatArtwork";
-import { ToolSignals } from "@/components/convert/ToolSignals";
+import { ShotHit, ShotKick, ShotLane } from "@/components/convert/ShotRoute";
 import { AdSlot } from "@/components/layout/AdSlot";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { ToolIcon } from "@/components/tools/ToolIcon";
@@ -93,76 +93,95 @@ export default async function ToolPage({ params }: Props) {
           </div>
           <DropEngine tool={tool} />
         </div>
+      </section>
 
-        <div className="mt-5 grid items-stretch gap-4 lg:grid-cols-2">
-          <div className="h-full overflow-hidden rounded-tile border border-[#dfd8d4] bg-white shadow-tile">
-            <div className="flex items-center justify-between border-b border-[#eee9e6] px-5 py-4">
-              <p className="text-eyebrow font-bold uppercase text-ink">Job details</p>
-              <span className="font-mono text-micro uppercase text-faint">Focused route</span>
-            </div>
-            <dl className="divide-y divide-[#eee9e6] px-5">
+      <section className="group/blueprint relative isolate overflow-hidden rounded-panel border border-[#ded7d3] bg-white p-6 shadow-panel sm:p-8 lg:p-10">
+        <div
+          className="pointer-events-none absolute inset-0 -z-10 opacity-50 [background-image:linear-gradient(rgba(24,20,18,0.035)_1px,transparent_1px),linear-gradient(90deg,rgba(24,20,18,0.035)_1px,transparent_1px)] [background-size:40px_40px]"
+          aria-hidden
+        />
+        <div className="pointer-events-none absolute -left-24 -top-28 -z-10 h-72 w-72 rounded-full border-[46px] border-[#f3efed] transition duration-700 group-hover/blueprint:scale-110" aria-hidden />
+
+        <div className="grid items-stretch gap-8 lg:grid-cols-[minmax(0,1.05fr)_minmax(360px,0.95fr)] lg:gap-10">
+          <div className="flex flex-col justify-center">
+            <p className="flex items-center gap-3 text-eyebrow font-bold uppercase text-accent">
+              <span className="h-px w-7 bg-accent" />
+              Conversion blueprint
+            </p>
+            <h2 className="mt-4 max-w-2xl text-4xl font-semibold leading-[1.02] tracking-[-0.05em] text-ink sm:text-5xl">
+              Built around the output.<br />Not a generic upload box.
+            </h2>
+            <p className="mt-5 max-w-2xl text-sm leading-7 text-mute">
+              This route understands the expected source, the final format, and where processing should happen before you choose a file.
+            </p>
+
+            <div className="mt-8 grid gap-3 sm:grid-cols-3 lg:grid-cols-1">
               {([
-                ["input" as const, "Accepts", formats || "No file"],
-                ["output" as const, "Output", tool.output.toUpperCase()],
-                ["privacy" as const, "Privacy", tool.need === "browser" ? "On-device" : "Private worker"],
-              ] as const).map(([type, label, value]) => (
-                <div key={label} className="flex items-center gap-3 py-4">
-                  <span className={`grid h-9 w-9 shrink-0 place-items-center rounded-xl ${type === "output" ? "bg-accent-soft text-accent" : type === "privacy" ? "bg-[#e7f8ef] text-[#16885c]" : "bg-[#f3f0ee] text-mute"}`}>
+                ["input" as const, "Format-aware input", `Prepared for ${formats || primaryInput} files.`],
+                ["privacy" as const, "Clear processing", tool.need === "browser" ? "Runs on this device with no upload queue." : "Uses a dedicated private worker route."],
+                ["output" as const, "Focused result", hasAlternatives ? `Produces ${tool.output.toUpperCase()} with switchable output routes.` : `Produces a purpose-built ${tool.output.toUpperCase()} result.`],
+              ] as const).map(([type, title, copy]) => (
+                <div key={title} className="group/item flex items-start gap-4 rounded-card border border-[#e8e2df] bg-[#faf8f7] p-4 transition duration-280 hover:-translate-y-0.5 hover:border-[#d8cfca] hover:bg-white hover:shadow-tile">
+                  <span className={`grid h-10 w-10 shrink-0 place-items-center rounded-xl ${type === "privacy" ? "bg-[#e7f8ef] text-[#16885c]" : type === "output" ? "bg-accent-soft text-accent" : "bg-white text-mute shadow-drop"}`}>
                     <SpecIcon type={type} />
                   </span>
-                  <dt className="text-xs text-mute">{label}</dt>
-                  <dd className={`ml-auto max-w-[45%] text-right font-mono text-[11px] font-semibold ${type === "output" ? "text-accent" : "text-ink"}`}>{value}</dd>
+                  <span>
+                    <span className="block text-sm font-semibold text-ink">{title}</span>
+                    <span className="mt-1 block text-[11px] leading-5 text-mute">{copy}</span>
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="relative flex min-h-[390px] flex-col justify-between overflow-hidden rounded-tile border border-[#2e2926] bg-[#181412] p-5 text-white shadow-panel-dark sm:p-6">
+            <div
+              className="pointer-events-none absolute inset-0 opacity-30 [background-image:radial-gradient(circle,rgba(255,255,255,0.16)_1px,transparent_1.2px)] [background-size:11px_11px] [mask-image:linear-gradient(to_bottom_left,black,transparent_75%)]"
+              aria-hidden
+            />
+            <div className="relative flex items-center justify-between gap-4 border-b border-white/10 pb-4">
+              <p className="font-mono text-micro uppercase text-white/55">Route map</p>
+              <span className={`flex items-center gap-2 font-mono text-micro uppercase ${tool.need === "browser" ? "text-[#75e0b1]" : "text-[#f3b768]"}`}>
+                <span className={`h-1.5 w-1.5 rounded-full ${tool.need === "browser" ? "bg-[#55d69a]" : "bg-[#d9923b]"}`} />
+                {tool.need === "browser" ? "Browser processing" : "Worker processing"}
+              </span>
+            </div>
+
+            <div className="relative my-8 flex items-center gap-2 sm:gap-3">
+              <ShotKick className="min-w-0 flex-1">
+                <div className="flex min-w-0 items-center gap-3 rounded-card border border-white/10 bg-white/[0.06] p-3">
+                  <FormatGlyph format={primaryInput} category={tool.category} className="border-white/10 bg-white/[0.07] text-white" />
+                  <span className="min-w-0">
+                    <span className="block text-micro font-bold uppercase text-white/35">Input</span>
+                    <span className="mt-0.5 block truncate font-mono text-sm font-semibold text-white">{primaryInput}</span>
+                  </span>
+                </div>
+              </ShotKick>
+              <ShotLane tone="light" className="mx-0 w-14 flex-none sm:w-20" />
+              <ShotHit className="min-w-0 flex-1">
+                <div className="flex min-w-0 items-center gap-3 rounded-card border border-accent/30 bg-accent/10 p-3">
+                  <FormatGlyph format={tool.output} category={tool.category} className="border-accent/25 bg-accent text-white" />
+                  <span className="min-w-0">
+                    <span className="block text-micro font-bold uppercase text-white/35">Output</span>
+                    <span className="mt-0.5 block truncate font-mono text-sm font-semibold text-white">{tool.output.toUpperCase()}</span>
+                  </span>
+                </div>
+              </ShotHit>
+            </div>
+
+            <dl className="relative grid grid-cols-3 gap-px overflow-hidden rounded-card border border-white/10 bg-white/10">
+              {[
+                [formats || primaryInput, "Accepted"],
+                [tool.output.toUpperCase(), "Result"],
+                [tool.need === "browser" ? "Local" : "Worker", "Mode"],
+              ].map(([value, label]) => (
+                <div key={label} className="min-w-0 bg-[#1e1917] p-3">
+                  <dt className="truncate font-mono text-[11px] font-semibold text-white">{value}</dt>
+                  <dd className="mt-1 text-micro font-semibold uppercase text-white/35">{label}</dd>
                 </div>
               ))}
             </dl>
           </div>
-          <ToolSignals need={tool.need} hasAlternatives={hasAlternatives} />
-        </div>
-      </section>
-
-      <AdSlot />
-
-      <section className="relative isolate overflow-hidden rounded-panel border border-white/10 bg-[#181412] p-6 text-white shadow-panel-dark sm:p-8 lg:p-10">
-        <div
-          className="pointer-events-none absolute inset-0 -z-10 opacity-35 [background-image:linear-gradient(rgba(255,255,255,0.05)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.05)_1px,transparent_1px)] [background-size:44px_44px]"
-          aria-hidden
-        />
-        <div className="pointer-events-none absolute -right-24 -top-28 -z-10 h-72 w-72 rounded-full border-[42px] border-white/[0.035]" aria-hidden />
-
-        <div className="flex flex-col justify-between gap-5 lg:flex-row lg:items-end">
-          <div>
-            <p className="flex items-center gap-3 text-eyebrow font-bold uppercase text-accent">
-              <span className="h-px w-7 bg-accent" />
-              How it works
-            </p>
-            <h2 className="mt-4 max-w-2xl text-4xl font-semibold leading-[1.02] tracking-[-0.05em] sm:text-5xl">
-              One focused job.<br />Three clear steps.
-            </h2>
-          </div>
-          <p className="max-w-sm text-sm leading-6 text-white/45">A direct route from {primaryInput} to {tool.output.toUpperCase()}, with only the controls this job needs.</p>
-        </div>
-
-        <div className="mt-8 grid gap-4 sm:grid-cols-3">
-          {[
-            ["01", "Select", `Add your ${formats || "input"} file.`],
-            ["02", "Convert", `Process it as ${tool.output.toUpperCase()}.`],
-            ["03", "Download", "Save the finished file."],
-          ].map(([number, title, copy], index) => (
-            <div key={number} className="group/step relative overflow-hidden rounded-tile border border-white/10 bg-white/[0.045] p-5 transition duration-280 hover:-translate-y-1 hover:border-white/20 hover:bg-white/[0.075] sm:p-6">
-              <div className="flex items-center justify-between">
-                <span className="grid h-11 w-11 place-items-center rounded-2xl border border-white/10 bg-[#211c19] text-accent-light transition duration-280 group-hover/step:-rotate-3 group-hover/step:scale-105">
-                  <StepIcon index={index} />
-                </span>
-                <span className="font-mono text-micro text-white/35">{number}</span>
-              </div>
-              <h3 className="mt-7 text-lg font-semibold text-white">{title}</h3>
-              <p className="mt-2 text-xs leading-5 text-white/45">{copy}</p>
-              <p className="mt-6 flex items-center gap-2 border-t border-white/10 pt-4 font-mono text-micro uppercase text-white/45">
-                <span className={`h-1.5 w-1.5 rounded-full ${index === 2 ? "bg-[#55d69a]" : "bg-accent-light"}`} />
-                Step {number}
-              </p>
-            </div>
-          ))}
         </div>
       </section>
 
@@ -202,6 +221,60 @@ export default async function ToolPage({ params }: Props) {
           </div>
         </section>
       ) : null}
+
+      <AdSlot />
+
+      <section className="relative isolate overflow-hidden rounded-panel border border-white/10 bg-[#181412] p-6 text-white shadow-panel-dark sm:p-8 lg:p-10">
+        <div
+          className="pointer-events-none absolute inset-0 -z-10 opacity-35 [background-image:linear-gradient(rgba(255,255,255,0.05)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.05)_1px,transparent_1px)] [background-size:44px_44px]"
+          aria-hidden
+        />
+        <div className="pointer-events-none absolute -right-24 -top-28 -z-10 h-72 w-72 rounded-full border-[42px] border-white/[0.035]" aria-hidden />
+
+        <div className="flex flex-col justify-between gap-5 lg:flex-row lg:items-end">
+          <div>
+            <p className="flex items-center gap-3 text-eyebrow font-bold uppercase text-accent">
+              <span className="h-px w-7 bg-accent" />
+              How it works
+            </p>
+            <h2 className="mt-4 max-w-2xl text-4xl font-semibold leading-[1.02] tracking-[-0.05em] sm:text-5xl">
+              One focused job.<br />Three clear steps.
+            </h2>
+          </div>
+          <p className="max-w-sm text-sm leading-6 text-white/45">A direct route from {primaryInput} to {tool.output.toUpperCase()}, with only the controls this job needs.</p>
+        </div>
+
+        <div className="relative mt-8 grid gap-4 sm:grid-cols-3">
+          <div className="pointer-events-none absolute left-[16%] right-[16%] top-6 z-10 hidden h-10 sm:block" aria-hidden>
+            <ShotLane tone="light" className="mx-0 h-10" />
+          </div>
+          {[
+            ["01", "Select", `Add your ${formats || "input"} file.`],
+            ["02", "Convert", `Process it as ${tool.output.toUpperCase()}.`],
+            ["03", "Download", "Save the finished file."],
+          ].map(([number, title, copy], index) => {
+            const icon = (
+              <span className="grid h-11 w-11 place-items-center rounded-2xl border border-white/10 bg-[#211c19] text-accent-light transition duration-280 group-hover/step:-rotate-3 group-hover/step:scale-105">
+                <StepIcon index={index} />
+              </span>
+            );
+            return (
+            <div key={number} className="group/step relative overflow-hidden rounded-tile border border-white/10 bg-white/[0.045] p-5 transition duration-280 hover:-translate-y-1 hover:border-white/20 hover:bg-white/[0.075] sm:p-6">
+              <div className="relative flex items-center justify-between">
+                {index === 0 ? <ShotKick>{icon}</ShotKick> : index === 2 ? <ShotHit>{icon}</ShotHit> : icon}
+                <span className="font-mono text-micro text-white/35">{number}</span>
+              </div>
+              <h3 className="mt-7 text-lg font-semibold text-white">{title}</h3>
+              <p className="mt-2 text-xs leading-5 text-white/45">{copy}</p>
+              <p className="mt-6 flex items-center gap-2 border-t border-white/10 pt-4 font-mono text-micro uppercase text-white/45">
+                <span className={`h-1.5 w-1.5 rounded-full ${index === 2 ? "bg-[#55d69a]" : "bg-accent-light"}`} />
+                Step {number}
+              </p>
+            </div>
+            );
+          })}
+        </div>
+      </section>
 
       <AdSlot />
 
