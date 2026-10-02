@@ -12,9 +12,10 @@ FreeConverter is white, black, gray, and one red. Red is an action color, never 
 | `mute` | `#6B6B6B` | Body, nav links |
 | `faint` | `#9A9A9A` | Captions |
 | `line` | `#E8E8E8` | Rules, borders |
-| `accent` | `#E5322D` | Convert, active format, drag, progress |
-| `accent-ink` | `#C41E27` | Hover / press |
+| `accent` | `#D92D28` | Convert, active format, drag, progress |
+| `accent-ink` | `#B91C1C` | Hover / press |
 | `accent-soft` | `#FDECEC` | Drop active fill, selection |
+| `accent-light` | `#FF6A64` | Brand detail on dark surfaces |
 
 ## Rules
 

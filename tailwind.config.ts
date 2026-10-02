@@ -15,6 +15,7 @@ const config: Config = {
           DEFAULT: "#d92d28",
           ink: "#b91c1c",
           soft: "#fdecec",
+          light: "#ff6a64",
         },
         ok: "#0f7a56",
         danger: "#c62828",
@@ -23,13 +24,23 @@ const config: Config = {
       fontFamily: {
         sans: ["Arial", "Helvetica", "system-ui", "sans-serif"],
       },
+      fontSize: {
+        micro: ["0.625rem", { lineHeight: "0.875rem", letterSpacing: "0.12em" }],
+        eyebrow: ["0.6875rem", { lineHeight: "1rem", letterSpacing: "0.18em" }],
+      },
       borderRadius: {
-        card: "10px",
-        control: "8px",
+        control: "12px",
+        card: "16px",
+        tile: "20px",
+        panel: "30px",
       },
       boxShadow: {
         drop: "0 1px 0 rgba(17,17,17,0.04)",
         glow: "0 0 0 3px rgba(229,50,45,0.16)",
+        tile: "0 12px 32px rgba(40,27,22,0.07)",
+        panel: "0 28px 80px rgba(40,27,22,0.10)",
+        "panel-dark": "0 30px 86px rgba(35,24,20,0.20)",
+        action: "0 12px 30px rgba(217,45,40,0.28)",
       },
       transitionDuration: {
         180: "180ms",

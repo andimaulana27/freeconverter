@@ -36,7 +36,7 @@ Do not let the homepage title compete with a conversion query.
 See `docs/PALETTE.md`.
 
 - Page: `#FFFFFF`. Ink: `#111111`. Mute: `#6B6B6B`. Line: `#E8E8E8`.
-- Accent: `#E5322D` only on Convert, active format, drag, progress.
+- Accent: `#D92D28` only on Convert, active format, drag, progress.
 - Never full-bleed red on the hero.
 
 ## UI / layout (tool page is the master)
