@@ -1,4 +1,5 @@
 import { cn } from "@/lib/cn";
+import { ShotHit, ShotKick, ShotLane, shotStyle } from "@/components/convert/ShotRoute";
 
 type GlyphProps = {
   format?: string;
@@ -73,10 +74,14 @@ type ArtworkProps = {
   to?: string;
   category?: string;
   active?: boolean;
+  busy?: boolean;
   variant?: "default" | "hero";
 };
 
-export function FormatArtwork({ from = "file", to = "format", category, active, variant = "default" }: ArtworkProps) {
+export function FormatArtwork({ from = "file", to = "format", category, active, busy, variant = "default" }: ArtworkProps) {
+  const hot = Boolean(active || busy);
+  const style = shotStyle(hot);
+
   if (variant === "hero") {
     return (
       <div
@@ -87,42 +92,39 @@ export function FormatArtwork({ from = "file", to = "format", category, active, 
         aria-hidden
       >
         <div className="absolute inset-0 opacity-45 [background-image:radial-gradient(circle,rgba(24,20,18,0.12)_1px,transparent_1px)] [background-size:15px_15px] [mask-image:linear-gradient(to_right,transparent,black_20%,black_80%,transparent)]" />
-
-        <div
-          className={cn(
-            "absolute left-5 top-1/2 flex -translate-y-1/2 items-center gap-2 rounded-2xl border border-[#ded5d0] bg-white p-2 shadow-[0_8px_22px_rgba(42,28,22,0.09)] transition duration-300 sm:left-7 sm:gap-3 sm:px-3 sm:py-2.5",
-            "group-hover/art:-translate-y-[52%] group-hover/art:border-[#cfc2bc]",
-            active && "-translate-y-[52%] border-accent/35",
-          )}
-        >
-          <FormatGlyph format={from} category={category} className="h-8 w-8 rounded-xl border-[#e8e1dd] bg-[#faf7f5] sm:h-9 sm:w-9" />
-          <span className="hidden min-[380px]:block">
-            <span className="block text-[8px] font-bold uppercase tracking-[0.16em] text-mute">Input</span>
-            <span className="mt-0.5 block font-mono text-xs font-bold uppercase text-ink">{from}</span>
-          </span>
-        </div>
-
-        <div className="absolute left-1/2 top-1/2 w-[26%] -translate-x-1/2 -translate-y-1/2">
-          <div className="relative h-px overflow-visible bg-[linear-gradient(to_right,rgba(217,45,40,0.22)_50%,transparent_50%)] bg-[length:8px_1px]">
-            <span className="absolute left-0 top-1/2 h-2 w-2 -translate-y-1/2 rounded-full border border-white bg-accent/80 shadow-[0_0_0_3px_rgba(217,45,40,0.08)] motion-safe:animate-route" />
-          </div>
-          <span className="absolute left-1/2 top-3 -translate-x-1/2 whitespace-nowrap font-mono text-[7px] font-semibold uppercase tracking-[0.14em] text-mute">
-            Input → output
-          </span>
-        </div>
-
-        <div
-          className={cn(
-            "absolute right-5 top-1/2 flex -translate-y-1/2 items-center gap-2 rounded-2xl border border-[#2b2522] bg-[#181412] p-2 text-white shadow-[0_14px_32px_rgba(24,20,18,0.18)] transition duration-300 sm:right-7 sm:gap-3 sm:px-3 sm:py-2.5",
-            "group-hover/art:-translate-y-[52%] group-hover/art:border-accent/70",
-            active && "-translate-y-[52%] border-accent bg-accent",
-          )}
-        >
-          <FormatGlyph format={to} category={category} className="h-8 w-8 rounded-xl border-white/10 bg-white/10 text-white sm:h-9 sm:w-9" />
-          <span className="hidden min-[380px]:block">
-            <span className="block text-[8px] font-bold uppercase tracking-[0.16em] text-white/55">Output</span>
-            <span className="mt-0.5 block font-mono text-xs font-bold uppercase">{to}</span>
-          </span>
+        <div className="relative z-[1] flex h-full items-center gap-1 px-5 sm:gap-2 sm:px-6">
+          <ShotKick hot={hot}>
+            <div
+              className={cn(
+                "relative flex items-center gap-2 rounded-2xl border border-[#ded5d0] bg-white p-2 shadow-[0_8px_22px_rgba(42,28,22,0.09)] transition duration-300 sm:gap-3 sm:px-3 sm:py-2.5",
+                "group-hover/art:-translate-y-0.5 group-hover/art:border-[#cfc2bc]",
+                active && "border-accent/35",
+              )}
+            >
+              <span className="pointer-events-none absolute right-0 top-1/2 size-4 rounded-full bg-accent/80 blur-[2px] motion-safe:animate-muzzle" style={style} />
+              <FormatGlyph format={from} category={category} className="h-8 w-8 rounded-xl border-[#e8e1dd] bg-[#faf7f5] sm:h-9 sm:w-9" />
+              <span className="hidden min-[380px]:block">
+                <span className="block text-[8px] font-bold uppercase tracking-[0.16em] text-mute">Input</span>
+                <span className="mt-0.5 block font-mono text-xs font-bold uppercase text-ink">{from}</span>
+              </span>
+            </div>
+          </ShotKick>
+          <ShotLane hot={hot} />
+          <ShotHit hot={hot}>
+            <div
+              className={cn(
+                "relative flex items-center gap-2 rounded-2xl border border-[#2b2522] bg-[#181412] p-2 text-white shadow-[0_14px_32px_rgba(24,20,18,0.18)] transition duration-300 sm:gap-3 sm:px-3 sm:py-2.5",
+                "group-hover/art:-translate-y-0.5 group-hover/art:border-accent/70",
+                active && "border-accent bg-accent",
+              )}
+            >
+              <FormatGlyph format={to} category={category} className="h-8 w-8 rounded-xl border-white/10 bg-white/10 text-white sm:h-9 sm:w-9" />
+              <span className="hidden min-[380px]:block">
+                <span className="block text-[8px] font-bold uppercase tracking-[0.16em] text-white/55">Output</span>
+                <span className="mt-0.5 block font-mono text-xs font-bold uppercase">{to}</span>
+              </span>
+            </div>
+          </ShotHit>
         </div>
       </div>
     );
@@ -131,52 +133,47 @@ export function FormatArtwork({ from = "file", to = "format", category, active, 
   return (
     <div
       className={cn(
-        "group/art relative h-28 overflow-hidden border-y border-line bg-bone/70 transition-colors duration-280",
+        "group/art relative h-[7.25rem] overflow-hidden border-y border-line bg-bone/70 transition-colors duration-280",
         active && "bg-accent-soft",
       )}
       aria-hidden
     >
       <span className="absolute left-1/2 top-0 h-full w-px bg-line" />
       <span className="absolute left-0 top-1/2 h-px w-full bg-line" />
-
-      <div
-        className={cn(
-          "absolute left-6 top-1/2 flex min-w-28 -translate-y-1/2 items-center gap-2 rounded-xl border border-[#d8cfca] bg-white p-3 shadow-[0_7px_18px_rgba(42,28,22,0.07)] transition duration-280 sm:left-10",
-          "group-hover/art:-translate-y-[54%] group-hover/art:border-[#bcaea7]",
-          active && "-translate-y-[54%] border-accent",
-        )}
-      >
-        <FormatGlyph format={from} category={category} />
-        <span>
-          <span className="block text-[8px] font-bold uppercase tracking-[0.14em] text-mute">Input</span>
-          <span className="mt-0.5 block font-mono text-xs font-bold uppercase text-ink">{from}</span>
-        </span>
-      </div>
-
-      <div className="absolute left-1/2 top-1/2 w-16 -translate-x-1/2 -translate-y-1/2 sm:w-24">
-        <svg viewBox="0 0 112 28" className="w-full overflow-visible" fill="none">
-          <path
-            d="M2 14h102M95 6l9 8-9 8"
-            className="stroke-[#b6aaa4] transition group-hover/art:stroke-accent"
-            strokeWidth="1.25"
-            strokeDasharray="5 5"
-          />
-        </svg>
-        <span className="absolute left-0 top-1/2 h-1.5 w-1.5 -translate-y-1/2 rounded-full bg-accent/80 motion-safe:animate-route" />
-      </div>
-
-      <div
-        className={cn(
-          "absolute right-6 top-1/2 flex min-w-28 -translate-y-1/2 items-center gap-2 rounded-xl border border-ink bg-ink p-3 text-white shadow-[0_8px_20px_rgba(24,20,18,0.13)] transition duration-280 sm:right-10",
-          "group-hover/art:-translate-y-[54%] group-hover/art:border-accent",
-          active && "-translate-y-[54%] border-accent bg-accent",
-        )}
-      >
-        <FormatGlyph format={to} category={category} className="border-white/20 bg-white/10 text-white" />
-        <span>
-          <span className="block text-[8px] font-bold uppercase tracking-[0.14em] text-white/55">Output</span>
-          <span className="mt-0.5 block font-mono text-xs font-bold uppercase">{to}</span>
-        </span>
+      <div className="relative z-[1] flex h-full items-center px-6 sm:px-8">
+        <ShotKick hot={hot}>
+          <div
+            className={cn(
+              "relative flex min-w-28 items-center gap-2 rounded-xl border border-[#d8cfca] bg-white p-3 shadow-[0_7px_18px_rgba(42,28,22,0.07)] transition duration-280",
+              "group-hover/art:-translate-y-0.5 group-hover/art:border-[#bcaea7]",
+              active && "border-accent",
+            )}
+          >
+            <span className="pointer-events-none absolute right-0 top-1/2 size-3.5 rounded-full bg-accent blur-[1px] motion-safe:animate-muzzle" style={style} />
+            <FormatGlyph format={from} category={category} />
+            <span>
+              <span className="block text-[8px] font-bold uppercase tracking-[0.14em] text-mute">Input</span>
+              <span className="mt-0.5 block font-mono text-xs font-bold uppercase text-ink">{from}</span>
+            </span>
+          </div>
+        </ShotKick>
+        <ShotLane hot={hot} />
+        <ShotHit hot={hot}>
+          <div
+            className={cn(
+              "relative flex min-w-28 items-center gap-2 rounded-xl border border-ink bg-ink p-3 text-white shadow-[0_8px_20px_rgba(24,20,18,0.13)] transition duration-280",
+              "group-hover/art:-translate-y-0.5 group-hover/art:border-accent",
+              active && "border-accent bg-accent",
+              hot && "shadow-[0_0_0_4px_rgba(217,45,40,0.18),0_10px_24px_rgba(217,45,40,0.28)]",
+            )}
+          >
+            <FormatGlyph format={to} category={category} className="border-white/20 bg-white/10 text-white" />
+            <span>
+              <span className="block text-[8px] font-bold uppercase tracking-[0.14em] text-white/55">Output</span>
+              <span className="mt-0.5 block font-mono text-xs font-bold uppercase">{to}</span>
+            </span>
+          </div>
+        </ShotHit>
       </div>
     </div>
   );

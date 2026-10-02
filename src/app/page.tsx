@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { DropEngine } from "@/components/convert/DropEngine";
+import { ShotHit, ShotKick, ShotLane } from "@/components/convert/ShotRoute";
 import { AdSlot } from "@/components/layout/AdSlot";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { ToolIcon } from "@/components/tools/ToolIcon";
@@ -307,23 +308,27 @@ export default function HomePage() {
         </div>
 
         <div className="relative mt-8 grid gap-4 lg:grid-cols-3">
-          <div className="pointer-events-none absolute left-[16%] right-[16%] top-9 hidden h-px border-t border-dashed border-white/15 lg:block" aria-hidden>
-            <span className="absolute left-0 top-1/2 h-2 w-2 -translate-y-1/2 rounded-full bg-accent-light shadow-[0_0_0_5px_rgba(255,106,100,0.1)] motion-safe:animate-[privacy-route_3.4s_ease-in-out_infinite]" />
+          <div className="pointer-events-none absolute left-[16%] right-[16%] top-6 z-10 hidden h-10 lg:block" aria-hidden>
+            <ShotLane tone="light" className="mx-0 h-10" />
           </div>
           {[
             ["Drop it", "Choose a file or drag it straight into the conversion desk.", "Input ready"],
             ["Shape it", "Pick the output and adjust only the settings that matter.", "Route set"],
             ["Take it", "Download a clean result and continue with your work.", "Output done"],
-          ].map(([title, copy, state], index) => (
+          ].map(([title, copy, state], index) => {
+            const icon = (
+              <span className="flex h-12 w-12 items-center justify-center rounded-2xl border border-white/10 bg-[#211c19] text-accent-light shadow-[0_10px_25px_rgba(0,0,0,0.18)] transition duration-280 group-hover/step:-rotate-3 group-hover/step:scale-105">
+                <WorkflowIcon index={index} />
+              </span>
+            );
+            return (
             <article
               key={title}
               className="group/step relative overflow-hidden rounded-tile border border-white/10 bg-white/[0.045] p-5 backdrop-blur-sm transition duration-280 hover:-translate-y-1 hover:border-white/20 hover:bg-white/[0.075] sm:p-6"
             >
               <span className="absolute -right-10 -top-10 h-24 w-24 rounded-full bg-accent/0 transition duration-500 group-hover/step:bg-accent/10" aria-hidden />
               <div className="relative flex items-center justify-between">
-                <span className="flex h-12 w-12 items-center justify-center rounded-2xl border border-white/10 bg-[#211c19] text-accent-light shadow-[0_10px_25px_rgba(0,0,0,0.18)] transition duration-280 group-hover/step:-rotate-3 group-hover/step:scale-105">
-                  <WorkflowIcon index={index} />
-                </span>
+                {index === 0 ? <ShotKick>{icon}</ShotKick> : index === 2 ? <ShotHit>{icon}</ShotHit> : icon}
                 <span className="font-mono text-micro text-white/40">0{index + 1}</span>
               </div>
               <h3 className="relative mt-8 text-xl font-semibold tracking-[-0.025em]">{title}</h3>
@@ -333,7 +338,8 @@ export default function HomePage() {
                 {state}
               </p>
             </article>
-          ))}
+            );
+          })}
         </div>
       </section>
 
@@ -362,25 +368,27 @@ export default function HomePage() {
 
             <div className="relative mt-10 rounded-tile border border-white/10 bg-black/20 p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] sm:mt-12">
               <div className="flex items-center justify-between gap-3">
-                <div className="group/file relative flex h-20 w-20 shrink-0 items-end overflow-hidden rounded-2xl border border-white/15 bg-white/[0.07] p-3 transition duration-280 group-hover/privacy:-translate-y-1 group-hover/privacy:-rotate-3">
-                  <span className="absolute right-3 top-3 h-2 w-2 rounded-full bg-accent" />
-                  <svg viewBox="0 0 24 24" className="absolute left-3 top-3 h-6 w-6 text-white/65 transition duration-280 group-hover/privacy:text-white" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden>
-                    <path d="M6.5 3.5h7l4 4v13h-11z" strokeLinejoin="round" />
-                    <path d="M13.5 3.5v4.5H18M9 12h6M9 15.5h4" strokeLinecap="round" strokeLinejoin="round" />
-                  </svg>
-                  <span className="font-mono text-micro font-bold text-white/75">FILE</span>
-                </div>
+                <ShotKick>
+                  <div className="group/file relative flex h-20 w-20 shrink-0 items-end overflow-hidden rounded-2xl border border-white/15 bg-white/[0.07] p-3 transition duration-280 group-hover/privacy:-translate-y-1 group-hover/privacy:-rotate-3">
+                    <span className="absolute right-3 top-3 h-2 w-2 rounded-full bg-accent" />
+                    <svg viewBox="0 0 24 24" className="absolute left-3 top-3 h-6 w-6 text-white/65 transition duration-280 group-hover/privacy:text-white" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden>
+                      <path d="M6.5 3.5h7l4 4v13h-11z" strokeLinejoin="round" />
+                      <path d="M13.5 3.5v4.5H18M9 12h6M9 15.5h4" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                    <span className="font-mono text-micro font-bold text-white/75">FILE</span>
+                  </div>
+                </ShotKick>
 
-                <div className="relative h-px min-w-14 flex-1 overflow-visible bg-[linear-gradient(to_right,rgba(255,255,255,0.15)_50%,transparent_50%)] bg-[length:8px_1px]" aria-hidden>
-                  <span className="absolute left-0 top-1/2 h-2 w-2 -translate-y-1/2 rounded-full bg-accent-light shadow-[0_0_0_4px_rgba(255,106,100,0.12)] motion-safe:animate-[privacy-route_2.8s_ease-in-out_infinite]" />
-                </div>
+                <ShotLane tone="light" className="mx-0 min-w-14" />
 
-                <div className="relative flex h-20 w-20 shrink-0 items-center justify-center rounded-2xl border border-[#55d69a]/25 bg-[#55d69a]/10 transition duration-280 group-hover/privacy:-translate-y-1 group-hover/privacy:rotate-3">
-                  <svg viewBox="0 0 24 24" className="h-7 w-7 text-[#75e0b1]" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden>
-                    <path d="M12 3.5 19 6v5.4c0 4.2-2.8 7.4-7 9.1-4.2-1.7-7-4.9-7-9.1V6z" strokeLinejoin="round" />
-                    <path d="m8.8 12 2.1 2.1 4.5-4.6" strokeLinecap="round" strokeLinejoin="round" />
-                  </svg>
-                </div>
+                <ShotHit>
+                  <div className="relative flex h-20 w-20 shrink-0 items-center justify-center rounded-2xl border border-[#55d69a]/25 bg-[#55d69a]/10 transition duration-280 group-hover/privacy:-translate-y-1 group-hover/privacy:rotate-3">
+                    <svg viewBox="0 0 24 24" className="h-7 w-7 text-[#75e0b1]" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden>
+                      <path d="M12 3.5 19 6v5.4c0 4.2-2.8 7.4-7 9.1-4.2-1.7-7-4.9-7-9.1V6z" strokeLinejoin="round" />
+                      <path d="m8.8 12 2.1 2.1 4.5-4.6" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                  </div>
+                </ShotHit>
               </div>
               <div className="mt-4 flex items-center justify-between font-mono text-micro uppercase text-white/55">
                 <span>Choose locally</span>

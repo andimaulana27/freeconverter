@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ShotHit, ShotKick, ShotLane } from "@/components/convert/ShotRoute";
 import { Container } from "@/components/ui/Container";
 import { Logo } from "@/components/layout/Logo";
 import { SITE_NAME } from "@/lib/site";
@@ -76,19 +77,18 @@ export function Footer() {
             </div>
 
             <div className="flex flex-col items-start gap-4 lg:items-end">
-              <div className="hidden items-center gap-2 lg:flex" aria-hidden>
-                {["PDF", "→", "JPG"].map((item, index) => (
-                  <span
-                    key={item + index}
-                    className={
-                      item === "→"
-                        ? "px-1 font-mono text-sm text-accent-light"
-                        : "flex h-12 w-12 items-end rounded-control border border-white/10 bg-black/20 p-2 font-mono text-micro font-bold text-white/60 transition duration-280 group-hover/cta:-translate-y-1"
-                    }
-                  >
-                    {item}
+              <div className="hidden items-center gap-1 lg:flex" aria-hidden>
+                <ShotKick>
+                  <span className="flex h-12 w-12 items-end rounded-control border border-white/10 bg-black/20 p-2 font-mono text-micro font-bold text-white/60 transition duration-280 group-hover/cta:-translate-y-1">
+                    PDF
                   </span>
-                ))}
+                </ShotKick>
+                <ShotLane tone="light" className="mx-0 w-16 flex-none" />
+                <ShotHit>
+                  <span className="flex h-12 w-12 items-end rounded-control border border-white/10 bg-black/20 p-2 font-mono text-micro font-bold text-white/60 transition duration-280 group-hover/cta:-translate-y-1">
+                    JPG
+                  </span>
+                </ShotHit>
               </div>
               <Link
                 href="/#converter"
