@@ -190,7 +190,7 @@ export default function HomePage() {
             />
 
             <div className="relative overflow-hidden rounded-panel border border-white/15 bg-white/[0.07] p-2 shadow-panel-dark backdrop-blur-md transition duration-500 group-hover/workbench:border-white/25">
-              <div className="flex items-center justify-between gap-4 px-3 py-3 text-white sm:px-4">
+              <div className="flex items-center gap-4 px-3 py-3 text-white sm:px-4">
                 <div className="flex min-w-0 items-center gap-3">
                   <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-accent shadow-[0_8px_22px_rgba(217,45,40,0.35)]">
                     <svg viewBox="0 0 20 20" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden>
@@ -202,13 +202,6 @@ export default function HomePage() {
                     <span className="mt-0.5 block truncate text-micro normal-case tracking-normal text-white/50">One file. One clean route.</span>
                   </span>
                 </div>
-                <span className="flex shrink-0 items-center gap-2 rounded-full border border-[#75e0b1]/20 bg-[#75e0b1]/10 px-3 py-1.5 font-mono text-micro font-semibold uppercase text-[#8be8bd]">
-                  <span className="relative flex h-1.5 w-1.5">
-                    <span className="absolute inline-flex h-full w-full rounded-full bg-[#75e0b1]/70 motion-safe:animate-ping" />
-                    <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-[#75e0b1]" />
-                  </span>
-                  Local &amp; private
-                </span>
               </div>
 
               <div className="overflow-hidden rounded-tile bg-white p-1 shadow-tile [&>div>span:nth-child(-n+4)]:hidden">
@@ -261,7 +254,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section aria-label="Tool categories">
+      <section aria-label="Tool categories" data-home-ad-rail-start>
         <div className="grid overflow-hidden rounded-2xl border border-[#e6e0dd] bg-[#e6e0dd] sm:grid-cols-2 lg:grid-cols-4">
           {categories.map((item, index) => (
             <Link
@@ -279,6 +272,8 @@ export default function HomePage() {
           ))}
         </div>
       </section>
+
+      <AdSlot />
 
       <ToolGroups compact initialLimit={4} popularLimit={4} />
 
@@ -306,11 +301,7 @@ export default function HomePage() {
               No maze of settings. Make the three choices that matter, then keep moving.
             </p>
           </div>
-          <div className="flex w-fit items-center gap-3 rounded-full border border-white/10 bg-white/[0.05] px-4 py-2.5 font-mono text-micro uppercase text-white/55">
-            <span className="relative flex h-2 w-2">
-              <span className="absolute inline-flex h-full w-full rounded-full bg-[#55d69a]/60 motion-safe:animate-ping" />
-              <span className="relative inline-flex h-2 w-2 rounded-full bg-[#55d69a]" />
-            </span>
+          <div className="flex w-fit items-center rounded-full border border-white/10 bg-white/[0.05] px-4 py-2.5 font-mono text-micro uppercase text-white/55">
             Three moves / zero detours
           </div>
         </div>
@@ -359,18 +350,9 @@ export default function HomePage() {
               className="pointer-events-none absolute inset-0 opacity-30 [background-image:radial-gradient(circle,rgba(255,255,255,0.14)_1px,transparent_1px)] [background-size:10px_10px] [mask-image:linear-gradient(to_bottom_right,transparent,black)]"
               aria-hidden
             />
-            <div className="relative">
-              <div className="flex items-center justify-between gap-4">
+              <div className="relative">
                 <p className="text-eyebrow font-bold uppercase text-accent">Private by design</p>
-                <p className="flex items-center gap-2 font-mono text-micro uppercase text-white/60">
-                  <span className="relative flex h-2 w-2">
-                    <span className="absolute inline-flex h-full w-full rounded-full bg-[#55d69a]/60 motion-safe:animate-ping" />
-                    <span className="relative inline-flex h-2 w-2 rounded-full bg-[#55d69a]" />
-                  </span>
-                  Local mode
-                </p>
-              </div>
-              <h2 className="mt-5 max-w-md text-4xl font-semibold leading-[0.98] tracking-[-0.055em] sm:text-5xl">
+                <h2 className="mt-5 max-w-md text-4xl font-semibold leading-[0.98] tracking-[-0.055em] sm:text-5xl">
                 Your file takes the short route.
               </h2>
               <p className="mt-5 max-w-md text-sm leading-6 text-white/55">

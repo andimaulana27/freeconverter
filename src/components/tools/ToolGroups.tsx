@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { Fragment, useMemo, useState } from "react";
 import Link from "next/link";
 import { AdSlot } from "@/components/layout/AdSlot";
 import { FormatCatalog } from "@/components/tools/FormatCatalog";
@@ -254,13 +254,7 @@ export function ToolGroups({
                 className="pointer-events-none absolute inset-0 opacity-25 [background-image:radial-gradient(circle,rgba(255,255,255,0.18)_1px,transparent_1.2px)] [background-size:10px_10px]"
                 aria-hidden
               />
-              <div className="relative flex items-center justify-between border-b border-white/10 pb-4">
-                <p className="font-mono text-micro uppercase text-white/55">Library index</p>
-                <span className="flex items-center gap-2 font-mono text-micro uppercase text-[#75e0b1]">
-                  <span className="h-1.5 w-1.5 rounded-full bg-[#55d69a]" />
-                  Ready
-                </span>
-              </div>
+              <p className="relative font-mono text-micro uppercase text-white/55">Library index</p>
               <div className="relative mt-4 grid grid-cols-3 gap-3" aria-label="How to use the tool library">
                 {[
                   ["01", "Search", "Type a name or format"],
@@ -348,7 +342,7 @@ export function ToolGroups({
       ) : null}
 
       <div className="mt-10 space-y-10 sm:mt-12 sm:space-y-12">
-        {visibleGroups.map((group) => {
+        {visibleGroups.map((group, groupIndex) => {
           const list = visibleTools.filter((tool) => tool.category === group);
           if (!list.length) return null;
           const meta = GROUP_META[group];
@@ -356,32 +350,35 @@ export function ToolGroups({
           const shown = isExpanded ? list : list.slice(0, initialLimit);
 
           return (
-            <div key={group} id={group.toLowerCase()} className="scroll-mt-40">
-              <div className="mb-5 flex items-start gap-3">
-                <span className={cn("mt-1 h-10 w-1 rounded-full", meta.mark)} aria-hidden />
-                <div>
-                  <div className="flex items-center gap-2">
-                    <h3 className="text-xl font-semibold tracking-tight text-ink">{GROUP_LABELS[group]}</h3>
-                    <span className={cn("rounded-full px-2 py-0.5 text-[10px] font-bold", meta.tone)}>
-                      {list.length}
-                    </span>
+            <Fragment key={group}>
+              <div id={group.toLowerCase()} className="scroll-mt-40">
+                <div className="mb-5 flex items-start gap-3">
+                  <span className={cn("mt-1 h-10 w-1 rounded-full", meta.mark)} aria-hidden />
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <h3 className="text-xl font-semibold tracking-tight text-ink">{GROUP_LABELS[group]}</h3>
+                      <span className={cn("rounded-full px-2 py-0.5 text-[10px] font-bold", meta.tone)}>
+                        {list.length}
+                      </span>
+                    </div>
+                    <p className="mt-1 text-sm text-mute">{meta.description}</p>
                   </div>
-                  <p className="mt-1 text-sm text-mute">{meta.description}</p>
                 </div>
+                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                  {shown.map((tool) => <ToolLink key={tool.slug} tool={tool} />)}
+                </div>
+                {!isExpanded && list.length > shown.length ? (
+                  <button
+                    type="button"
+                    onClick={() => setExpanded((value) => ({ ...value, [group]: true }))}
+                    className="mt-4 rounded-xl border border-[#e8e3e0] bg-white px-4 py-2.5 text-xs font-semibold text-ink transition hover:border-[#cfc6c1] hover:bg-[#faf8f7]"
+                  >
+                    Show {list.length - shown.length} more tools
+                  </button>
+                ) : null}
               </div>
-              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                {shown.map((tool) => <ToolLink key={tool.slug} tool={tool} />)}
-              </div>
-              {!isExpanded && list.length > shown.length ? (
-                <button
-                  type="button"
-                  onClick={() => setExpanded((value) => ({ ...value, [group]: true }))}
-                  className="mt-4 rounded-xl border border-[#e8e3e0] bg-white px-4 py-2.5 text-xs font-semibold text-ink transition hover:border-[#cfc6c1] hover:bg-[#faf8f7]"
-                >
-                  Show {list.length - shown.length} more tools
-                </button>
-              ) : null}
-            </div>
+              {!compact && !normalizedQuery && active === "Semua" && (groupIndex === 2 || groupIndex === 6) ? <AdSlot /> : null}
+            </Fragment>
           );
         })}
       </div>

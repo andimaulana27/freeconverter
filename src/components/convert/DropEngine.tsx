@@ -453,17 +453,8 @@ export function DropEngine({ tool, variant = "default" }: Props) {
           !noFile && !files.length && variant !== "hero" && "mx-6 mb-2 items-center rounded-card border border-dashed border-accent/55 bg-[#fff8f7] py-8 text-center sm:mx-8 sm:py-9",
         )}>
           <span className="flex w-full items-center justify-between gap-4">
-            <span className={cn("flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.18em] text-mute", variant === "hero" && "text-[9px]")}>
-              {!noFile && !files.length ? (
-                <span className="relative flex h-1.5 w-1.5" aria-hidden>
-                  <span className="absolute inline-flex h-full w-full rounded-full bg-accent/55 motion-safe:animate-ping" />
-                  <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-accent" />
-                </span>
-              ) : null}
+            <span className={cn("text-[10px] font-bold uppercase tracking-[0.18em] text-mute", variant === "hero" && "text-[9px]")}>
               {variant === "hero" ? "Drop zone" : "Start here"}
-            </span>
-            <span className={cn("font-mono text-[10px] uppercase tracking-[0.12em] text-faint", variant === "hero" && "rounded-full bg-[#edf9f3] px-2.5 py-1 text-[8px] font-semibold text-[#16885c]")}>
-              {active?.need === "vps" ? "Worker" : variant === "hero" ? "Ready" : "Local"}
             </span>
           </span>
           <span className={cn(

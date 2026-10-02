@@ -78,7 +78,7 @@ export default async function ToolPage({ params }: Props) {
       <section>
         <h1 className="sr-only">{headline}</h1>
         <div className="overflow-hidden rounded-panel border border-[#dcd4d0] bg-white shadow-panel">
-          <div className="flex items-center justify-between gap-4 bg-[#181412] px-5 py-4 text-white sm:px-7">
+          <div className="flex items-center gap-4 bg-[#181412] px-5 py-4 text-white sm:px-7">
             <div className="flex items-center gap-3">
               <span className="grid h-8 w-8 place-items-center rounded-xl bg-accent text-white shadow-action">
                 <svg viewBox="0 0 20 20" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden>
@@ -90,10 +90,6 @@ export default async function ToolPage({ params }: Props) {
                 <p className="mt-0.5 hidden text-micro text-white/40 sm:block">Drop or upload a file, then convert in this card.</p>
               </span>
             </div>
-            <p className="flex shrink-0 items-center gap-2 rounded-full border border-white/10 bg-white/[0.05] px-3 py-1.5 font-mono text-micro uppercase text-white/60">
-              <span className={`h-1.5 w-1.5 rounded-full ${tool.need === "browser" ? "bg-[#55d69a]" : "bg-[#d9923b]"}`} />
-              {tool.need === "browser" ? "Local mode" : "Worker mode"}
-            </p>
           </div>
           <DropEngine tool={tool} />
         </div>
@@ -206,6 +202,8 @@ export default async function ToolPage({ params }: Props) {
           </div>
         </section>
       ) : null}
+
+      <AdSlot />
 
       <section className="group/about relative isolate overflow-hidden rounded-panel border border-[#ded7d3] bg-[#f6f3f1] p-6 shadow-panel sm:p-8 lg:p-10">
         <div
