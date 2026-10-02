@@ -63,8 +63,8 @@ export function Footer() {
           <div className="pointer-events-none absolute -bottom-24 right-[22%] h-56 w-56 rounded-full border border-white/[0.07] transition duration-700 group-hover/cta:scale-110" aria-hidden />
           <div className="relative grid items-end gap-8 lg:grid-cols-[1fr_auto]">
             <div>
-              <p className="flex items-center gap-3 text-[9px] font-bold uppercase tracking-[0.2em] text-[#ff8c87]">
-                <span className="h-px w-7 bg-[#ff6a64]" />
+              <p className="flex items-center gap-3 text-[9px] font-bold uppercase tracking-[0.2em] text-accent">
+                <span className="h-px w-7 bg-accent" />
                 Your next format is one move away
               </p>
               <h2 className="mt-4 max-w-2xl text-3xl font-semibold leading-[1.02] tracking-[-0.045em] sm:text-4xl lg:text-5xl">

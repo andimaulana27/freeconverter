@@ -128,7 +128,7 @@ export default function HomePage() {
 
         <div className="relative grid gap-12 px-6 py-8 sm:px-10 sm:py-12 lg:grid-cols-[0.8fr_1.2fr] lg:items-center lg:gap-12 lg:px-12 lg:py-14">
           <div>
-            <p className="flex items-center gap-3 text-[10px] font-bold uppercase tracking-[0.2em] text-[#ff8c87]">
+            <p className="flex items-center gap-3 text-[10px] font-bold uppercase tracking-[0.2em] text-accent">
               <span className="h-px w-7 bg-accent" />
               Built for everyday files
             </p>
@@ -289,8 +289,8 @@ export default function HomePage() {
 
         <div className="relative flex flex-col justify-between gap-7 lg:flex-row lg:items-end">
           <div>
-            <p className="flex items-center gap-3 text-[10px] font-bold uppercase tracking-[0.2em] text-[#ff8c87]">
-              <span className="h-px w-7 bg-[#ff6a64]" />
+            <p className="flex items-center gap-3 text-[10px] font-bold uppercase tracking-[0.2em] text-accent">
+              <span className="h-px w-7 bg-accent" />
               A clearer workflow
             </p>
             <h2 className="mt-4 max-w-2xl text-4xl font-semibold leading-[1.02] tracking-[-0.05em] sm:text-5xl">
@@ -355,7 +355,7 @@ export default function HomePage() {
             />
             <div className="relative">
               <div className="flex items-center justify-between gap-4">
-                <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#ff7771]">Private by design</p>
+                <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-accent">Private by design</p>
                 <p className="flex items-center gap-2 font-mono text-[8px] uppercase tracking-[0.16em] text-white/45">
                   <span className="relative flex h-2 w-2">
                     <span className="absolute inline-flex h-full w-full rounded-full bg-[#55d69a]/60 motion-safe:animate-ping" />
