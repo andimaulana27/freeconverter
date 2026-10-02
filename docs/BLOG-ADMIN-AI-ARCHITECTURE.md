@@ -1,6 +1,6 @@
 # Blog, Admin CMS, Ads, and AI Architecture
 
-Status: architecture approved for implementation planning  
+Status: Phase 1 complete; Phase 2 is next  
 Last updated: 2026-10-02  
 Canvas: `blog-admin-ai-architecture.canvas.tsx`
 
@@ -76,7 +76,7 @@ Next.js App Router renders blog index and article pages as Server Components. Pu
 
 ### Admin application
 
-The admin area lives under `/admin` and uses Supabase Auth. It provides:
+The admin area lives under `/admin` and uses Supabase Auth. Phase 1 ships login, MFA challenge, role-gated dashboard chrome, and `noindex` on every admin route. Later phases add:
 
 - dashboard and content health;
 - post editor and preview;
@@ -156,6 +156,15 @@ Security rules:
 - previews use short-lived authenticated access and `noindex`;
 - rate limits protect login, generation, preview, and worker endpoints.
 
+Phase 1 implementation notes:
+
+- authorization reads `auth.jwt() -> app_metadata.role`, never `user_metadata`;
+- `admin_profiles.role` is a trigger-synced copy of that claim and is not client-writable;
+- RLS helper functions live in private schema `app` and are wrapped in `SELECT` so they evaluate once per query;
+- every application table uses `ENABLE` and `FORCE ROW LEVEL SECURITY`;
+- MFA is enforced in admin middleware when a user is enrolled (`aal2`). Table-wide AAL2 RLS is deferred so a signed-in editor can still load public pages;
+- `integration_secret_refs` is super-admin only and stores `env:` or `vault:` references plus a masked suffix, never plaintext keys.
+
 ## 7. AI generation workflow
 
 ### Admin experience
@@ -201,11 +210,12 @@ Use AI SDK structured generation with `generateText` and `Output.object()` schem
 
 Keys must never be stored in browser state, client bundles, logs, article records, or plaintext settings.
 
-MVP:
+MVP (Phase 1):
 
 - use one server-only `GOOGLE_GENERATIVE_AI_API_KEY`;
+- store the reference `env:GOOGLE_GENERATIVE_AI_API_KEY` in `integration_secret_refs`;
 - show only provider status and masked suffix in admin;
-- expose a protected connection test;
+- expose a protected connection test in a later phase;
 - record failures and disable generation after repeated authentication errors.
 
 Managed rotation:
@@ -299,7 +309,8 @@ Acceptance: documentation names all major decisions, risks, and next phases.
 
 ### Phase 1 — secure foundation
 
-Status: planned
+Status: complete  
+Completed: 2026-10-02
 
 - add Supabase server/browser clients, admin Auth, MFA-ready login, and role checks;
 - create migrations for core CMS, generation, ads, settings, and audit entities;
@@ -308,6 +319,51 @@ Status: planned
 - verify migrations with security and performance advisors.
 
 Acceptance: unauthorized users cannot access admin data, drafts, secrets, or private media.
+
+#### Phase 1 decisions
+
+- Dedicated Supabase project **AllYouConvert** (`apktgfjwgsngbtvhlwen`, region `ap-southeast-1`) hosts Postgres 17, Auth, Storage, and RLS. Hosting target remains Vercel (`site_settings.hosting_target`).
+- AI secrets start as the server-only env var `GOOGLE_GENERATIVE_AI_API_KEY`. Vault rotation stays Phase 6.
+- The first `super_admin` is created in the Auth dashboard with `raw_app_meta_data.role = super_admin`. The app has no public signup UI.
+- Public pages moved into the `(site)` route group so converter chrome and ads do not wrap `/admin`.
+- Write policies that used `FOR ALL` were split into insert/update/delete after a security-advisor warning about overlapping permissive SELECT policies.
+- Storage object policies for the ad bucket are named `ad_creatives_bucket_*` so they do not clash with table policies.
+- Local Docker is not required; migrations in `supabase/migrations/` are the source of truth and were applied to the remote project.
+
+#### Phase 1 schema and seeds
+
+Application tables (all RLS enabled and forced): `admin_profiles`, `blog_topics`, `media_assets`, `blog_posts`, `blog_post_revisions`, `blog_tags`, `blog_post_tags`, `publishing_schedules`, `prompt_templates`, `ai_model_profiles`, `generation_batches`, `generation_jobs`, `integration_secret_refs`, `ad_creatives`, `ad_placements`, `ad_assignments`, `site_settings`, `audit_logs`.
+
+Public post visibility requires `status = published`, `published_at <= now()`, and an open `unpublished_at` window. Authors may insert/update/delete only their own `draft`/`review` rows and cannot publish or schedule. Secret refs, prompt templates, model profiles, and placement keys are super-admin writes.
+
+Storage buckets: `blog-public` (public images), `blog-private` (authenticated CMS readers), `ad-creatives` (public images, ad-manager writes).
+
+Seeds: 8 placement keys, 5 prompt templates, 5 model profiles (`gemini-3.5-flash-lite` for titles; `gemini-3.8-flash` for outline, draft, SEO, review), 1 Google env secret ref, 6 site settings including `default_publishing_mode = draft` and `auto_publish_enabled = false`.
+
+#### Phase 1 routes and clients
+
+- Cookie clients: `src/lib/supabase/{env,client,server,middleware}.ts` via `@supabase/ssr`.
+- Service-role client: `src/lib/supabase/service.ts` (`import "server-only"`).
+- Role helpers: `src/lib/auth/roles.ts` (`super_admin`, `editor`, `author`, `ad_manager`).
+- `/admin/login` — staff sign-in, `noindex`, no public header or ads.
+- `/admin/mfa` — TOTP challenge when enrolled users are below AAL2.
+- `/admin` — role-gated foundation dashboard.
+- `robots.ts` disallows `/admin`.
+- Public converter routes stay under `(site)` with Blog still absent from the primary header.
+
+#### Phase 1 verification
+
+- Security advisor: no findings after the policy split and FORCE RLS.
+- Performance advisor: unused-index INFO on an empty database (indexes kept); Auth “10 connections” INFO left as default.
+- Anonymous REST: unpublished `blog_posts` are not visible; 8 `ad_placements` are readable; secret refs are not granted to `anon`.
+- Browser: homepage and `/image-compressor` keep converter chrome and no Blog in the header; `/admin` redirects to `/admin/login`; `/privacy` still uses the public shell.
+
+#### Phase 1 follow-up (does not block Phase 2)
+
+- Create the first Auth user in the dashboard and set `app_metadata.role` to `super_admin`.
+- Disable public signup in Auth settings.
+- Enroll TOTP MFA on that account.
+- Connection tests, generation, and CMS screens remain later phases.
 
 ### Phase 2 — public blog and SEO
 
@@ -405,4 +461,4 @@ An implementation phase is not complete until both artifacts match the actual co
 
 ## 16. Immediate next step
 
-Begin Phase 1 with a schema and RLS design review before applying any migration. Confirm the Supabase project, admin account strategy, hosting target, and whether AI secrets will start in environment variables or Supabase Vault.
+Begin Phase 2: public `/blog` and `/blog/[slug]`, homepage `Latest guides`, footer-only Blog navigation, metadata, JSON-LD, sitemap, and RSS. Keep Blog out of the primary header. After implementation, update this document and the Canvas together.
