@@ -39,6 +39,14 @@ export function brandMetadata(): Metadata {
       telephone: false,
     },
     manifest: "/manifest.webmanifest",
+    icons: {
+      icon: [
+        { url: "/favicon.ico", sizes: "any" },
+        { url: "/favicon.png", type: "image/png", sizes: "243x243" },
+      ],
+      apple: [{ url: "/favicon.png", sizes: "243x243", type: "image/png" }],
+      shortcut: "/favicon.ico",
+    },
     openGraph: {
       type: "website",
       siteName: SITE_NAME,
@@ -128,7 +136,7 @@ export function websiteJsonLd() {
       "@type": "Organization",
       name: SITE_NAME,
       url: absUrl("/"),
-      logo: absUrl("/icon"),
+      logo: absUrl("/All%20You%20Convert.svg"),
     },
   };
 }

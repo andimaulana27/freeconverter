@@ -1,3 +1,5 @@
+import { readFile } from "node:fs/promises";
+import { join } from "node:path";
 import { ImageResponse } from "next/og";
 import { SITE_NAME } from "@/lib/site";
 
@@ -5,7 +7,10 @@ export const alt = `${SITE_NAME} — free browser-based file converter`;
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
-export default function OpenGraphImage() {
+export default async function OpenGraphImage() {
+  const mark = await readFile(join(process.cwd(), "public", "favicon.png"));
+  const markSrc = `data:image/png;base64,${mark.toString("base64")}`;
+
   return new ImageResponse(
     (
       <div
@@ -46,20 +51,7 @@ export default function OpenGraphImage() {
         />
         <div style={{ display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 18, fontSize: 30, fontWeight: 800 }}>
-            <div
-              style={{
-                display: "flex",
-                width: 52,
-                height: 52,
-                borderRadius: 14,
-                alignItems: "center",
-                justifyContent: "center",
-                background: "#d92d28",
-                color: "white",
-              }}
-            >
-              A
-            </div>
+            <img src={markSrc} width={52} height={52} alt="" />
             {SITE_NAME}
           </div>
           <div style={{ display: "flex", flexDirection: "column" }}>
