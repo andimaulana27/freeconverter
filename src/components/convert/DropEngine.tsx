@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import dynamic from "next/dynamic";
 import type { ToolDef } from "@/lib/tools";
-import { acceptsInput, siblingConversions, sourceKey, toolsForDropped } from "@/lib/tools";
+import { acceptsInput, conversionSource, siblingConversions, sourceKey, toolsForDropped } from "@/lib/tools";
 import { extOf, isTiffName } from "@/lib/file";
 import {
   DEFAULT_CROP,
@@ -16,16 +16,34 @@ import { useConvertSession } from "@/components/convert/ConvertSession";
 import { ColorStage } from "@/components/convert/ColorStage";
 import { CropStage } from "@/components/convert/CropStage";
 import { FormatArtwork } from "@/components/convert/FormatArtwork";
-import { JobPicks, OutputSwitch } from "@/components/convert/OutputSwitch";
+import { JobPicks, OutputSwitch, type OutputOption } from "@/components/convert/OutputSwitch";
 import { Button } from "@/components/ui/Button";
 import { Field } from "@/components/ui/Field";
 import { FileChip } from "@/components/ui/FileChip";
 import { cn } from "@/lib/cn";
 
+const IMAGE_OUTPUT_OPTIONS: OutputOption[] = [
+  { slug: "output-jpg", output: "jpg", category: "Gambar", detail: "Small photo files", badge: "Popular" },
+  { slug: "output-webp", output: "webp", category: "Gambar", detail: "Modern web format", badge: "Smallest" },
+  { slug: "output-png", output: "png", category: "Gambar", detail: "Lossless + alpha" },
+  { slug: "output-bmp", output: "bmp", category: "Gambar", detail: "Uncompressed bitmap" },
+  { slug: "output-tiff", output: "tiff", category: "Gambar", detail: "Print and archive" },
+  { slug: "output-ico", output: "ico", category: "Gambar", detail: "16 / 32 / 48 px" },
+];
+
 const FillFormStage = dynamic(
   () => import("@/components/convert/FillFormStage").then((module) => module.FillFormStage),
   { ssr: false, loading: () => <p className="mt-5 text-sm text-mute">Reading form fields…</p> },
 );
+
+function runButtonLabel(active: ToolDef | null | undefined, output: string, busy: boolean, noFile: boolean) {
+  if (busy) return "Converting";
+  if (noFile) return "Convert";
+  if (active?.slug === "image-compressor" && output) return `Compress to ${output.toUpperCase()}`;
+  if (active && !conversionSource(active)) return active.title;
+  if (output) return `Convert to ${output.toUpperCase()}`;
+  return "Convert file";
+}
 
 function convertErrorMessage(error: unknown) {
   const message = error instanceof Error ? error.message : "Conversion failed.";
@@ -76,6 +94,7 @@ export function DropEngine({ tool, variant = "default" }: Props) {
   const [unitAmount, setUnitAmount] = useState("1");
   const [unitResult, setUnitResult] = useState("");
   const [homeSlug, setHomeSlug] = useState<string | null>(null);
+  const [outputOverride, setOutputOverride] = useState(tool?.output ?? "");
   const dragging = drag > 0;
 
   const homeOptions = useMemo(() => {
@@ -86,14 +105,13 @@ export function DropEngine({ tool, variant = "default" }: Props) {
   const slugOptions = tool ? siblingConversions(tool) : [];
   const homeTool = homeOptions.find((item) => item.slug === homeSlug) ?? homeOptions[0] ?? null;
   const active = tool ?? homeTool;
-  const output = active?.output ?? "";
   const slug = active?.slug;
+  const output = slug === "image-compressor" ? outputOverride || active?.output || "" : active?.output ?? "";
   const singleFile =
     slug === "crop-image" ||
     slug === "color-picker" ||
     slug === "rotate-image" ||
     slug === "flip-image" ||
-    slug === "split-pdf" ||
     slug === "rotate-pdf" ||
     slug === "delete-pdf-pages" ||
     slug === "extract-pdf-pages" ||
@@ -134,6 +152,10 @@ export function DropEngine({ tool, variant = "default" }: Props) {
   const noFile = slug === "unit-converter";
   const visualFrom = files[0] ? extOf(files[0].name) : noFile ? "unit" : (active?.inputs?.[0] ?? "file");
   const visualTo = output || "format";
+
+  useEffect(() => {
+    setOutputOverride(tool?.output ?? "");
+  }, [tool?.slug, tool?.output]);
 
   useEffect(() => {
     let next = files;
@@ -225,7 +247,7 @@ export function DropEngine({ tool, variant = "default" }: Props) {
         await mergePdfs(files);
       } else if (slug === "split-pdf") {
         const { splitPdf } = await import("@/lib/convert/pdf");
-        await splitPdf(first);
+        await splitPdf(files);
       } else if (slug === "rotate-pdf") {
         const { rotatePdf } = await import("@/lib/convert/pdf");
         await rotatePdf(first);
@@ -350,12 +372,14 @@ export function DropEngine({ tool, variant = "default" }: Props) {
           for (const file of files) await rasterConvert(file, "png", { width });
         }
       } else if (slug === "image-compressor") {
-        if (files.some((file) => isTiffName(file.name))) {
+        const out = asRasterOutput(output);
+        if (!out) throw new Error("Choose an output format first.");
+        if (out === "tiff" || files.some((file) => isTiffName(file.name))) {
           const { rasterConvertTiff } = await import("@/lib/convert/tiff");
-          for (const file of files) await rasterConvertTiff(file, "jpg", { quality: 0.72 });
+          for (const file of files) await rasterConvertTiff(file, out, { quality: 0.72 });
         } else {
           const { rasterConvert } = await import("@/lib/convert/image");
-          for (const file of files) await rasterConvert(file, "jpg", { quality: 0.72 });
+          for (const file of files) await rasterConvert(file, out, { quality: 0.72 });
         }
       } else if (slug === "gif-compressor") {
         const { rasterConvert } = await import("@/lib/convert/image");
@@ -445,12 +469,14 @@ export function DropEngine({ tool, variant = "default" }: Props) {
           to={visualTo}
           category={active?.category}
           active={dragging}
+          busy={busy}
           variant={variant}
         />
         <span className={cn(
-          "flex flex-col gap-3 px-6 py-7 sm:px-8",
+          "flex flex-col gap-3",
           variant === "hero" && "items-start gap-2 px-5 py-5 sm:px-6",
-          !noFile && !files.length && variant !== "hero" && "mx-6 mb-2 items-center rounded-card border border-dashed border-accent/55 bg-[#fff8f7] py-8 text-center sm:mx-8 sm:py-9",
+          !noFile && !files.length && variant !== "hero" && "m-6 items-center rounded-card border border-dashed border-accent/55 bg-[#fff8f7] px-6 py-8 text-center sm:m-8 sm:px-8 sm:py-10",
+          (noFile || files.length > 0) && variant !== "hero" && "px-6 pt-6 sm:px-8 sm:pt-8",
         )}>
           <span className="flex w-full items-center justify-between gap-4">
             <span className={cn("text-[10px] font-bold uppercase tracking-[0.18em] text-mute", variant === "hero" && "text-[9px]")}>
@@ -470,12 +496,14 @@ export function DropEngine({ tool, variant = "default" }: Props) {
                   ? (singleFile ? "Ready to convert" : "Add more, or convert")
                   : visualFrom === "file"
                     ? "Drop a file here"
-                    : `Drop your ${visualFrom.toUpperCase()} file here`}
+                    : `Drop your ${visualFrom.toUpperCase()} ${singleFile ? "file" : "files"} here`}
           </span>
           <span className={cn("text-sm text-mute", variant === "hero" && "text-xs")}>
             {noFile
               ? variant === "hero" ? "No file needed · choose two units" : "No file needed · stays on this device"
-              : variant === "hero" ? "Drag and drop, or browse from this device" : "Drag and drop, or choose a file from this device · up to ~30 MB"}
+              : variant === "hero"
+                ? "Drag and drop, or browse from this device"
+                : `Drag and drop, or choose ${singleFile ? "a file" : "files"} from this device · up to ~30 MB`}
           </span>
           {!noFile && !files.length ? (
             <span className={cn("mt-4 inline-flex", variant === "hero" ? "self-start" : "self-center")}>
@@ -486,7 +514,7 @@ export function DropEngine({ tool, variant = "default" }: Props) {
                 <svg viewBox="0 0 20 20" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden>
                   <path d="M10 3v9m0 0 3.5-3.5M10 12 6.5 8.5M4 16h12" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
-                Upload file
+                {singleFile ? "Upload file" : "Upload files"}
               </span>
             </span>
           ) : null}
@@ -506,8 +534,23 @@ export function DropEngine({ tool, variant = "default" }: Props) {
         </ul>
       ) : null}
 
-      <div className={cn("px-6 pb-8 sm:px-8", variant === "hero" && "px-5 pb-6 sm:px-6")}>
-        {tool ? (
+      <div className={cn(
+        variant === "hero" ? "px-5 pb-6 sm:px-6" : "px-6 sm:px-8",
+        variant !== "hero" && (noFile || files.length > 0) && "pb-8",
+        variant !== "hero" && !noFile && files.length === 0 && "empty:hidden pb-6 sm:pb-8",
+      )}>
+        {slug === "image-compressor" ? (
+          <OutputSwitch
+            options={IMAGE_OUTPUT_OPTIONS}
+            current={output}
+            description="Choose the balance you need: compact, lossless, print-ready, or icon."
+            onSelect={(item) => {
+              setOutputOverride(item.output);
+              setError("");
+              setDone(false);
+            }}
+          />
+        ) : tool ? (
           <OutputSwitch options={slugOptions} current={tool.slug} />
         ) : (
           <OutputSwitch options={homeOptions} current={homeTool?.slug} onSelect={(item) => setHomeSlug(item.slug)} />
@@ -664,7 +707,7 @@ export function DropEngine({ tool, variant = "default" }: Props) {
         {noFile || files.length > 0 ? (
           <div className="mt-6 flex flex-wrap items-center gap-3">
             <Button onClick={run} loading={busy}>
-              {busy ? "Converting" : noFile ? "Convert" : output ? `Convert to ${output.toUpperCase()}` : "Convert file"}
+              {runButtonLabel(active, output, busy, noFile)}
             </Button>
             {files.length > 0 && !noFile ? (
               <Button
@@ -698,6 +741,11 @@ export function DropEngine({ tool, variant = "default" }: Props) {
         {active?.need === "vps" ? (
           <p className="mt-3 text-sm text-mute">
             This workflow will become available when the dedicated conversion worker is online.
+          </p>
+        ) : null}
+        {slug === "split-pdf" ? (
+          <p className="mt-3 text-sm text-mute">
+            Each page becomes its own PDF. Two or more pages download together as a ZIP.
           </p>
         ) : null}
         {slug === "unlock-pdf" ? (

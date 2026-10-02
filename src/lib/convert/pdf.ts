@@ -122,21 +122,33 @@ export async function rotatePdf(file: File) {
   downloadBlob(bytesToBlob(bytes, "application/pdf"), `${stem(file.name)}-rotated.pdf`);
 }
 
-export async function splitPdf(file: File) {
-  const src = await loadPdf(file);
+export async function splitPdf(files: File | File[]) {
+  const list = Array.isArray(files) ? files : [files];
+  if (!list.length) throw new Error("Choose a PDF first.");
   const zipParts: { name: string; blob: Blob }[] = [];
-  for (let i = 0; i < src.getPageCount(); i++) {
-    const one = await PDFDocument.create();
-    const [page] = await one.copyPages(src, [i]);
-    one.addPage(page);
-    const bytes = await one.save();
-    zipParts.push({
-      name: `${stem(file.name)}-p${i + 1}.pdf`,
-      blob: bytesToBlob(bytes, "application/pdf"),
-    });
+  const used = new Set<string>();
+  for (const file of list) {
+    const src = await loadPdf(file);
+    const count = src.getPageCount();
+    if (!count) throw new Error(`${file.name} has no pages.`);
+    const base = stem(file.name) || "page";
+    for (let i = 0; i < count; i++) {
+      const one = await PDFDocument.create();
+      const [page] = await one.copyPages(src, [i]);
+      one.addPage(page);
+      const bytes = await one.save();
+      let name = `${base}-p${i + 1}.pdf`;
+      for (let n = 2; used.has(name); n += 1) name = `${base}-p${i + 1}-${n}.pdf`;
+      used.add(name);
+      zipParts.push({
+        name,
+        blob: bytesToBlob(bytes, "application/pdf"),
+      });
+    }
   }
+  const zipName = list.length === 1 ? `${stem(list[0].name)}-pages.zip` : "split-pages.zip";
   const { downloadZip } = await import("@/lib/convert/zip-download");
-  await downloadZip(zipParts, `${stem(file.name)}-pages.zip`);
+  await downloadZip(zipParts, zipName);
 }
 
 export async function extractPdfPages(file: File, spec: string) {

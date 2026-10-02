@@ -283,14 +283,14 @@
   {
     "slug": "split-pdf",
     "title": "Split PDF",
-    "purpose": "Ambil setiap halaman jadi PDF terpisah (ZIP).",
+    "purpose": "Ambil setiap halaman jadi PDF terpisah.",
     "category": "PDF",
     "need": "browser",
     "engine": "pdf-lib",
     "inputs": [
       "pdf"
     ],
-    "output": "zip",
+    "output": "pdf",
     "v1": true
   },
   {
