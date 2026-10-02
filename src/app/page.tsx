@@ -54,7 +54,7 @@ const PRIVACY_POINTS = [
 const HERO_SIGNALS = [
   { value: String(tools.length), title: "purpose-built tools", note: "A focused route for every job" },
   { value: "Zero", title: "account walls", note: "Convert first—no sign-up detour" },
-  { value: "On-device", title: "private by default", note: "Supported files stay with you" },
+  { value: "Fast", title: "straight-through flow", note: "From file to download in a few clicks" },
 ] as const;
 
 function ArrowIcon() {
@@ -84,7 +84,7 @@ function HeroSignalIcon({ index }: { index: number }) {
   const paths = [
     <><rect key="a" x="3" y="3" width="5" height="5" rx="1" /><rect key="b" x="12" y="3" width="5" height="5" rx="1" /><rect key="c" x="3" y="12" width="5" height="5" rx="1" /><path key="d" d="M12 14.5h5M14.5 12v5" /></>,
     <><circle key="a" cx="10" cy="7" r="3" /><path key="b" d="M4.5 17c.8-3 2.6-4.5 5.5-4.5 1.3 0 2.4.3 3.3.9M15 13l3 3m0-3-3 3" /></>,
-    <><path key="a" d="M10 2.5 17 5v5.4c0 4.2-2.8 6.3-7 7.8-4.2-1.5-7-3.6-7-7.8V5z" /><path key="b" d="m6.8 10.4 2.1 2.1 4.5-4.5" /></>,
+    <><path key="a" d="m11.5 2.5-6 8H10l-1.5 7 6-8H10z" strokeLinejoin="round" /></>,
   ];
 
   return (
@@ -128,12 +128,16 @@ export default function HomePage() {
 
         <div className="relative grid gap-12 px-6 py-8 sm:px-10 sm:py-12 lg:grid-cols-[0.8fr_1.2fr] lg:items-center lg:gap-12 lg:px-12 lg:py-14">
           <div>
-            <h1 className="max-w-xl text-[42px] font-semibold leading-[0.97] tracking-[-0.06em] sm:text-6xl sm:leading-[0.95] lg:text-[64px]">
+            <p className="flex items-center gap-3 text-[10px] font-bold uppercase tracking-[0.2em] text-[#ff8c87]">
+              <span className="h-px w-7 bg-accent" />
+              Built for everyday files
+            </p>
+            <h1 className="mt-5 max-w-xl text-[42px] font-semibold leading-[0.97] tracking-[-0.06em] sm:text-6xl sm:leading-[0.95] lg:text-[64px]">
               Drop the file.
-              <span className="mt-1 block text-[#ff6a64]">Leave with the format you need.</span>
+              <span className="mt-1 block text-accent">Leave with the format you need.</span>
             </h1>
             <p className="mt-6 max-w-lg text-[15px] leading-7 text-white/65">
-              Choose a file, pick an output, and download. Common conversions run on this device—without an account or a detour through a third-party API.
+              Choose a file, pick an output, and download. A straightforward converter with no account, no subscription, and no unnecessary steps.
             </p>
 
             <div className="mt-8 flex flex-wrap gap-3">
@@ -195,65 +199,58 @@ export default function HomePage() {
             </dl>
           </div>
 
-          <div id="converter" className="group/console relative scroll-mt-24 lg:pl-6">
+          <div id="converter" className="group/workbench relative scroll-mt-24 lg:pl-4">
             <div
-              className="pointer-events-none absolute -inset-5 rotate-2 rounded-[34px] border border-white/10 bg-white/[0.025] transition duration-700 group-hover/console:rotate-1"
+              className="pointer-events-none absolute -inset-16 bg-[radial-gradient(circle,rgba(217,45,40,0.2),transparent_62%)] opacity-60 blur-2xl transition duration-700 group-hover/workbench:opacity-90"
               aria-hidden
             />
             <div
-              className="pointer-events-none absolute -inset-2 -rotate-1 rounded-[30px] border border-white/[0.07] transition duration-700 group-hover/console:-rotate-2"
+              className="pointer-events-none absolute -inset-3 translate-x-3 translate-y-3 rounded-[34px] border border-white/[0.08] bg-white/[0.025] transition duration-500 group-hover/workbench:translate-x-2 group-hover/workbench:translate-y-2"
               aria-hidden
             />
 
-            <div className="pointer-events-none absolute -left-2 top-14 z-10 hidden -translate-x-1/2 -rotate-90 items-center gap-2 rounded-full border border-white/10 bg-[#181412] px-3 py-1.5 font-mono text-[7px] uppercase tracking-[0.18em] text-white/35 shadow-lg lg:flex" aria-hidden>
-              <span className="h-1.5 w-1.5 rounded-full bg-accent" />
-              Drop / route / done
-            </div>
-
-            <div className="relative rounded-[28px] border border-white/10 bg-[#211c19]/90 p-2 shadow-[0_30px_80px_rgba(0,0,0,0.42)] backdrop-blur-sm">
-              <div className="flex items-center justify-between px-3 py-2.5 text-white sm:px-4">
-                <div className="flex items-center gap-3">
-                  <span className="flex gap-1.5" aria-hidden>
-                    <span className="h-2 w-2 rounded-full bg-[#ff6a64]" />
-                    <span className="h-2 w-2 rounded-full bg-white/20" />
-                    <span className="h-2 w-2 rounded-full bg-white/20" />
+            <div className="relative overflow-hidden rounded-[30px] border border-white/15 bg-white/[0.07] p-2 shadow-[0_36px_90px_rgba(0,0,0,0.42)] backdrop-blur-md transition duration-500 group-hover/workbench:-translate-y-1 group-hover/workbench:border-white/25">
+              <div className="flex items-center justify-between gap-4 px-3 py-3 text-white sm:px-4">
+                <div className="flex min-w-0 items-center gap-3">
+                  <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-accent shadow-[0_8px_22px_rgba(217,45,40,0.35)]">
+                    <svg viewBox="0 0 20 20" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden>
+                      <path d="M10 3v10m0 0 4-4m-4 4L6 9M4 16h12" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
                   </span>
-                  <span className="h-3 w-px bg-white/15" aria-hidden />
-                  <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-white/70">Live conversion desk</p>
+                  <span className="min-w-0">
+                    <span className="block truncate text-[10px] font-bold uppercase tracking-[0.18em] text-white/80">Instant workbench</span>
+                    <span className="mt-0.5 block truncate text-[9px] text-white/35">One file. One clean route.</span>
+                  </span>
                 </div>
-                <p className="font-mono text-[8px] font-semibold uppercase tracking-[0.16em] text-white/40">
-                  Session 01
-                </p>
-              </div>
-
-              <div className="overflow-hidden rounded-[21px] bg-white">
-                <DropEngine />
-                <div className="grid grid-cols-3 border-t border-[#ece7e4] bg-[#faf8f7]">
-                  {[
-                    ["01", "Choose", "Your file"],
-                    ["02", "Shape", "Pick format"],
-                    ["03", "Take", "Download"],
-                  ].map(([number, label, note]) => (
-                    <div key={number} className="group/step relative border-r border-[#ece7e4] px-3 py-3 text-center last:border-r-0">
-                      <span className="absolute inset-x-0 top-0 h-px origin-left scale-x-0 bg-accent transition-transform duration-280 group-hover/step:scale-x-100" />
-                      <p className="text-[9px] font-bold uppercase tracking-[0.14em] text-[#514a47]">
-                        <span className="mr-1.5 font-mono text-accent">{number}</span>
-                        {label}
-                      </p>
-                      <p className="mt-1 hidden text-[8px] text-[#9a918c] sm:block">{note}</p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div className="flex items-center justify-between px-3 pb-1.5 pt-3 font-mono text-[7px] uppercase tracking-[0.15em] text-white/30 sm:px-4">
-                <span>Browser workspace / v1</span>
-                <span className="flex items-center gap-2">
-                  <span className="text-[#75e0b1]">Ready</span>
-                  Files stay local when supported
+                <span className="flex shrink-0 items-center gap-2 rounded-full border border-[#75e0b1]/20 bg-[#75e0b1]/10 px-3 py-1.5 font-mono text-[8px] font-semibold uppercase tracking-[0.13em] text-[#8be8bd]">
+                  <span className="relative flex h-1.5 w-1.5">
+                    <span className="absolute inline-flex h-full w-full rounded-full bg-[#75e0b1]/70 motion-safe:animate-ping" />
+                    <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-[#75e0b1]" />
+                  </span>
+                  Ready to convert
                 </span>
               </div>
+
+              <div className="overflow-hidden rounded-[24px] bg-white p-1 shadow-[0_18px_45px_rgba(0,0,0,0.24)]">
+                <DropEngine />
+              </div>
+
+              <div className="relative flex items-center justify-between gap-3 px-3 py-3 sm:px-4">
+                <div className="flex items-center gap-2">
+                  {["Choose", "Convert", "Download"].map((label, index) => (
+                    <span key={label} className="flex items-center gap-2">
+                      <span className={`grid h-5 w-5 place-items-center rounded-full border font-mono text-[7px] ${index === 0 ? "border-accent bg-accent text-white" : "border-white/15 bg-white/[0.04] text-white/35"}`}>
+                        {index + 1}
+                      </span>
+                      <span className="hidden text-[8px] font-semibold uppercase tracking-[0.12em] text-white/35 sm:inline">{label}</span>
+                      {index < 2 ? <span className="hidden h-px w-5 bg-white/10 sm:block" /> : null}
+                    </span>
+                  ))}
+                </div>
+                <span className="font-mono text-[7px] uppercase tracking-[0.14em] text-white/25">No sign-up</span>
+              </div>
             </div>
+
           </div>
         </div>
       </section>
