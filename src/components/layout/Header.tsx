@@ -38,7 +38,7 @@ export function Header() {
 
         <nav className="hidden h-full flex-1 items-stretch gap-1 text-[12px] lg:flex" aria-label="Primary navigation">
           {NAV.map((item) => {
-            const active = item.href === "/#tools" ? path === "/tools" : false;
+            const active = item.href === "/#tools" && path === "/tools";
             return (
               <Link
                 key={item.href}
@@ -50,7 +50,7 @@ export function Header() {
                   active && "text-ink after:scale-x-100",
                 )}
               >
-                <span className="font-mono text-[8px] font-medium text-[#aaa19c] transition group-hover:text-accent">{item.index}</span>
+                <span className="font-mono text-micro font-medium text-[#8f8782] transition group-hover:text-accent">{item.index}</span>
                 {item.label}
               </Link>
             );
@@ -59,7 +59,7 @@ export function Header() {
 
         <Link
           href={path === "/" ? "/#converter" : "/#tools"}
-          className="group my-auto ml-auto inline-flex shrink-0 items-center gap-2 rounded-xl bg-accent px-3.5 py-2.5 text-[11px] font-bold text-white shadow-[0_8px_20px_rgba(217,45,40,0.24)] transition duration-180 hover:-translate-y-0.5 hover:bg-accent-ink active:scale-[0.98] lg:ml-0 sm:px-4"
+          className="group my-auto ml-auto inline-flex shrink-0 items-center gap-2 rounded-control bg-accent px-3.5 py-2.5 text-xs font-bold text-white shadow-action transition duration-180 hover:-translate-y-0.5 hover:bg-accent-ink active:scale-[0.98] lg:ml-0 sm:px-4"
         >
           <span className="sm:hidden">{path === "/" ? "Convert" : "Tools"}</span>
           <span className="hidden sm:inline">{path === "/" ? "Start converting" : "Browse tools"}</span>
