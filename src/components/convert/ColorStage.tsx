@@ -3,6 +3,7 @@
 import { useEffect, useRef } from "react";
 import { loadImage } from "@/lib/convert/canvas-draw";
 import { isTiffName } from "@/lib/file";
+import { StagePanel } from "@/components/convert/StagePanel";
 
 type Props = {
   file: File;
@@ -62,9 +63,8 @@ export function ColorStage({ file, hex, onPick }: Props) {
   }
 
   return (
-    <div className="mt-5">
-      <p className="mb-2 text-[11px] font-medium uppercase tracking-[0.16em] text-faint">Pick</p>
-      <div className="flex flex-col items-start gap-3 bg-bone p-4">
+    <StagePanel label="Pick" hint="Click the image to copy a HEX color.">
+      <div className="flex flex-col items-start gap-3 rounded-xl bg-white p-4">
         <canvas
           ref={canvasRef}
           className="max-h-56 max-w-full cursor-crosshair"
@@ -75,6 +75,6 @@ export function ColorStage({ file, hex, onPick }: Props) {
           {hex}
         </p>
       </div>
-    </div>
+    </StagePanel>
   );
 }

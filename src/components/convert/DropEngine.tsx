@@ -3,44 +3,48 @@
 import { useEffect, useMemo, useState } from "react";
 import dynamic from "next/dynamic";
 import type { ToolDef } from "@/lib/tools";
-import { acceptsInput, conversionSource, siblingConversions, sourceKey, toolsForDropped } from "@/lib/tools";
+import { acceptsInput, conversionSource, sourceKey, toolsForDropped } from "@/lib/tools";
 import { extOf, isTiffName } from "@/lib/file";
-import {
-  DEFAULT_CROP,
-  asRasterOutput,
-  type CropBox,
-  type ImageTurn,
-} from "@/lib/convert/image-types";
+import { DEFAULT_CROP, type CropBox, type ImageTurn } from "@/lib/convert/image-types";
 import { convertUnit, formatUnit, UNIT_OPTIONS, type UnitKind } from "@/lib/convert/units";
+import {
+  formatPickerHint,
+  isImageJob,
+  isImageSource,
+  isLossyOutput,
+  workspaceOutputs,
+  workspaceSource,
+} from "@/lib/convert/workspace";
+import { writePdfExport, writeRasterFiles } from "@/lib/convert/write-output";
 import { useConvertSession } from "@/components/convert/ConvertSession";
 import { ColorStage } from "@/components/convert/ColorStage";
 import { CropStage } from "@/components/convert/CropStage";
 import { FormatArtwork } from "@/components/convert/FormatArtwork";
-import { JobPicks, OutputSwitch, type OutputOption } from "@/components/convert/OutputSwitch";
+import { JobPicks, OutputSwitch } from "@/components/convert/OutputSwitch";
+import { pagesToSpec } from "@/components/convert/PdfStage";
+import { StagePanel } from "@/components/convert/StagePanel";
 import { Button } from "@/components/ui/Button";
 import { Field } from "@/components/ui/Field";
 import { FileChip } from "@/components/ui/FileChip";
 import { cn } from "@/lib/cn";
-
-const IMAGE_OUTPUT_OPTIONS: OutputOption[] = [
-  { slug: "output-jpg", output: "jpg", category: "Gambar", detail: "Small photo files", badge: "Popular" },
-  { slug: "output-webp", output: "webp", category: "Gambar", detail: "Modern web format", badge: "Smallest" },
-  { slug: "output-png", output: "png", category: "Gambar", detail: "Lossless + alpha" },
-  { slug: "output-bmp", output: "bmp", category: "Gambar", detail: "Uncompressed bitmap" },
-  { slug: "output-tiff", output: "tiff", category: "Gambar", detail: "Print and archive" },
-  { slug: "output-ico", output: "ico", category: "Gambar", detail: "16 / 32 / 48 px" },
-];
 
 const FillFormStage = dynamic(
   () => import("@/components/convert/FillFormStage").then((module) => module.FillFormStage),
   { ssr: false, loading: () => <p className="mt-5 text-sm text-mute">Reading form fields…</p> },
 );
 
-function runButtonLabel(active: ToolDef | null | undefined, output: string, busy: boolean, noFile: boolean) {
+const PdfStage = dynamic(
+  () => import("@/components/convert/PdfStage").then((module) => module.PdfStage),
+  { ssr: false },
+);
+
+function runButtonLabel(active: ToolDef | null | undefined, output: string, busy: boolean, noFile: boolean, mergePdf: boolean) {
   if (busy) return "Converting";
   if (noFile) return "Convert";
+  if (mergePdf) return "Merge PDF";
   if (active?.slug === "image-compressor" && output) return `Compress to ${output.toUpperCase()}`;
-  if (active && !conversionSource(active)) return active.title;
+  if (active?.slug === "image-resizer" && output) return `Resize to ${output.toUpperCase()}`;
+  if (active && !conversionSource(active) && !output) return active.title;
   if (output) return `Convert to ${output.toUpperCase()}`;
   return "Convert file";
 }
@@ -77,12 +81,18 @@ export function DropEngine({ tool, variant = "default" }: Props) {
   const [error, setError] = useState("");
   const [done, setDone] = useState(false);
   const [width, setWidth] = useState(1600);
+  const [height, setHeight] = useState(1600);
+  const [natural, setNatural] = useState({ width: 1600, height: 1600 });
+  const [lockRatio, setLockRatio] = useState(true);
+  const [quality, setQuality] = useState(72);
   const [crop, setCrop] = useState<CropBox>(DEFAULT_CROP);
   const [pages, setPages] = useState("1");
+  const [selectedPages, setSelectedPages] = useState<number[]>([]);
   const [mark, setMark] = useState("DRAFT");
   const [hex, setHex] = useState("#D92D28");
   const [turn, setTurn] = useState<ImageTurn>("90");
   const [flip, setFlip] = useState<ImageTurn>("flip-h");
+  const [pdfTurn, setPdfTurn] = useState("90");
   const [orderMode, setOrderMode] = useState<"reverse" | "custom">("reverse");
   const [order, setOrder] = useState("1,2,3");
   const [sign, setSign] = useState("Signed");
@@ -95,6 +105,7 @@ export function DropEngine({ tool, variant = "default" }: Props) {
   const [unitResult, setUnitResult] = useState("");
   const [homeSlug, setHomeSlug] = useState<string | null>(null);
   const [outputOverride, setOutputOverride] = useState(tool?.output ?? "");
+  const [pdfPageFile, setPdfPageFile] = useState<File | null>(null);
   const dragging = drag > 0;
 
   const homeOptions = useMemo(() => {
@@ -102,11 +113,17 @@ export function DropEngine({ tool, variant = "default" }: Props) {
     return toolsForDropped(extOf(files[0].name));
   }, [tool, files]);
 
-  const slugOptions = tool ? siblingConversions(tool) : [];
   const homeTool = homeOptions.find((item) => item.slug === homeSlug) ?? homeOptions[0] ?? null;
   const active = tool ?? homeTool;
   const slug = active?.slug;
-  const output = slug === "image-compressor" ? outputOverride || active?.output || "" : active?.output ?? "";
+  const droppedExt = files[0] ? extOf(files[0].name) : "";
+  const source = workspaceSource(active, droppedExt);
+  const mergePdf = !tool && source === "pdf" && files.length > 1;
+  const formatOptions = useMemo(
+    () => (mergePdf ? [] : workspaceOutputs(active, source)),
+    [active, mergePdf, source],
+  );
+  const output = outputOverride || active?.output || formatOptions[0]?.output || "";
   const singleFile =
     slug === "crop-image" ||
     slug === "color-picker" ||
@@ -152,10 +169,29 @@ export function DropEngine({ tool, variant = "default" }: Props) {
   const noFile = slug === "unit-converter";
   const visualFrom = files[0] ? extOf(files[0].name) : noFile ? "unit" : (active?.inputs?.[0] ?? "file");
   const visualTo = output || "format";
+  const showQuality =
+    slug !== "image-resizer" &&
+    (slug === "image-compressor" || slug === "gif-compressor" || isLossyOutput(output));
+  const showPdfStage =
+    Boolean(files[0] && source === "pdf") &&
+    slug !== "crop-pdf" &&
+    slug !== "redact-pdf" &&
+    slug !== "fill-pdf" &&
+    slug !== "merge-pdf" &&
+    !mergePdf;
+  const pickPdfPages = slug === "delete-pdf-pages" || slug === "extract-pdf-pages";
 
   useEffect(() => {
     setOutputOverride(tool?.output ?? "");
+    setSelectedPages([]);
+    setPdfPageFile(null);
   }, [tool?.slug, tool?.output]);
+
+  useEffect(() => {
+    if (tool) return;
+    const next = formatOptions[0]?.output ?? "";
+    setOutputOverride((current) => (formatOptions.some((item) => item.output === current) ? current : next));
+  }, [tool, formatOptions]);
 
   useEffect(() => {
     let next = files;
@@ -166,6 +202,58 @@ export function DropEngine({ tool, variant = "default" }: Props) {
     if (singleFile && next.length > 1) next = next.slice(0, 1);
     if (next !== files) setFiles(next);
   }, [tool, files, setFiles, singleFile]);
+
+  useEffect(() => {
+    const file = files[0];
+    if (!file || slug !== "image-resizer") return;
+    let alive = true;
+    (async () => {
+      try {
+        if (isTiffName(file.name)) {
+          const { canvasFromTiff } = await import("@/lib/convert/tiff");
+          const size = await canvasFromTiff(file);
+          if (!alive) return;
+          setNatural({ width: size.width, height: size.height });
+          setWidth(size.width);
+          setHeight(size.height);
+          return;
+        }
+        const { loadImage, sizeOf } = await import("@/lib/convert/canvas-draw");
+        const img = await loadImage(file);
+        if (!alive) return;
+        const size = sizeOf(img);
+        setNatural(size);
+        setWidth(size.width);
+        setHeight(size.height);
+      } catch {
+        /* keep the last size */
+      }
+    })();
+    return () => {
+      alive = false;
+    };
+  }, [files, slug]);
+
+  useEffect(() => {
+    const file = files[0];
+    if (!file || (slug !== "crop-pdf" && slug !== "redact-pdf")) {
+      setPdfPageFile(null);
+      return;
+    }
+    let alive = true;
+    (async () => {
+      try {
+        const { renderPdfPageFile } = await import("@/lib/convert/pdf-raster");
+        const next = await renderPdfPageFile(file);
+        if (alive) setPdfPageFile(next);
+      } catch {
+        if (alive) setPdfPageFile(null);
+      }
+    })();
+    return () => {
+      alive = false;
+    };
+  }, [files, slug]);
 
   function take(list: FileList | File[]) {
     const incoming = Array.from(list);
@@ -182,8 +270,8 @@ export function DropEngine({ tool, variant = "default" }: Props) {
       }
     } else if (!tool) {
       const anchor = files[0] ?? incoming[0];
-      const source = sourceKey(extOf(anchor.name));
-      allowed = incoming.filter((file) => sourceKey(extOf(file.name)) === source);
+      const dropped = sourceKey(extOf(anchor.name));
+      allowed = incoming.filter((file) => sourceKey(extOf(file.name)) === dropped);
       if (!allowed.length) {
         setError("Additional files must use the same format.");
         return;
@@ -193,6 +281,7 @@ export function DropEngine({ tool, variant = "default" }: Props) {
     if (singleFile) {
       setCrop(DEFAULT_CROP);
       setHex("#D92D28");
+      setSelectedPages([]);
       setFiles(allowed.slice(0, 1));
       return;
     }
@@ -205,6 +294,33 @@ export function DropEngine({ tool, variant = "default" }: Props) {
   function removeAt(index: number) {
     setFiles(files.filter((_, i) => i !== index));
     setDone(false);
+  }
+
+  function pickOutput(next: string) {
+    setOutputOverride(next);
+    setError("");
+    setDone(false);
+  }
+
+  function setResizeWidth(next: number) {
+    const value = Math.max(16, Math.min(8000, next || 16));
+    setWidth(value);
+    if (lockRatio && natural.width) {
+      setHeight(Math.max(16, Math.round((value * natural.height) / natural.width)));
+    }
+  }
+
+  function setResizeHeight(next: number) {
+    const value = Math.max(16, Math.min(8000, next || 16));
+    setHeight(value);
+    if (lockRatio && natural.height) {
+      setWidth(Math.max(16, Math.round((value * natural.width) / natural.height)));
+    }
+  }
+
+  function pickPdf(next: number[]) {
+    setSelectedPages(next);
+    setPages(pagesToSpec(next) || "1");
   }
 
   async function run() {
@@ -229,6 +345,7 @@ export function DropEngine({ tool, variant = "default" }: Props) {
     }
     const first = files[0];
     const ext = extOf(first.name);
+    const from = sourceKey(ext);
     setBusy(true);
     setError("");
     setDone(false);
@@ -242,7 +359,8 @@ export function DropEngine({ tool, variant = "default" }: Props) {
       if (active?.need === "vps") {
         throw new Error("This conversion needs a server worker and is not available in the browser yet. Choose a format this page can write locally.");
       }
-      if (slug === "merge-pdf" || (!slug && ext === "pdf" && files.length > 1)) {
+      const qualityValue = quality / 100;
+      if (slug === "merge-pdf" || mergePdf) {
         const { mergePdfs } = await import("@/lib/convert/pdf");
         await mergePdfs(files);
       } else if (slug === "split-pdf") {
@@ -250,7 +368,7 @@ export function DropEngine({ tool, variant = "default" }: Props) {
         await splitPdf(files);
       } else if (slug === "rotate-pdf") {
         const { rotatePdf } = await import("@/lib/convert/pdf");
-        await rotatePdf(first);
+        await rotatePdf(first, Number(pdfTurn) || 90);
       } else if (slug === "delete-pdf-pages") {
         const { deletePdfPages } = await import("@/lib/convert/pdf");
         await deletePdfPages(first, pages);
@@ -284,24 +402,49 @@ export function DropEngine({ tool, variant = "default" }: Props) {
       } else if (slug === "fill-pdf") {
         const { fillPdf } = await import("@/lib/convert/pdf");
         await fillPdf(first, formValues);
-      } else if (slug === "csv-to-pdf") {
-        const { csvToPdf } = await import("@/lib/convert/pdf");
-        await csvToPdf(first);
-      } else if (slug === "html-to-pdf") {
-        const { htmlToPdf } = await import("@/lib/convert/html-pdf");
-        await htmlToPdf(first);
-      } else if (slug === "html-to-txt") {
-        const { htmlToTxt } = await import("@/lib/convert/html-pdf");
-        await htmlToTxt(first);
-      } else if (slug === "txt-to-pdf") {
+      } else if (slug === "extract-pdf-images") {
+        const { extractPdfImages } = await import("@/lib/convert/pdf-raster");
+        await extractPdfImages(first);
+      } else if (from === "pdf" || slug?.startsWith("pdf-to-")) {
+        await writePdfExport(first, output, qualityValue);
+      } else if (slug === "collage-maker") {
+        const ready = await pngReady(files);
+        const { collageImages } = await import("@/lib/convert/image");
+        await collageImages(ready, Number(collageCols), output);
+      } else if (slug === "rotate-image") {
+        const [ready] = await pngReady([first]);
+        const { rasterTransform } = await import("@/lib/convert/image");
+        await rasterTransform(ready, turn, output);
+      } else if (slug === "flip-image") {
+        const [ready] = await pngReady([first]);
+        const { rasterTransform } = await import("@/lib/convert/image");
+        await rasterTransform(ready, flip, output);
+      } else if (slug === "crop-image") {
+        const [ready] = await pngReady([first]);
+        const { rasterCrop } = await import("@/lib/convert/image");
+        await rasterCrop(ready, crop, output);
+      } else if (slug === "color-picker") {
+        const { downloadColorSwatch } = await import("@/lib/convert/image");
+        await downloadColorSwatch(hex);
+      } else if (slug === "ttf-to-woff2" || slug === "otf-to-woff2" || slug === "woff-to-woff2" || ext === "ttf" || ext === "otf" || ext === "woff") {
+        const { fontToWoff2 } = await import("@/lib/convert/font");
+        for (const file of files) await fontToWoff2(file);
+      } else if (from === "html" || slug?.startsWith("html-to-")) {
+        const html = await import("@/lib/convert/html-pdf");
+        if (output === "txt") await html.htmlToTxt(first);
+        else await html.htmlToPdf(first);
+      } else if (from === "txt" || slug === "txt-to-pdf") {
         const { txtToPdf } = await import("@/lib/convert/pdf");
         await txtToPdf(first);
-      } else if (slug?.startsWith("docx-to-") || ext === "docx") {
+      } else if (from === "docx" || slug?.startsWith("docx-to-")) {
         const { convertDocx } = await import("@/lib/convert/docx");
         await convertDocx(first, slug ?? "", output);
-      } else if (slug === "pdf-to-txt" || slug === "pdf-to-docx") {
-        const { convertPdfDocument } = await import("@/lib/convert/pdf-text");
-        await convertPdfDocument(first, slug);
+      } else if (from === "json" && (output === "json" || slug === "json-formatter" && !outputOverride)) {
+        const { formatJson } = await import("@/lib/convert/json");
+        await formatJson(first);
+      } else if (from === "csv" && output === "pdf") {
+        const { csvToPdf } = await import("@/lib/convert/pdf");
+        await csvToPdf(first);
       } else if (
         slug?.startsWith("xlsx-to-") ||
         slug?.startsWith("pptx-to-") ||
@@ -309,97 +452,19 @@ export function DropEngine({ tool, variant = "default" }: Props) {
         slug === "csv-to-json" ||
         slug === "json-to-csv" ||
         slug === "json-to-xlsx" ||
-        ext === "xlsx" ||
-        ext === "pptx"
+        from === "xlsx" ||
+        from === "pptx" ||
+        from === "csv" ||
+        from === "json"
       ) {
         const { convertOffice } = await import("@/lib/convert/office");
         await convertOffice(first, slug ?? "", output);
-      } else if (slug === "extract-pdf-images") {
-        const { extractPdfImages } = await import("@/lib/convert/pdf-raster");
-        await extractPdfImages(first);
-      } else if (slug === "pdf-to-tiff" || (ext === "pdf" && output === "tiff")) {
-        const { pdfToTiff } = await import("@/lib/convert/pdf-tiff");
-        await pdfToTiff(first);
-      } else if (
-        slug === "pdf-to-jpg" ||
-        slug === "pdf-to-png" ||
-        slug === "pdf-to-webp" ||
-        slug === "pdf-to-bmp" ||
-        (ext === "pdf" && (output === "jpg" || output === "png" || output === "webp" || output === "bmp"))
-      ) {
-        const { pdfToImages } = await import("@/lib/convert/pdf-raster");
-        const out = output === "png" || output === "webp" || output === "bmp" ? output : "jpg";
-        await pdfToImages(first, out);
-      } else if (slug === "jpg-to-pdf" || output === "pdf") {
-        if (files.some((file) => isTiffName(file.name))) {
-          const { tiffImagesToPdf } = await import("@/lib/convert/tiff");
-          await tiffImagesToPdf(files);
-        } else {
-          const { imagesToPdf } = await import("@/lib/convert/pdf");
-          await imagesToPdf(files);
-        }
-      } else if (slug === "ttf-to-woff2" || slug === "otf-to-woff2" || slug === "woff-to-woff2" || ext === "ttf" || ext === "otf" || ext === "woff") {
-        const { fontToWoff2 } = await import("@/lib/convert/font");
-        for (const file of files) await fontToWoff2(file);
-      } else if (slug === "collage-maker") {
-        const ready = await pngReady(files);
-        const { collageImages } = await import("@/lib/convert/image");
-        await collageImages(ready, Number(collageCols));
-      } else if (slug === "json-formatter" || (ext === "json" && output === "json")) {
-        const { formatJson } = await import("@/lib/convert/json");
-        await formatJson(first);
-      } else if (slug === "rotate-image") {
-        const [ready] = await pngReady([first]);
-        const { rasterTransform } = await import("@/lib/convert/image");
-        await rasterTransform(ready, turn);
-      } else if (slug === "flip-image") {
-        const [ready] = await pngReady([first]);
-        const { rasterTransform } = await import("@/lib/convert/image");
-        await rasterTransform(ready, flip);
-      } else if (slug === "crop-image") {
-        const [ready] = await pngReady([first]);
-        const { rasterCrop } = await import("@/lib/convert/image");
-        await rasterCrop(ready, crop);
-      } else if (slug === "color-picker") {
-        const { downloadColorSwatch } = await import("@/lib/convert/image");
-        await downloadColorSwatch(hex);
-      } else if (slug === "image-resizer") {
-        if (files.some((file) => isTiffName(file.name))) {
-          const { rasterConvertTiff } = await import("@/lib/convert/tiff");
-          for (const file of files) await rasterConvertTiff(file, "png", { width });
-        } else {
-          const { rasterConvert } = await import("@/lib/convert/image");
-          for (const file of files) await rasterConvert(file, "png", { width });
-        }
-      } else if (slug === "image-compressor") {
-        const out = asRasterOutput(output);
-        if (!out) throw new Error("Choose an output format first.");
-        if (out === "tiff" || files.some((file) => isTiffName(file.name))) {
-          const { rasterConvertTiff } = await import("@/lib/convert/tiff");
-          for (const file of files) await rasterConvertTiff(file, out, { quality: 0.72 });
-        } else {
-          const { rasterConvert } = await import("@/lib/convert/image");
-          for (const file of files) await rasterConvert(file, out, { quality: 0.72 });
-        }
-      } else if (slug === "gif-compressor") {
-        const { rasterConvert } = await import("@/lib/convert/image");
-        for (const file of files) await rasterConvert(file, "jpg", { quality: 0.7 });
-      } else if (
-        active?.engine === "canvas" ||
-        ["png", "jpg", "jpeg", "webp", "bmp", "gif", "heic", "heif", "ico", "svg", "avif", "tif", "tiff"].includes(ext)
-      ) {
-        const out = asRasterOutput(output);
-        if (!out) throw new Error("Choose an output format first.");
-        if (out === "tiff" || files.some((file) => isTiffName(file.name))) {
-          const { rasterConvertTiff } = await import("@/lib/convert/tiff");
-          for (const file of files) await rasterConvertTiff(file, out);
-        } else {
-          const { rasterConvert } = await import("@/lib/convert/image");
-          for (const file of files) await rasterConvert(file, out);
-        }
-      } else if (ext === "pdf") {
-        const { mergePdfs } = await import("@/lib/convert/pdf");
-        await mergePdfs(files);
+      } else if (isImageJob(slug) || isImageSource(from) || active?.engine === "canvas") {
+        await writeRasterFiles(files, output, slug === "image-resizer"
+          ? { width, height: lockRatio ? undefined : height, stretch: !lockRatio }
+          : showQuality
+            ? { quality: qualityValue }
+            : undefined);
       } else {
         throw new Error("This format is not available in the browser yet. Video and audio require a dedicated worker.");
       }
@@ -539,93 +604,167 @@ export function DropEngine({ tool, variant = "default" }: Props) {
         variant !== "hero" && (noFile || files.length > 0) && "pb-8",
         variant !== "hero" && !noFile && files.length === 0 && "empty:hidden pb-6 sm:pb-8",
       )}>
-        {slug === "image-compressor" ? (
+        {formatOptions.length >= 2 ? (
           <OutputSwitch
-            options={IMAGE_OUTPUT_OPTIONS}
+            options={formatOptions}
             current={output}
-            description="Choose the balance you need: compact, lossless, print-ready, or icon."
-            onSelect={(item) => {
-              setOutputOverride(item.output);
-              setError("");
-              setDone(false);
-            }}
+            description={formatPickerHint(source, slug)}
+            onSelect={(item) => pickOutput(item.output)}
           />
-        ) : tool ? (
-          <OutputSwitch options={slugOptions} current={tool.slug} />
-        ) : (
+        ) : !tool ? (
           <OutputSwitch options={homeOptions} current={homeTool?.slug} onSelect={(item) => setHomeSlug(item.slug)} />
-        )}
+        ) : null}
+
+        {showPdfStage && files[0] ? (
+          <PdfStage
+            file={files[0]}
+            mode={pickPdfPages ? "pick" : "view"}
+            selected={selectedPages}
+            onChange={pickPdf}
+            label={pickPdfPages ? "Pages" : "Preview"}
+            hint={
+              pickPdfPages
+                ? "Tap pages, or type a range below."
+                : slug === "split-pdf"
+                  ? "Each page becomes its own PDF."
+                  : undefined
+            }
+          />
+        ) : null}
 
         {slug === "crop-image" && files[0] ? (
           <CropStage file={files[0]} value={crop} onChange={setCrop} />
         ) : null}
         {slug === "crop-pdf" || slug === "redact-pdf" ? (
-          <CropStage value={crop} onChange={setCrop} label={slug === "redact-pdf" ? "Redact" : "Trim"} />
+          <CropStage
+            file={pdfPageFile ?? undefined}
+            value={crop}
+            onChange={setCrop}
+            label={slug === "redact-pdf" ? "Redact" : "Trim"}
+          />
         ) : null}
         {slug === "rotate-image" ? (
-          <JobPicks
-            label="Turn"
-            value={turn}
-            onChange={(id) => setTurn(id as ImageTurn)}
-            options={[
-              { id: "90", label: "90°" },
-              { id: "180", label: "180°" },
-              { id: "270", label: "270°" },
-            ]}
-          />
+          <StagePanel label="Turn" hint="Choose how far the image should rotate.">
+            <JobPicks
+              label="Angle"
+              value={turn}
+              onChange={(id) => setTurn(id as ImageTurn)}
+              options={[
+                { id: "90", label: "90°" },
+                { id: "180", label: "180°" },
+                { id: "270", label: "270°" },
+              ]}
+            />
+          </StagePanel>
         ) : null}
         {slug === "flip-image" ? (
-          <JobPicks
-            label="Flip"
-            value={flip}
-            onChange={(id) => setFlip(id as ImageTurn)}
-            options={[
-              { id: "flip-h", label: "Horizontal" },
-              { id: "flip-v", label: "Vertical" },
-            ]}
-          />
+          <StagePanel label="Flip" hint="Mirror the image on one axis.">
+            <JobPicks
+              label="Axis"
+              value={flip}
+              onChange={(id) => setFlip(id as ImageTurn)}
+              options={[
+                { id: "flip-h", label: "Horizontal" },
+                { id: "flip-v", label: "Vertical" },
+              ]}
+            />
+          </StagePanel>
         ) : null}
         {slug === "color-picker" && files[0] ? (
           <ColorStage file={files[0]} hex={hex} onPick={setHex} />
         ) : null}
 
         {slug === "image-resizer" ? (
-          <div className="mt-5">
-            <Field
-              label="Width"
-              hint="px"
-              type="number"
-              min={16}
-              max={8000}
-              value={width}
-              onChange={(e) => setWidth(Number(e.target.value) || 1600)}
-              className="w-28"
-            />
-          </div>
+          <StagePanel label="Size" hint="Keep ratio on to avoid stretching.">
+            <div className="flex flex-wrap items-center gap-4">
+              <Field
+                label="Width"
+                hint="px"
+                type="number"
+                min={16}
+                max={8000}
+                value={width}
+                onChange={(e) => setResizeWidth(Number(e.target.value))}
+                className="w-24 bg-white"
+              />
+              <Field
+                label="Height"
+                hint="px"
+                type="number"
+                min={16}
+                max={8000}
+                value={height}
+                onChange={(e) => setResizeHeight(Number(e.target.value))}
+                className="w-24 bg-white"
+              />
+            </div>
+            <div className="mt-4">
+              <JobPicks
+                label="Ratio"
+                value={lockRatio ? "lock" : "stretch"}
+                onChange={(id) => setLockRatio(id === "lock")}
+                options={[
+                  { id: "lock", label: "Keep" },
+                  { id: "stretch", label: "Stretch" },
+                ]}
+              />
+            </div>
+          </StagePanel>
+        ) : null}
+
+        {showQuality ? (
+          <StagePanel label="Quality" hint="Lower quality makes a smaller file.">
+            <div className="flex items-center gap-3">
+              <input
+                type="range"
+                min={40}
+                max={95}
+                value={quality}
+                onChange={(e) => setQuality(Number(e.target.value) || 72)}
+                className="h-1.5 w-full cursor-pointer appearance-none rounded-full bg-[#e4dedb] accent-accent"
+                aria-label="Quality"
+              />
+              <span className="w-10 shrink-0 text-right font-mono text-xs font-semibold text-ink">{quality}%</span>
+            </div>
+          </StagePanel>
         ) : null}
 
         {slug === "delete-pdf-pages" || slug === "extract-pdf-pages" ? (
-          <div className="mt-5">
+          <StagePanel label="Range" hint="Example: 1-3, 5">
             <Field
               label="Pages"
-              hint="1-3, 5"
               value={pages}
               onChange={(e) => setPages(e.target.value)}
-              className="w-40"
+              className="w-40 bg-white"
             />
-          </div>
+          </StagePanel>
+        ) : null}
+
+        {slug === "rotate-pdf" ? (
+          <StagePanel label="Turn" hint="Applied to every page.">
+            <JobPicks
+              label="Angle"
+              value={pdfTurn}
+              onChange={setPdfTurn}
+              options={[
+                { id: "90", label: "90°" },
+                { id: "180", label: "180°" },
+                { id: "270", label: "270°" },
+              ]}
+            />
+          </StagePanel>
         ) : null}
 
         {slug === "watermark-pdf" ? (
-          <div className="mt-5">
-            <Field label="Text" value={mark} onChange={(e) => setMark(e.target.value)} className="w-48" />
-          </div>
+          <StagePanel label="Mark" hint="Drawn across the center of every page.">
+            <Field label="Text" value={mark} onChange={(e) => setMark(e.target.value)} className="w-48 bg-white" />
+          </StagePanel>
         ) : null}
 
         {slug === "organize-pdf" ? (
-          <>
+          <StagePanel label="Order" hint="Reverse the file, or type a custom sequence.">
             <JobPicks
-              label="Order"
+              label="Mode"
               value={orderMode}
               onChange={(id) => setOrderMode(id as "reverse" | "custom")}
               options={[
@@ -634,35 +773,37 @@ export function DropEngine({ tool, variant = "default" }: Props) {
               ]}
             />
             {orderMode === "custom" ? (
-              <div className="mt-5">
-                <Field label="Pages" hint="3,1,2" value={order} onChange={(e) => setOrder(e.target.value)} className="w-40" />
+              <div className="mt-4">
+                <Field label="Pages" hint="3,1,2" value={order} onChange={(e) => setOrder(e.target.value)} className="w-40 bg-white" />
               </div>
             ) : null}
-          </>
+          </StagePanel>
         ) : null}
 
         {slug === "sign-pdf" ? (
-          <div className="mt-5">
-            <Field label="Sign" value={sign} onChange={(e) => setSign(e.target.value)} className="w-48" />
-          </div>
+          <StagePanel label="Sign" hint="A simple text mark on every page.">
+            <Field label="Name" value={sign} onChange={(e) => setSign(e.target.value)} className="w-48 bg-white" />
+          </StagePanel>
         ) : null}
 
         {slug === "fill-pdf" && files[0] ? <FillFormStage file={files[0]} values={formValues} onChange={setFormValues} /> : null}
 
         {slug === "collage-maker" ? (
-          <JobPicks
-            label="Columns"
-            value={collageCols}
-            onChange={(id) => setCollageCols(id as "2" | "3")}
-            options={[
-              { id: "2", label: "2" },
-              { id: "3", label: "3" },
-            ]}
-          />
+          <StagePanel label="Layout" hint="More columns make smaller cells.">
+            <JobPicks
+              label="Columns"
+              value={collageCols}
+              onChange={(id) => setCollageCols(id as "2" | "3")}
+              options={[
+                { id: "2", label: "2" },
+                { id: "3", label: "3" },
+              ]}
+            />
+          </StagePanel>
         ) : null}
 
         {slug === "unit-converter" ? (
-          <>
+          <StagePanel label="Units" hint="No file needed. The result stays on this page.">
             <JobPicks
               label="Kind"
               value={unitKind}
@@ -679,35 +820,39 @@ export function DropEngine({ tool, variant = "default" }: Props) {
                 { id: "temp", label: "Temp" },
               ]}
             />
-            <div className="mt-5">
+            <div className="mt-4">
               <Field
                 label="Value"
                 type="number"
                 value={unitAmount}
                 onChange={(e) => setUnitAmount(e.target.value)}
-                className="w-28"
+                className="w-28 bg-white"
               />
             </div>
-            <JobPicks
-              label="From"
-              value={unitFrom}
-              onChange={setUnitFrom}
-              options={UNIT_OPTIONS[unitKind]}
-            />
-            <JobPicks
-              label="To"
-              value={unitTo}
-              onChange={setUnitTo}
-              options={UNIT_OPTIONS[unitKind]}
-            />
+            <div className="mt-4">
+              <JobPicks
+                label="From"
+                value={unitFrom}
+                onChange={setUnitFrom}
+                options={UNIT_OPTIONS[unitKind]}
+              />
+            </div>
+            <div className="mt-4">
+              <JobPicks
+                label="To"
+                value={unitTo}
+                onChange={setUnitTo}
+                options={UNIT_OPTIONS[unitKind]}
+              />
+            </div>
             {unitResult ? <p className="mt-4 font-mono text-lg text-ink">{unitResult}</p> : null}
-          </>
+          </StagePanel>
         ) : null}
 
         {noFile || files.length > 0 ? (
           <div className="mt-6 flex flex-wrap items-center gap-3">
             <Button onClick={run} loading={busy}>
-              {runButtonLabel(active, output, busy, noFile)}
+              {runButtonLabel(active, output, busy, noFile, mergePdf)}
             </Button>
             {files.length > 0 && !noFile ? (
               <Button
@@ -720,6 +865,8 @@ export function DropEngine({ tool, variant = "default" }: Props) {
                   setCrop(DEFAULT_CROP);
                   setFormValues({});
                   setUnitResult("");
+                  setSelectedPages([]);
+                  setPdfPageFile(null);
                 }}
               >
                 Clear
@@ -741,11 +888,6 @@ export function DropEngine({ tool, variant = "default" }: Props) {
         {active?.need === "vps" ? (
           <p className="mt-3 text-sm text-mute">
             This workflow will become available when the dedicated conversion worker is online.
-          </p>
-        ) : null}
-        {slug === "split-pdf" ? (
-          <p className="mt-3 text-sm text-mute">
-            Each page becomes its own PDF. Two or more pages download together as a ZIP.
           </p>
         ) : null}
         {slug === "unlock-pdf" ? (

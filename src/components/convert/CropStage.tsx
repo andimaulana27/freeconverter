@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { StagePanel } from "@/components/convert/StagePanel";
 import type { CropBox } from "@/lib/convert/image-types";
 import { isTiffName } from "@/lib/file";
 import { cn } from "@/lib/cn";
@@ -115,9 +116,8 @@ export function CropStage({ file, value, onChange, label = "Crop" }: Props) {
   ];
 
   return (
-    <div className="mt-5">
-      <p className="mb-2 text-[11px] font-medium uppercase tracking-[0.16em] text-faint">{label}</p>
-      <div className="flex justify-center bg-bone py-4">
+    <StagePanel label={label} hint="Drag the frame to keep only what you need.">
+      <div className="flex justify-center rounded-xl bg-white py-4">
         <div
           ref={frame}
           className="relative inline-block max-h-56 max-w-full overflow-hidden touch-none select-none"
@@ -152,6 +152,6 @@ export function CropStage({ file, value, onChange, label = "Crop" }: Props) {
           </span>
         </div>
       </div>
-    </div>
+    </StagePanel>
   );
 }

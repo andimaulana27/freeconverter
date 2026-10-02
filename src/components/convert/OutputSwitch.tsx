@@ -1,14 +1,10 @@
 "use client";
 
-import Link from "next/link";
 import { FormatGlyph } from "@/components/convert/FormatArtwork";
 import { cn } from "@/lib/cn";
-import type { ToolDef } from "@/lib/tools";
+import type { OutputOption } from "@/lib/convert/workspace";
 
-export type OutputOption = Pick<ToolDef, "slug" | "output" | "category"> & {
-  detail?: string;
-  badge?: string;
-};
+export type { OutputOption };
 
 type Props = {
   options: OutputOption[];
@@ -20,7 +16,7 @@ type Props = {
 
 function SelectedIcon() {
   return (
-    <svg viewBox="0 0 16 16" className="h-3 w-3" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
+    <svg viewBox="0 0 16 16" className="h-2.5 w-2.5" fill="none" stroke="currentColor" strokeWidth="2.2" aria-hidden>
       <path d="m3.5 8 2.7 2.7 6.3-6.2" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   );
@@ -31,7 +27,7 @@ export function OutputSwitch({
   current,
   onSelect,
   title = "Output format",
-  description = "Choose how the finished file will be saved.",
+  description = "Choose the finished file type.",
 }: Props) {
   if (options.length < 2) return null;
   return (
@@ -48,12 +44,12 @@ export function OutputSwitch({
       <div
         role="radiogroup"
         aria-label={title}
-        className="mt-3 grid grid-cols-[repeat(auto-fit,minmax(112px,1fr))] gap-2"
+        className="mt-3 grid grid-cols-4 gap-2 sm:grid-cols-6 lg:grid-cols-8"
       >
         {options.map((item) => {
           const active = item.output === current || item.slug === current;
           const className = cn(
-            "group/output relative flex min-h-[62px] items-center gap-2.5 rounded-xl border px-3 py-2.5 text-left transition duration-180",
+            "group/output relative flex flex-col items-center gap-1.5 rounded-xl border px-2 py-2.5 text-center transition duration-180",
             active
               ? "border-accent bg-white text-accent shadow-[0_8px_22px_rgba(217,45,40,0.10)]"
               : "border-[#e4dedb] bg-white text-mute hover:-translate-y-0.5 hover:border-[#c8bdb8] hover:text-ink hover:shadow-drop",
@@ -64,54 +60,31 @@ export function OutputSwitch({
                 format={item.output}
                 category={item.category}
                 className={cn(
-                  "h-9 w-9 rounded-xl transition duration-180",
+                  "h-8 w-8 rounded-lg transition duration-180",
                   active
                     ? "border-accent/25 bg-accent-soft text-accent"
                     : "border-[#e8e1dd] bg-[#faf8f7] group-hover/output:bg-white",
                 )}
               />
-              <span className="min-w-0">
-                <span className="block font-mono text-xs font-bold tracking-wide">{item.output.toUpperCase()}</span>
-                {item.detail ? (
-                  <span className="mt-0.5 block truncate text-[9px] font-medium text-faint">{item.detail}</span>
-                ) : null}
-              </span>
+              <span className="font-mono text-[10px] font-bold tracking-wide">{item.output.toUpperCase()}</span>
               {active ? (
-                <span className="absolute right-2 top-2 grid h-4 w-4 place-items-center rounded-full bg-accent text-white">
+                <span className="absolute right-1.5 top-1.5 grid h-3.5 w-3.5 place-items-center rounded-full bg-accent text-white">
                   <SelectedIcon />
-                </span>
-              ) : item.badge ? (
-                <span className="absolute right-2 top-2 text-[7px] font-bold uppercase tracking-[0.1em] text-faint">
-                  {item.badge}
                 </span>
               ) : null}
             </>
           );
-          if (onSelect) {
-            return (
-              <button
-                key={item.slug}
-                type="button"
-                role="radio"
-                aria-checked={active}
-                className={className}
-                onClick={() => onSelect(item)}
-              >
-                {content}
-              </button>
-            );
-          }
-          if (active) {
-            return (
-              <span key={item.slug} role="radio" aria-checked="true" className={className}>
-                {content}
-              </span>
-            );
-          }
           return (
-            <Link key={item.slug} href={`/${item.slug}`} role="radio" aria-checked="false" className={className}>
+            <button
+              key={item.slug}
+              type="button"
+              role="radio"
+              aria-checked={active}
+              className={className}
+              onClick={() => onSelect?.(item)}
+            >
               {content}
-            </Link>
+            </button>
           );
         })}
       </div>
@@ -123,9 +96,9 @@ type JobPick = { id: string; label: string };
 
 export function JobPicks({ label, value, options, onChange }: { label: string; value: string; options: JobPick[]; onChange: (id: string) => void }) {
   return (
-    <div className="mt-5 flex flex-col gap-2">
-      <p className="text-[11px] font-medium uppercase tracking-[0.16em] text-faint">{label}</p>
-      <div role="radiogroup" aria-label={label} className="flex flex-wrap gap-5">
+    <div className="flex flex-col gap-2">
+      <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-faint">{label}</p>
+      <div role="radiogroup" aria-label={label} className="flex flex-wrap gap-2">
         {options.map((item) => {
           const active = item.id === value;
           return (
