@@ -231,7 +231,7 @@ export default function HomePage() {
                 </span>
               </div>
 
-              <div className="overflow-hidden rounded-[24px] bg-white p-1 shadow-[0_18px_45px_rgba(0,0,0,0.24)]">
+              <div className="overflow-hidden rounded-[24px] bg-white p-1 shadow-[0_18px_45px_rgba(0,0,0,0.24)] [&>div>span:nth-child(-n+4)]:hidden">
                 <DropEngine />
               </div>
 
