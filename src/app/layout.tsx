@@ -17,7 +17,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           <ConvertSessionProvider>
             <Header />
             <main className="flex-1">
-              <Container className="py-10 sm:py-14 lg:py-16">{children}</Container>
+              <Container className="pb-0 pt-10 sm:pt-12">{children}</Container>
             </main>
             <Footer />
           </ConvertSessionProvider>

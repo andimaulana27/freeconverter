@@ -115,10 +115,10 @@ export default function HomePage() {
   }));
 
   return (
-    <div className="relative left-1/2 flex w-[calc(100vw-2rem)] max-w-[1440px] -translate-x-1/2 flex-col gap-20 pb-8 sm:w-[calc(100vw-3rem)] sm:gap-28">
+    <div className="flex flex-col gap-10 sm:gap-12">
       <JsonLd data={websiteJsonLd()} />
 
-      <section className="relative isolate overflow-hidden rounded-[32px] bg-[#171311] text-white shadow-[0_32px_90px_rgba(42,28,22,0.18)]">
+      <section className="relative left-1/2 isolate w-[calc(100vw-2rem)] max-w-[1440px] -translate-x-1/2 overflow-hidden rounded-panel bg-[#171311] text-white shadow-panel-dark sm:w-[calc(100vw-3rem)]">
         <div
           className="pointer-events-none absolute inset-0 opacity-35 [background-image:linear-gradient(rgba(255,255,255,0.05)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.05)_1px,transparent_1px)] [background-size:48px_48px]"
           aria-hidden
@@ -126,9 +126,10 @@ export default function HomePage() {
         <div className="pointer-events-none absolute -left-24 top-24 h-72 w-72 rounded-full border border-white/10" aria-hidden />
         <div className="pointer-events-none absolute -left-12 top-36 h-48 w-48 rounded-full border border-white/10" aria-hidden />
 
-        <div className="relative grid gap-12 px-6 py-8 sm:px-10 sm:py-12 lg:grid-cols-[0.8fr_1.2fr] lg:items-center lg:gap-12 lg:px-12 lg:py-14">
+        <div className="relative p-6 sm:p-10 lg:p-12">
+          <div className="grid items-center gap-6 sm:gap-10 lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)] lg:gap-12">
           <div>
-            <p className="flex items-center gap-3 text-[10px] font-bold uppercase tracking-[0.2em] text-accent">
+            <p className="flex items-center gap-3 text-eyebrow font-bold uppercase text-accent">
               <span className="h-px w-7 bg-accent" />
               Built for everyday files
             </p>
@@ -143,21 +144,21 @@ export default function HomePage() {
             <div className="mt-8 flex flex-wrap gap-3">
               <a
                 href="#converter"
-                className="group inline-flex items-center gap-3 rounded-xl bg-accent px-5 py-3.5 text-sm font-semibold text-white shadow-[0_12px_28px_rgba(217,45,40,0.3)] transition duration-180 hover:-translate-y-0.5 hover:bg-[#ef3b35]"
+                className="group inline-flex items-center gap-3 rounded-control bg-accent px-5 py-3.5 text-sm font-semibold text-white shadow-action transition duration-180 hover:-translate-y-0.5 hover:bg-accent-ink"
               >
                 Open the workbench
                 <span className="transition group-hover:translate-x-1"><ArrowIcon /></span>
               </a>
               <Link
                 href="/tools"
-                className="inline-flex items-center rounded-xl border border-white/15 bg-white/[0.06] px-5 py-3.5 text-sm font-semibold text-white transition hover:border-white/30 hover:bg-white/10"
+                className="inline-flex items-center rounded-control border border-white/15 bg-white/[0.06] px-5 py-3.5 text-sm font-semibold text-white transition hover:border-white/30 hover:bg-white/10"
               >
                 Browse {tools.length} tools
               </Link>
             </div>
 
             <div className="mt-9">
-              <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-white/35">Start with a popular route</p>
+              <p className="text-micro font-bold uppercase text-white/55">Start with a popular route</p>
               <div className="mt-3 flex flex-wrap gap-2">
                 {[
                   ["png-to-jpg", "PNG", "JPG"],
@@ -167,49 +168,28 @@ export default function HomePage() {
                   <Link
                     key={slug}
                     href={`/${slug}`}
-                    className="group inline-flex items-center gap-2 rounded-lg border border-white/10 bg-black/15 px-3 py-2 font-mono text-[10px] font-semibold text-white/65 transition hover:-translate-y-0.5 hover:border-white/25 hover:bg-white/10 hover:text-white"
+                    className="group inline-flex items-center gap-2 rounded-control border border-white/10 bg-black/15 px-3 py-2 font-mono text-micro font-semibold text-white/70 transition hover:-translate-y-0.5 hover:border-white/25 hover:bg-white/10 hover:text-white"
                   >
                     {from}
-                    <span className="text-[#ff6a64] transition group-hover:translate-x-0.5">→</span>
+                    <span className="text-accent-light transition group-hover:translate-x-0.5">→</span>
                     {to}
                   </Link>
                 ))}
               </div>
             </div>
-
-            <dl className="mt-9 grid max-w-xl grid-cols-3 overflow-hidden rounded-2xl border border-white/10 bg-black/15">
-              {HERO_SIGNALS.map((item, index) => (
-                <div
-                  key={item.title}
-                  className="group/signal relative min-h-[112px] border-r border-white/10 p-3 transition duration-280 last:border-r-0 hover:bg-white/[0.06] sm:min-h-[126px] sm:p-4"
-                >
-                  <div className="flex items-start justify-between gap-3">
-                    <span className="flex h-7 w-7 items-center justify-center rounded-lg border border-white/10 bg-white/[0.06] text-[#ff8c87] transition duration-280 group-hover/signal:-translate-y-0.5 group-hover/signal:rotate-3 group-hover/signal:border-[#ff8c87]/35 sm:h-8 sm:w-8 sm:rounded-xl">
-                      <HeroSignalIcon index={index} />
-                    </span>
-                    <span className="hidden font-mono text-[8px] tracking-[0.14em] text-white/20 sm:block">0{index + 1}</span>
-                  </div>
-                  <dt className="mt-3 text-[11px] font-semibold tracking-tight text-white sm:mt-4 sm:text-base">{item.value}</dt>
-                  <dd>
-                    <span className="mt-1 block text-[7px] font-bold uppercase leading-3 tracking-[0.08em] text-white/50 sm:text-[9px] sm:tracking-[0.12em]">{item.title}</span>
-                    <span className="mt-1.5 hidden text-[9px] leading-4 text-white/30 sm:block">{item.note}</span>
-                  </dd>
-                </div>
-              ))}
-            </dl>
           </div>
 
-          <div id="converter" className="group/workbench relative scroll-mt-24 lg:pl-4">
+          <div id="converter" className="group/workbench relative scroll-mt-24">
             <div
               className="pointer-events-none absolute -inset-16 bg-[radial-gradient(circle,rgba(217,45,40,0.2),transparent_62%)] opacity-60 blur-2xl transition duration-700 group-hover/workbench:opacity-90"
               aria-hidden
             />
             <div
-              className="pointer-events-none absolute -inset-3 translate-x-3 translate-y-3 rounded-[34px] border border-white/[0.08] bg-white/[0.025] transition duration-500 group-hover/workbench:translate-x-2 group-hover/workbench:translate-y-2"
+              className="pointer-events-none absolute inset-0 translate-x-2 translate-y-2 rounded-[34px] border border-white/[0.08] bg-white/[0.025] transition duration-500"
               aria-hidden
             />
 
-            <div className="relative overflow-hidden rounded-[30px] border border-white/15 bg-white/[0.07] p-2 shadow-[0_36px_90px_rgba(0,0,0,0.42)] backdrop-blur-md transition duration-500 group-hover/workbench:-translate-y-1 group-hover/workbench:border-white/25">
+            <div className="relative overflow-hidden rounded-panel border border-white/15 bg-white/[0.07] p-2 shadow-panel-dark backdrop-blur-md transition duration-500 group-hover/workbench:border-white/25">
               <div className="flex items-center justify-between gap-4 px-3 py-3 text-white sm:px-4">
                 <div className="flex min-w-0 items-center gap-3">
                   <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-accent shadow-[0_8px_22px_rgba(217,45,40,0.35)]">
@@ -219,39 +199,65 @@ export default function HomePage() {
                   </span>
                   <span className="min-w-0">
                     <span className="block truncate text-[10px] font-bold uppercase tracking-[0.18em] text-white/80">Instant workbench</span>
-                    <span className="mt-0.5 block truncate text-[9px] text-white/35">One file. One clean route.</span>
+                    <span className="mt-0.5 block truncate text-micro normal-case tracking-normal text-white/50">One file. One clean route.</span>
                   </span>
                 </div>
-                <span className="flex shrink-0 items-center gap-2 rounded-full border border-[#75e0b1]/20 bg-[#75e0b1]/10 px-3 py-1.5 font-mono text-[8px] font-semibold uppercase tracking-[0.13em] text-[#8be8bd]">
+                <span className="flex shrink-0 items-center gap-2 rounded-full border border-[#75e0b1]/20 bg-[#75e0b1]/10 px-3 py-1.5 font-mono text-micro font-semibold uppercase text-[#8be8bd]">
                   <span className="relative flex h-1.5 w-1.5">
                     <span className="absolute inline-flex h-full w-full rounded-full bg-[#75e0b1]/70 motion-safe:animate-ping" />
                     <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-[#75e0b1]" />
                   </span>
-                  Ready to convert
+                  Local &amp; private
                 </span>
               </div>
 
-              <div className="overflow-hidden rounded-[24px] bg-white p-1 shadow-[0_18px_45px_rgba(0,0,0,0.24)] [&>div>span:nth-child(-n+4)]:hidden">
-                <DropEngine />
+              <div className="overflow-hidden rounded-tile bg-white p-1 shadow-tile [&>div>span:nth-child(-n+4)]:hidden">
+                <DropEngine variant="hero" />
               </div>
 
               <div className="relative flex items-center justify-between gap-3 px-3 py-3 sm:px-4">
                 <div className="flex items-center gap-2">
                   {["Choose", "Convert", "Download"].map((label, index) => (
                     <span key={label} className="flex items-center gap-2">
-                      <span className={`grid h-5 w-5 place-items-center rounded-full border font-mono text-[7px] ${index === 0 ? "border-accent bg-accent text-white" : "border-white/15 bg-white/[0.04] text-white/35"}`}>
+                      <span className={`grid h-5 w-5 place-items-center rounded-full border font-mono text-micro ${index === 0 ? "border-accent bg-accent text-white" : "border-white/15 bg-white/[0.04] text-white/50"}`}>
                         {index + 1}
                       </span>
-                      <span className="hidden text-[8px] font-semibold uppercase tracking-[0.12em] text-white/35 sm:inline">{label}</span>
+                      <span className="hidden text-micro font-semibold uppercase text-white/50 sm:inline">{label}</span>
                       {index < 2 ? <span className="hidden h-px w-5 bg-white/10 sm:block" /> : null}
                     </span>
                   ))}
                 </div>
-                <span className="font-mono text-[7px] uppercase tracking-[0.14em] text-white/25">No sign-up</span>
+                <span className="font-mono text-micro uppercase text-white/45">No sign-up</span>
               </div>
             </div>
 
           </div>
+        </div>
+
+          <dl className="relative mt-6 grid overflow-hidden rounded-2xl border border-white/10 bg-black/20 sm:mt-10 sm:grid-cols-3 lg:mt-12">
+            {HERO_SIGNALS.map((item, index) => (
+              <div
+                key={item.title}
+                className="group/signal relative border-t border-white/10 p-4 transition duration-280 first:border-t-0 hover:bg-white/[0.06] sm:border-l sm:border-t-0 sm:p-5 sm:first:border-l-0"
+              >
+                <div className="flex items-start gap-3">
+                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-white/[0.06] text-accent-light transition duration-280 group-hover/signal:-translate-y-0.5 group-hover/signal:rotate-3 group-hover/signal:border-accent-light/35">
+                    <HeroSignalIcon index={index} />
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center justify-between gap-3">
+                      <dt className="text-lg font-semibold tracking-tight text-white">{item.value}</dt>
+                      <span className="font-mono text-micro text-white/35">0{index + 1}</span>
+                    </div>
+                    <dd>
+                      <span className="mt-1 block text-micro font-bold uppercase tracking-[0.12em] text-white/60">{item.title}</span>
+                      <span className="mt-1.5 block text-[12px] leading-5 text-white/45">{item.note}</span>
+                    </dd>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </dl>
         </div>
       </section>
 
@@ -274,9 +280,9 @@ export default function HomePage() {
         </div>
       </section>
 
-      <ToolGroups initialLimit={4} popularLimit={8} />
+      <ToolGroups compact initialLimit={4} popularLimit={4} />
 
-      <section className="group/workflow relative isolate overflow-hidden rounded-[30px] border border-white/10 bg-[#181412] p-6 text-white shadow-[0_28px_80px_rgba(40,27,22,0.14)] sm:p-9 lg:p-11">
+      <section className="group/workflow relative isolate overflow-hidden rounded-panel border border-white/10 bg-[#181412] p-6 text-white shadow-panel-dark sm:p-8 lg:p-10">
         <div
           className="pointer-events-none absolute inset-0 -z-10 opacity-35 [background-image:linear-gradient(rgba(255,255,255,0.05)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.05)_1px,transparent_1px)] [background-size:44px_44px]"
           aria-hidden
@@ -287,9 +293,9 @@ export default function HomePage() {
         />
         <div className="pointer-events-none absolute -right-24 -top-28 -z-10 h-72 w-72 rounded-full border-[42px] border-white/[0.035] transition duration-700 group-hover/workflow:scale-110" aria-hidden />
 
-        <div className="relative flex flex-col justify-between gap-7 lg:flex-row lg:items-end">
+        <div className="relative flex flex-col justify-between gap-6 lg:flex-row lg:items-end">
           <div>
-            <p className="flex items-center gap-3 text-[10px] font-bold uppercase tracking-[0.2em] text-accent">
+            <p className="flex items-center gap-3 text-eyebrow font-bold uppercase text-accent">
               <span className="h-px w-7 bg-accent" />
               A clearer workflow
             </p>
@@ -300,7 +306,7 @@ export default function HomePage() {
               No maze of settings. Make the three choices that matter, then keep moving.
             </p>
           </div>
-          <div className="flex w-fit items-center gap-3 rounded-full border border-white/10 bg-white/[0.05] px-4 py-2.5 font-mono text-[8px] uppercase tracking-[0.15em] text-white/40">
+          <div className="flex w-fit items-center gap-3 rounded-full border border-white/10 bg-white/[0.05] px-4 py-2.5 font-mono text-micro uppercase text-white/55">
             <span className="relative flex h-2 w-2">
               <span className="absolute inline-flex h-full w-full rounded-full bg-[#55d69a]/60 motion-safe:animate-ping" />
               <span className="relative inline-flex h-2 w-2 rounded-full bg-[#55d69a]" />
@@ -309,9 +315,9 @@ export default function HomePage() {
           </div>
         </div>
 
-        <div className="relative mt-10 grid gap-3 lg:grid-cols-3">
+        <div className="relative mt-8 grid gap-4 lg:grid-cols-3">
           <div className="pointer-events-none absolute left-[16%] right-[16%] top-9 hidden h-px border-t border-dashed border-white/15 lg:block" aria-hidden>
-            <span className="absolute left-0 top-1/2 h-2 w-2 -translate-y-1/2 rounded-full bg-[#ff6a64] shadow-[0_0_0_5px_rgba(255,106,100,0.1)] motion-safe:animate-[privacy-route_3.4s_ease-in-out_infinite]" />
+            <span className="absolute left-0 top-1/2 h-2 w-2 -translate-y-1/2 rounded-full bg-accent-light shadow-[0_0_0_5px_rgba(255,106,100,0.1)] motion-safe:animate-[privacy-route_3.4s_ease-in-out_infinite]" />
           </div>
           {[
             ["Drop it", "Choose a file or drag it straight into the conversion desk.", "Input ready"],
@@ -320,19 +326,19 @@ export default function HomePage() {
           ].map(([title, copy, state], index) => (
             <article
               key={title}
-              className="group/step relative overflow-hidden rounded-[22px] border border-white/10 bg-white/[0.045] p-5 backdrop-blur-sm transition duration-280 hover:-translate-y-1 hover:border-white/20 hover:bg-white/[0.075] sm:p-6"
+              className="group/step relative overflow-hidden rounded-tile border border-white/10 bg-white/[0.045] p-5 backdrop-blur-sm transition duration-280 hover:-translate-y-1 hover:border-white/20 hover:bg-white/[0.075] sm:p-6"
             >
               <span className="absolute -right-10 -top-10 h-24 w-24 rounded-full bg-accent/0 transition duration-500 group-hover/step:bg-accent/10" aria-hidden />
               <div className="relative flex items-center justify-between">
-                <span className="flex h-12 w-12 items-center justify-center rounded-2xl border border-white/10 bg-[#211c19] text-[#ff8c87] shadow-[0_10px_25px_rgba(0,0,0,0.18)] transition duration-280 group-hover/step:-rotate-3 group-hover/step:scale-105">
+                <span className="flex h-12 w-12 items-center justify-center rounded-2xl border border-white/10 bg-[#211c19] text-accent-light shadow-[0_10px_25px_rgba(0,0,0,0.18)] transition duration-280 group-hover/step:-rotate-3 group-hover/step:scale-105">
                   <WorkflowIcon index={index} />
                 </span>
-                <span className="font-mono text-[9px] tracking-[0.15em] text-white/25">0{index + 1}</span>
+                <span className="font-mono text-micro text-white/40">0{index + 1}</span>
               </div>
               <h3 className="relative mt-8 text-xl font-semibold tracking-[-0.025em]">{title}</h3>
               <p className="relative mt-2 max-w-sm text-sm leading-6 text-white/45">{copy}</p>
-              <p className="relative mt-6 flex items-center gap-2 border-t border-white/10 pt-4 font-mono text-[8px] uppercase tracking-[0.15em] text-white/30">
-                <span className={`h-1.5 w-1.5 rounded-full ${index === 2 ? "bg-[#55d69a]" : "bg-[#ff6a64]"}`} />
+              <p className="relative mt-6 flex items-center gap-2 border-t border-white/10 pt-4 font-mono text-micro uppercase text-white/50">
+                <span className={`h-1.5 w-1.5 rounded-full ${index === 2 ? "bg-[#55d69a]" : "bg-accent-light"}`} />
                 {state}
               </p>
             </article>
@@ -342,21 +348,21 @@ export default function HomePage() {
 
       <AdSlot />
 
-      <section className="group/privacy relative isolate overflow-hidden rounded-[30px] border border-[#ded7d3] bg-white shadow-[0_28px_80px_rgba(40,27,22,0.08)]">
+      <section className="group/privacy relative isolate overflow-hidden rounded-panel border border-[#ded7d3] bg-white shadow-panel">
         <div
           className="pointer-events-none absolute inset-0 -z-10 opacity-60 [background-image:linear-gradient(rgba(24,20,18,0.035)_1px,transparent_1px),linear-gradient(90deg,rgba(24,20,18,0.035)_1px,transparent_1px)] [background-size:40px_40px]"
           aria-hidden
         />
         <div className="grid lg:grid-cols-[0.9fr_1.1fr]">
-          <div className="relative flex flex-col justify-between overflow-hidden bg-[#181412] p-7 text-white sm:p-10 lg:min-h-[490px]">
+          <div className="relative flex flex-col justify-between overflow-hidden bg-[#181412] p-6 text-white sm:p-8 lg:min-h-[470px] lg:p-10">
             <div
               className="pointer-events-none absolute inset-0 opacity-30 [background-image:radial-gradient(circle,rgba(255,255,255,0.14)_1px,transparent_1px)] [background-size:10px_10px] [mask-image:linear-gradient(to_bottom_right,transparent,black)]"
               aria-hidden
             />
             <div className="relative">
               <div className="flex items-center justify-between gap-4">
-                <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-accent">Private by design</p>
-                <p className="flex items-center gap-2 font-mono text-[8px] uppercase tracking-[0.16em] text-white/45">
+                <p className="text-eyebrow font-bold uppercase text-accent">Private by design</p>
+                <p className="flex items-center gap-2 font-mono text-micro uppercase text-white/60">
                   <span className="relative flex h-2 w-2">
                     <span className="absolute inline-flex h-full w-full rounded-full bg-[#55d69a]/60 motion-safe:animate-ping" />
                     <span className="relative inline-flex h-2 w-2 rounded-full bg-[#55d69a]" />
@@ -372,7 +378,7 @@ export default function HomePage() {
               </p>
             </div>
 
-            <div className="relative mt-14 rounded-[22px] border border-white/10 bg-black/20 p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]">
+            <div className="relative mt-10 rounded-tile border border-white/10 bg-black/20 p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] sm:mt-12">
               <div className="flex items-center justify-between gap-3">
                 <div className="group/file relative flex h-20 w-20 shrink-0 items-end overflow-hidden rounded-2xl border border-white/15 bg-white/[0.07] p-3 transition duration-280 group-hover/privacy:-translate-y-1 group-hover/privacy:-rotate-3">
                   <span className="absolute right-3 top-3 h-2 w-2 rounded-full bg-accent" />
@@ -380,11 +386,11 @@ export default function HomePage() {
                     <path d="M6.5 3.5h7l4 4v13h-11z" strokeLinejoin="round" />
                     <path d="M13.5 3.5v4.5H18M9 12h6M9 15.5h4" strokeLinecap="round" strokeLinejoin="round" />
                   </svg>
-                  <span className="font-mono text-[9px] font-bold tracking-[0.14em] text-white/75">FILE</span>
+                  <span className="font-mono text-micro font-bold text-white/75">FILE</span>
                 </div>
 
                 <div className="relative h-px min-w-14 flex-1 overflow-visible bg-[linear-gradient(to_right,rgba(255,255,255,0.15)_50%,transparent_50%)] bg-[length:8px_1px]" aria-hidden>
-                  <span className="absolute left-0 top-1/2 h-2 w-2 -translate-y-1/2 rounded-full bg-[#ff6a64] shadow-[0_0_0_4px_rgba(255,106,100,0.12)] motion-safe:animate-[privacy-route_2.8s_ease-in-out_infinite]" />
+                  <span className="absolute left-0 top-1/2 h-2 w-2 -translate-y-1/2 rounded-full bg-accent-light shadow-[0_0_0_4px_rgba(255,106,100,0.12)] motion-safe:animate-[privacy-route_2.8s_ease-in-out_infinite]" />
                 </div>
 
                 <div className="relative flex h-20 w-20 shrink-0 items-center justify-center rounded-2xl border border-[#55d69a]/25 bg-[#55d69a]/10 transition duration-280 group-hover/privacy:-translate-y-1 group-hover/privacy:rotate-3">
@@ -394,16 +400,16 @@ export default function HomePage() {
                   </svg>
                 </div>
               </div>
-              <div className="mt-4 flex items-center justify-between font-mono text-[8px] uppercase tracking-[0.15em] text-white/35">
+              <div className="mt-4 flex items-center justify-between font-mono text-micro uppercase text-white/55">
                 <span>Choose locally</span>
                 <span className="text-[#75e0b1]">Finish locally</span>
               </div>
             </div>
           </div>
 
-          <div className="flex flex-col justify-between p-7 sm:p-10 lg:p-12">
+          <div className="flex flex-col justify-between p-6 sm:p-8 lg:p-10">
             <div>
-              <p className="font-mono text-[9px] font-semibold uppercase tracking-[0.17em] text-faint">What stays simple</p>
+              <p className="font-mono text-micro font-semibold uppercase text-faint">What stays simple</p>
               <h3 className="mt-4 max-w-md text-3xl font-semibold leading-[1.05] tracking-[-0.045em] text-ink">
                 Fewer hand-offs.<br />More control.
               </h3>
@@ -412,14 +418,14 @@ export default function HomePage() {
               </p>
             </div>
 
-            <div className="mt-10 grid gap-3 sm:grid-cols-2">
+            <div className="mt-8 grid gap-4 sm:grid-cols-2">
               {PRIVACY_POINTS.map((item, index) => (
                 <div
                   key={item.number}
-                  className="group/benefit relative overflow-hidden rounded-2xl border border-[#e8e2df] bg-white p-4 transition duration-280 hover:-translate-y-1 hover:border-[#d8cfca] hover:shadow-[0_12px_28px_rgba(40,27,22,0.08)]"
+                  className="group/benefit relative overflow-hidden rounded-card border border-[#e8e2df] bg-white p-4 shadow-drop transition duration-280 hover:-translate-y-1 hover:border-[#d8cfca] hover:shadow-tile"
                 >
                   <span className="absolute -right-8 -top-8 h-20 w-20 rounded-full bg-accent-soft transition duration-500 group-hover/benefit:scale-[1.8]" aria-hidden />
-                  <span className="absolute right-3 top-3 font-mono text-[9px] text-accent/50 transition group-hover/benefit:text-accent">{item.number}</span>
+                  <span className="absolute right-3 top-3 font-mono text-micro text-accent/60 transition group-hover/benefit:text-accent">{item.number}</span>
                   <span className="relative flex h-8 w-8 items-center justify-center rounded-lg bg-[#e7f8ef] text-[#16885c] transition duration-280 group-hover/benefit:scale-110 group-hover/benefit:rotate-6 group-hover/benefit:bg-accent group-hover/benefit:text-white">
                     <PrivacyIcon index={index} />
                   </span>
@@ -432,7 +438,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="relative isolate overflow-hidden rounded-[30px] border border-[#ded7d3] bg-[#f6f3f1] p-5 sm:p-8 lg:p-10">
+      <section className="relative isolate overflow-hidden rounded-panel border border-[#ded7d3] bg-[#f6f3f1] p-6 shadow-panel sm:p-8 lg:p-10">
         <div
           className="pointer-events-none absolute -right-16 -top-20 -z-10 h-72 w-72 rounded-full border-[46px] border-white/70"
           aria-hidden
@@ -442,10 +448,10 @@ export default function HomePage() {
           aria-hidden
         />
 
-        <div className="grid gap-10 lg:grid-cols-[0.62fr_1.38fr] lg:gap-14">
+        <div className="grid gap-8 lg:grid-cols-[0.62fr_1.38fr] lg:gap-12">
           <div className="flex flex-col justify-between">
             <div>
-              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-accent">Good to know</p>
+              <p className="text-eyebrow font-bold uppercase text-accent">Good to know</p>
               <h2 className="mt-4 max-w-sm text-4xl font-semibold leading-[1.02] tracking-[-0.05em] text-ink sm:text-5xl">
                 The small print, made useful.
               </h2>
@@ -465,11 +471,11 @@ export default function HomePage() {
             {FAQS.map((item, index) => (
               <details
                 key={item.question}
-                className="group overflow-hidden rounded-2xl border border-[#e1dad6] bg-white transition duration-280 open:border-[#cfc5c0] open:shadow-[0_14px_34px_rgba(40,27,22,0.08)] hover:-translate-y-0.5 hover:border-[#cfc5c0]"
+                className="group overflow-hidden rounded-card border border-[#e1dad6] bg-white transition duration-280 open:border-[#cfc5c0] open:shadow-tile hover:-translate-y-0.5 hover:border-[#cfc5c0]"
               >
                 <summary className="flex cursor-pointer list-none items-center gap-4 p-4 text-sm font-semibold text-ink sm:p-5 [&::-webkit-details-marker]:hidden">
-                  <span className="font-mono text-[9px] font-semibold text-accent/70">0{index + 1}</span>
-                  <span className="hidden w-14 text-[8px] font-bold uppercase tracking-[0.16em] text-faint sm:block">{item.label}</span>
+                  <span className="font-mono text-micro font-semibold text-accent/80">0{index + 1}</span>
+                  <span className="hidden w-14 text-micro font-bold uppercase text-faint sm:block">{item.label}</span>
                   <span className="flex-1 transition duration-180 group-hover:translate-x-0.5">{item.question}</span>
                   <span className="relative flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-[#e3ddda] bg-[#faf8f7] transition duration-280 group-hover:border-[#d3cac6] group-open:rotate-45 group-open:border-accent group-open:bg-accent group-open:text-white">
                     <span className="absolute h-px w-3 bg-current" />
@@ -489,21 +495,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="relative overflow-hidden rounded-[28px] bg-accent px-7 py-10 text-white sm:px-10 sm:py-12">
-        <div className="absolute -right-14 -top-24 h-64 w-64 rounded-full border-[42px] border-white/10" aria-hidden />
-        <div className="relative flex flex-col justify-between gap-8 sm:flex-row sm:items-end">
-          <div>
-            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-white">One less thing to worry about</p>
-            <h2 className="mt-3 max-w-xl text-3xl font-semibold tracking-[-0.04em] sm:text-4xl">
-              Your next file is ready when you are.
-            </h2>
-          </div>
-          <a href="#converter" className="group inline-flex w-fit items-center gap-3 rounded-xl bg-white px-5 py-3 text-sm font-semibold text-ink transition hover:bg-[#fff1f0]">
-            Start converting
-            <span className="transition group-hover:translate-x-1"><ArrowIcon /></span>
-          </a>
-        </div>
-      </section>
     </div>
   );
 }

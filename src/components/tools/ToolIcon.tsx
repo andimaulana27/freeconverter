@@ -3,7 +3,7 @@ import { cn } from "@/lib/cn";
 
 const CATEGORY_TONES: Record<string, string> = {
   Gambar: "bg-[#e8f3ff] text-[#1677df]",
-  PDF: "bg-[#ffe8e7] text-[#df3732]",
+  PDF: "bg-accent-soft text-accent",
   Dokumen: "bg-[#fff1dc] text-[#c86b0a]",
   Spreadsheet: "bg-[#e5f7ec] text-[#16885c]",
   Presentasi: "bg-[#fff0e8] text-[#dd6425]",
