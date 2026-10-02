@@ -14,6 +14,7 @@ This system will provide:
 - a secure admin area for writing, reviewing, scheduling, and publishing content;
 - controlled ad placements for Google AdSense and manual image campaigns;
 - AI-assisted topic, title, outline, and article generation in batches;
+- automatic, article-specific covers and supporting visuals using branded templates with optional AI-generated illustration;
 - revision history, quality gates, audit logs, and safe publishing controls;
 - server-only AI key management with planned rotation and health checks.
 
@@ -108,7 +109,9 @@ A batch of 5–15 articles must not run inside one browser request. The admin ac
 - `blog_post_revisions` stores immutable content snapshots, change source, editor, and restoration metadata.
 - `blog_topics` stores focused public topics, descriptions, and SEO metadata.
 - `blog_tags` and `blog_post_tags` provide optional cross-topic labels; add only when they improve discovery.
-- `media_assets` tracks uploaded covers, inline media, dimensions, alt text, ownership, and Storage paths.
+- `media_assets` tracks uploaded or generated covers and inline media, dimensions, alt text, ownership, and Storage paths.
+- Before visual generation ships, add source/provenance (`upload`, `template`, or `ai`), provider/model and prompt hashes, generation status, focal point, and variant metadata through an additive migration.
+- Add `blog_post_media` when the editor needs ordered, typed relations such as `cover`, `inline`, `diagram`, and `social`; do not depend only on URLs embedded in article JSON.
 - `publishing_schedules` tracks scheduled publish, unpublish, and retry state.
 
 Recommended post states are `draft`, `review`, `scheduled`, `published`, and `archived`.
@@ -183,7 +186,7 @@ Phase 1 implementation notes:
 2. Build a structured brief with search intent, audience, angle, and internal-link targets.
 3. Generate an outline with headings, questions, and evidence requirements.
 4. Generate the article body as validated structured output.
-5. Generate title tag, meta description, excerpt, FAQ, image brief, and link suggestions.
+5. Generate title tag, meta description, excerpt, FAQ, link suggestions, and a structured visual brief.
 6. Run deterministic checks for missing sections, invalid tool links, duplication, length, unsafe claims, and metadata limits.
 7. Run an optional AI editorial review.
 8. Save a revision and create a post in `draft` or `review`.
@@ -205,6 +208,20 @@ Suggested task profiles:
 When implementation starts, verify current model IDs and pricing again. Model availability changes faster than the application architecture.
 
 Use AI SDK structured generation with `generateText` and `Output.object()` schemas. Validate every payload again on the server before storing or publishing it.
+
+### Automated covers and supporting visuals
+
+Use a hybrid visual pipeline rather than asking an image model to render a finished cover:
+
+- render title, brand mark, typography, solid or gradient fill, texture, and decorative motifs from deterministic SVG/CSS templates;
+- select template, palette, motif, and title line breaks from a validated visual brief derived from article type, topic, and slug;
+- use a stable article seed so regeneration is idempotent while different articles still receive distinct compositions;
+- optionally generate a text-free illustration through the server-only Google provider, then composite it behind the programmatic title layer;
+- use real product screenshots for tutorials and deterministic SVG diagrams for factual workflows, never potentially misleading AI replacements;
+- generate separate hero and social variants with safe text areas instead of relying on destructive crops;
+- require meaningful alt text, contrast checks, file-size limits, moderation, provenance, and editor approval before publication.
+
+The admin editor offers `Auto template`, `AI illustration`, `Upload`, and `No image`, plus regenerate, focal-point, alt-text, and approval controls. AI image generation runs as an independent retriable media job and must not discard an otherwise valid article draft when it fails.
 
 ## 9. API key management and rotation
 
@@ -382,6 +399,7 @@ Acceptance: published posts are indexable, drafts are private, and public layout
 Status: planned
 
 - build dashboard, post list, structured editor, preview, revisions, and media library;
+- add automatic-template, optional AI-illustration, upload, regenerate, focal-point, alt-text, and image-approval controls;
 - add draft, review, publish, unpublish, archive, and scheduled workflows;
 - add autosave, conflict handling, slug redirects, and audit events;
 - implement role-specific controls.
@@ -406,6 +424,7 @@ Status: planned
 - implement provider adapter, key health, model profiles, and prompt versions;
 - generate structured topic and title candidates;
 - generate one selected article through brief, outline, draft, SEO, and validation;
+- generate a structured visual brief and deterministic branded cover, with optional text-free Google AI illustration;
 - save output as a revisioned draft;
 - capture token usage, model ID, prompt version, errors, and audit events.
 
@@ -416,6 +435,7 @@ Acceptance: AI output is schema-valid, traceable, editable, and never auto-publi
 Status: planned
 
 - add 5–15 article batches, independent jobs, queue worker, retries, cancellation, and progress;
+- process AI supporting images as independent idempotent media jobs with retry, moderation, provenance, and cost tracking;
 - add budgets, concurrency limits, idempotency, timeouts, and failure recovery;
 - add draft, scheduled, and gated automatic publication modes;
 - add secure multi-key rotation and failover.
@@ -427,6 +447,7 @@ Acceptance: refreshing or closing admin does not interrupt generation and failed
 Status: planned
 
 - add similarity detection, intent collision checks, fact validation, and editorial review;
+- add visual similarity, contrast, alt-text, brand-consistency, and media performance checks;
 - add internal-link suggestions based on tools and content clusters;
 - connect Search Console and privacy-safe product conversion metrics;
 - tune article types, cadence, ads, and model profiles using real outcomes;
