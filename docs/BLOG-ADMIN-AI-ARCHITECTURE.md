@@ -341,7 +341,7 @@ Acceptance: unauthorized users cannot access admin data, drafts, secrets, or pri
 
 - Dedicated Supabase project **AllYouConvert** (`apktgfjwgsngbtvhlwen`, region `ap-southeast-1`) hosts Postgres 17, Auth, Storage, and RLS. Hosting target remains Vercel (`site_settings.hosting_target`).
 - AI secrets start as the server-only env var `GOOGLE_GENERATIVE_AI_API_KEY`. Vault rotation stays Phase 6.
-- The first `super_admin` is created in the Auth dashboard with `raw_app_meta_data.role = super_admin`. The app has no public signup UI.
+- The first `super_admin` is provisioned through the server-only Auth Admin API with `raw_app_meta_data.role = super_admin`; email is confirmed and the trigger-synced `admin_profiles` row is active. The app has no public signup UI.
 - Public pages moved into the `(site)` route group so converter chrome and ads do not wrap `/admin`.
 - Write policies that used `FOR ALL` were split into insert/update/delete after a security-advisor warning about overlapping permissive SELECT policies.
 - Storage object policies for the ad bucket are named `ad_creatives_bucket_*` so they do not clash with table policies.
@@ -365,6 +365,7 @@ Seeds: 8 placement keys, 5 prompt templates, 5 model profiles (`gemini-3.5-flash
 - `/admin/login` — staff sign-in, `noindex`, no public header or ads.
 - `/admin/mfa` — TOTP challenge when enrolled users are below AAL2.
 - `/admin` — role-gated foundation dashboard.
+- `/admin/security` — authenticated password change with current-password reauthentication, confirmation, a 12-character minimum, and a direct TOTP management link.
 - `robots.ts` disallows `/admin`.
 - Public converter routes stay under `(site)` with Blog still absent from the primary header.
 
@@ -374,10 +375,12 @@ Seeds: 8 placement keys, 5 prompt templates, 5 model profiles (`gemini-3.5-flash
 - Performance advisor: unused-index INFO on an empty database (indexes kept); Auth “10 connections” INFO left as default.
 - Anonymous REST: unpublished `blog_posts` are not visible; 8 `ad_placements` are readable; secret refs are not granted to `anon`.
 - Browser: homepage and `/image-compressor` keep converter chrome and no Blog in the header; `/admin` redirects to `/admin/login`; `/privacy` still uses the public shell.
+- First administrator: confirmed Auth user, `super_admin` claim, active trigger-created profile, successful login, and role-scoped dashboard reads verified.
+- Security settings: `/admin/security` loads for the authenticated administrator and rejects mismatched password confirmation without mutating the password.
+- Production build and lint pass with no errors; remaining warnings are non-blocking and unrelated to the foundation acceptance criteria.
 
 #### Phase 1 follow-up (does not block Phase 2)
 
-- Create the first Auth user in the dashboard and set `app_metadata.role` to `super_admin`.
 - Disable public signup in Auth settings.
 - Enroll TOTP MFA on that account.
 - Connection tests, generation, and CMS screens remain later phases.
