@@ -106,18 +106,11 @@ export function Footer() {
         <div className="grid gap-12 border-b border-white/10 py-12 lg:grid-cols-[1.05fr_3fr] lg:gap-16 lg:py-14">
           <div>
             <Link href="/" className="group inline-flex items-center text-white" aria-label={`${SITE_NAME} home`}>
-              <Logo className="h-14 w-auto text-white transition duration-280 group-hover:-translate-y-0.5 sm:h-16" />
+              <Logo className="h-10 w-auto text-white transition duration-280 group-hover:-translate-y-0.5 sm:h-11" />
             </Link>
             <p className="mt-5 max-w-xs text-sm leading-6 text-white/50">
               Purpose-built file tools for converting, compressing, and organizing everyday formats—without unnecessary steps.
             </p>
-            <div className="mt-6 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-3 py-2 font-mono text-[8px] uppercase tracking-[0.15em] text-white/40">
-              <span className="relative flex h-2 w-2">
-                <span className="absolute inline-flex h-full w-full rounded-full bg-[#55d69a]/60 motion-safe:animate-ping" />
-                <span className="relative inline-flex h-2 w-2 rounded-full bg-[#55d69a]" />
-              </span>
-              Browser tools ready
-            </div>
           </div>
 
           <div className="grid grid-cols-2 gap-x-5 gap-y-10 sm:grid-cols-4">
