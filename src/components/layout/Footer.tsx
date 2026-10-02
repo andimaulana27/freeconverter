@@ -106,7 +106,7 @@ export function Footer() {
         <div className="grid gap-12 border-b border-white/10 py-12 lg:grid-cols-[1.05fr_3fr] lg:gap-16 lg:py-14">
           <div>
             <Link href="/" className="group inline-flex items-center text-white" aria-label={`${SITE_NAME} home`}>
-              <Logo className="h-10 w-auto text-white transition duration-280 group-hover:-translate-y-0.5 sm:h-11" />
+              <Logo variant="light" className="transition duration-280 group-hover:-translate-y-0.5" />
             </Link>
             <p className="mt-5 max-w-xs text-sm leading-6 text-white/50">
               Purpose-built file tools for converting, compressing, and organizing everyday formats—without unnecessary steps.

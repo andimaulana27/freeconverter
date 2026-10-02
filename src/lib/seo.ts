@@ -41,10 +41,12 @@ export function brandMetadata(): Metadata {
     manifest: "/manifest.webmanifest",
     icons: {
       icon: [
-        { url: "/favicon.ico", sizes: "any" },
-        { url: "/favicon.png", type: "image/png", sizes: "243x243" },
+        { url: "/favicon.ico", sizes: "48x48" },
+        { url: "/icon-32.png", type: "image/png", sizes: "32x32" },
+        { url: "/icon-192.png", type: "image/png", sizes: "192x192" },
+        { url: "/icon-512.png", type: "image/png", sizes: "512x512" },
       ],
-      apple: [{ url: "/favicon.png", sizes: "243x243", type: "image/png" }],
+      apple: [{ url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" }],
       shortcut: "/favicon.ico",
     },
     openGraph: {
@@ -136,7 +138,7 @@ export function websiteJsonLd() {
       "@type": "Organization",
       name: SITE_NAME,
       url: absUrl("/"),
-      logo: absUrl("/All%20You%20Convert.svg"),
+      logo: absUrl("/icon-512.png"),
     },
   };
 }

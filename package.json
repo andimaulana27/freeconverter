@@ -8,6 +8,7 @@
     "start": "next start",
     "lint": "eslint",
     "pdf:worker": "node scripts/copy-pdf-worker.mjs",
+    "brand:assets": "node scripts/build-brand-assets.mjs",
     "fonts:woff2": "node scripts/ttf-otf-to-woff2.mjs",
     "fonts:woff2:dry": "node scripts/ttf-otf-to-woff2.mjs --dry-run"
   },

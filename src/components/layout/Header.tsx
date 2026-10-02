@@ -31,7 +31,7 @@ export function Header() {
 
       <Container className="flex h-[72px] w-[calc(100%_-_2rem)] max-w-[1440px] items-center gap-4 px-0 sm:w-[calc(100%_-_3rem)] sm:gap-6 sm:px-0">
         <Link href="/" className="group flex shrink-0 items-center text-ink" aria-label={`${SITE_NAME} home`}>
-          <Logo className="h-10 w-auto text-ink transition duration-280 group-hover:-translate-y-0.5 sm:h-11" />
+          <Logo priority className="transition duration-280 group-hover:-translate-y-0.5" />
         </Link>
 
         <span className="hidden h-7 w-px shrink-0 bg-[#ddd6d2] sm:block" aria-hidden />
