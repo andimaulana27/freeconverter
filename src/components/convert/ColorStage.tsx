@@ -1,6 +1,8 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
+import { loadImage } from "@/lib/convert/canvas-draw";
+import { isTiffName } from "@/lib/file";
 
 type Props = {
   file: File;
@@ -14,37 +16,47 @@ function toHex(r: number, g: number, b: number) {
 
 export function ColorStage({ file, hex, onPick }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [url, setUrl] = useState("");
 
   useEffect(() => {
-    const next = URL.createObjectURL(file);
-    setUrl(next);
-    return () => URL.revokeObjectURL(next);
-  }, [file]);
-
-  useEffect(() => {
-    if (!url) return;
     const canvas = canvasRef.current;
     if (!canvas) return;
-    const img = new Image();
-    img.onload = () => {
-      const scale = Math.min(1, 360 / img.naturalWidth, 224 / img.naturalHeight);
-      canvas.width = Math.max(1, Math.round(img.naturalWidth * scale));
-      canvas.height = Math.max(1, Math.round(img.naturalHeight * scale));
-      const ctx = canvas.getContext("2d");
-      if (!ctx) return;
-      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+    let alive = true;
+    (async () => {
+      try {
+        let source: HTMLCanvasElement | HTMLImageElement;
+        if (isTiffName(file.name)) {
+          const { canvasFromTiff } = await import("@/lib/convert/tiff");
+          source = (await canvasFromTiff(file)).canvas;
+        } else {
+          source = await loadImage(file);
+        }
+        if (!alive) return;
+        const naturalWidth = "naturalWidth" in source ? source.naturalWidth || source.width : source.width;
+        const naturalHeight = "naturalHeight" in source ? source.naturalHeight || source.height : source.height;
+        const scale = Math.min(1, 360 / naturalWidth, 224 / naturalHeight);
+        canvas.width = Math.max(1, Math.round(naturalWidth * scale));
+        canvas.height = Math.max(1, Math.round(naturalHeight * scale));
+        const ctx = canvas.getContext("2d");
+        if (!ctx) return;
+        ctx.drawImage(source, 0, 0, canvas.width, canvas.height);
+      } catch {
+        if (!alive) return;
+        canvas.width = 1;
+        canvas.height = 1;
+      }
+    })();
+    return () => {
+      alive = false;
     };
-    img.src = url;
-  }, [url]);
+  }, [file]);
 
   function pick(event: React.MouseEvent<HTMLCanvasElement>) {
     const canvas = canvasRef.current;
     const ctx = canvas?.getContext("2d");
-    if (!canvas || !ctx) return;
+    if (!canvas || !ctx || !canvas.width || !canvas.height) return;
     const rect = canvas.getBoundingClientRect();
-    const x = Math.floor(((event.clientX - rect.left) / rect.width) * canvas.width);
-    const y = Math.floor(((event.clientY - rect.top) / rect.height) * canvas.height);
+    const x = Math.min(canvas.width - 1, Math.max(0, Math.floor(((event.clientX - rect.left) / rect.width) * canvas.width)));
+    const y = Math.min(canvas.height - 1, Math.max(0, Math.floor(((event.clientY - rect.top) / rect.height) * canvas.height)));
     const pixel = ctx.getImageData(x, y, 1, 1).data;
     onPick(toHex(pixel[0], pixel[1], pixel[2]));
   }

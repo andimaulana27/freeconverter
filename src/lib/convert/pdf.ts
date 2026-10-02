@@ -10,10 +10,20 @@ import {
   rgb,
 } from "pdf-lib";
 import { bytesToBlob, downloadBlob, extOf, stem } from "@/lib/file";
-import { rasterToJpegBytes } from "@/lib/convert/image";
+import { rasterToJpegBytes } from "@/lib/convert/raster-jpeg";
 
 const ACCENT = rgb(229 / 255, 50 / 255, 45 / 255);
 const INK = rgb(17 / 255, 17 / 255, 17 / 255);
+
+async function loadPdf(file: File, options?: { ignoreEncryption?: boolean }) {
+  try {
+    return await PDFDocument.load(await file.arrayBuffer(), options);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "";
+    if (/encrypt/i.test(message)) throw new Error("This PDF is password-protected.");
+    throw new Error("This PDF is damaged or unreadable.");
+  }
+}
 
 export function parsePageSpec(spec: string, count: number) {
   const parts = spec.split(/[,;\s]+/).map((part) => part.trim()).filter(Boolean);
@@ -58,7 +68,7 @@ export function parsePageOrder(spec: string, count: number) {
 
 async function savePdf(file: File, indices: number[], suffix: string) {
   if (!indices.length) throw new Error("No pages would remain.");
-  const src = await PDFDocument.load(await file.arrayBuffer());
+  const src = await loadPdf(file);
   const out = await PDFDocument.create();
   const pages = await out.copyPages(src, indices);
   pages.forEach((page) => out.addPage(page));
@@ -70,13 +80,23 @@ export async function imagesToPdf(files: File[]) {
   const pdf = await PDFDocument.create();
   for (const file of files) {
     const ext = extOf(file.name);
-    const bytes =
-      ext === "png"
-        ? new Uint8Array(await file.arrayBuffer())
-        : ext === "jpg" || ext === "jpeg"
-          ? new Uint8Array(await file.arrayBuffer())
-          : await rasterToJpegBytes(file);
-    const img = ext === "png" ? await pdf.embedPng(bytes) : await pdf.embedJpg(bytes);
+    const raw = new Uint8Array(await file.arrayBuffer());
+    let img;
+    if (ext === "png") {
+      try {
+        img = await pdf.embedPng(raw);
+      } catch {
+        img = await pdf.embedJpg(await rasterToJpegBytes(file));
+      }
+    } else if (ext === "jpg" || ext === "jpeg") {
+      try {
+        img = await pdf.embedJpg(raw);
+      } catch {
+        img = await pdf.embedJpg(await rasterToJpegBytes(file));
+      }
+    } else {
+      img = await pdf.embedJpg(await rasterToJpegBytes(file));
+    }
     const page = pdf.addPage([img.width, img.height]);
     page.drawImage(img, { x: 0, y: 0, width: img.width, height: img.height });
   }
@@ -87,7 +107,7 @@ export async function imagesToPdf(files: File[]) {
 export async function mergePdfs(files: File[]) {
   const out = await PDFDocument.create();
   for (const file of files) {
-    const src = await PDFDocument.load(await file.arrayBuffer());
+    const src = await loadPdf(file);
     const pages = await out.copyPages(src, src.getPageIndices());
     pages.forEach((page) => out.addPage(page));
   }
@@ -96,14 +116,14 @@ export async function mergePdfs(files: File[]) {
 }
 
 export async function rotatePdf(file: File) {
-  const src = await PDFDocument.load(await file.arrayBuffer());
+  const src = await loadPdf(file);
   src.getPages().forEach((page) => page.setRotation(degrees((page.getRotation().angle + 90) % 360)));
   const bytes = await src.save();
   downloadBlob(bytesToBlob(bytes, "application/pdf"), `${stem(file.name)}-rotated.pdf`);
 }
 
 export async function splitPdf(file: File) {
-  const src = await PDFDocument.load(await file.arrayBuffer());
+  const src = await loadPdf(file);
   const zipParts: { name: string; blob: Blob }[] = [];
   for (let i = 0; i < src.getPageCount(); i++) {
     const one = await PDFDocument.create();
@@ -115,20 +135,17 @@ export async function splitPdf(file: File) {
       blob: bytesToBlob(bytes, "application/pdf"),
     });
   }
-  if (zipParts.length === 1) {
-    downloadBlob(zipParts[0].blob, zipParts[0].name);
-    return;
-  }
-  for (const part of zipParts) downloadBlob(part.blob, part.name);
+  const { downloadZip } = await import("@/lib/convert/zip-download");
+  await downloadZip(zipParts, `${stem(file.name)}-pages.zip`);
 }
 
 export async function extractPdfPages(file: File, spec: string) {
-  const src = await PDFDocument.load(await file.arrayBuffer());
+  const src = await loadPdf(file);
   await savePdf(file, parsePageSpec(spec, src.getPageCount()), "-extract");
 }
 
 export async function deletePdfPages(file: File, spec: string) {
-  const src = await PDFDocument.load(await file.arrayBuffer());
+  const src = await loadPdf(file);
   const count = src.getPageCount();
   const remove = new Set(parsePageSpec(spec, count));
   const keep = src.getPageIndices().filter((index) => !remove.has(index));
@@ -139,13 +156,13 @@ export async function deletePdfPages(file: File, spec: string) {
 export async function watermarkPdf(file: File, text: string) {
   const mark = text.trim();
   if (!mark) throw new Error("Enter watermark text first.");
-  const pdf = await PDFDocument.load(await file.arrayBuffer());
+  const pdf = await loadPdf(file);
   const font = await pdf.embedFont(StandardFonts.HelveticaBold);
   const size = 28;
   for (const page of pdf.getPages()) {
     const { width, height } = page.getSize();
     const labelWidth = font.widthOfTextAtSize(mark, size);
-    page.drawText(mark, {
+    page.drawText(latin1(mark), {
       x: (width - labelWidth) / 2,
       y: height / 2,
       size,
@@ -160,7 +177,7 @@ export async function watermarkPdf(file: File, text: string) {
 }
 
 export async function numberPdfPages(file: File) {
-  const pdf = await PDFDocument.load(await file.arrayBuffer());
+  const pdf = await loadPdf(file);
   const font = await pdf.embedFont(StandardFonts.Helvetica);
   const pages = pdf.getPages();
   const total = pages.length;
@@ -182,7 +199,7 @@ export async function numberPdfPages(file: File) {
 }
 
 export async function cropPdf(file: File, crop: { x: number; y: number; w: number; h: number }) {
-  const pdf = await PDFDocument.load(await file.arrayBuffer());
+  const pdf = await loadPdf(file);
   for (const page of pdf.getPages()) {
     const { width, height } = page.getSize();
     const x = crop.x * width;
@@ -199,7 +216,7 @@ export async function cropPdf(file: File, crop: { x: number; y: number; w: numbe
 }
 
 export async function unlockPdf(file: File) {
-  const pdf = await PDFDocument.load(await file.arrayBuffer(), { ignoreEncryption: true });
+  const pdf = await loadPdf(file, { ignoreEncryption: true });
   const out = await PDFDocument.create();
   const pages = await out.copyPages(pdf, pdf.getPageIndices());
   pages.forEach((page) => out.addPage(page));
@@ -208,18 +225,18 @@ export async function unlockPdf(file: File) {
 }
 
 export async function organizePdf(file: File, spec: string) {
-  const src = await PDFDocument.load(await file.arrayBuffer());
+  const src = await loadPdf(file);
   await savePdf(file, parsePageOrder(spec, src.getPageCount()), "-org");
 }
 
 export async function flattenPdf(file: File) {
-  const pdf = await PDFDocument.load(await file.arrayBuffer());
+  const pdf = await loadPdf(file);
   try {
     const form = pdf.getForm();
-    if (!form.getFields().length) throw new Error("PDF ini tidak punya form field.");
+    if (!form.getFields().length) throw new Error("This PDF has no form fields to flatten.");
     form.flatten();
   } catch (error) {
-    if (error instanceof Error && /form field/.test(error.message)) throw error;
+    if (error instanceof Error && /form fields to flatten/.test(error.message)) throw error;
     throw new Error("This PDF has no form fields to flatten.");
   }
   const bytes = await pdf.save();
@@ -227,7 +244,7 @@ export async function flattenPdf(file: File) {
 }
 
 export async function redactPdf(file: File, crop: { x: number; y: number; w: number; h: number }) {
-  const pdf = await PDFDocument.load(await file.arrayBuffer());
+  const pdf = await loadPdf(file);
   for (const page of pdf.getPages()) {
     const { width, height } = page.getSize();
     page.drawRectangle({
@@ -245,7 +262,7 @@ export async function redactPdf(file: File, crop: { x: number; y: number; w: num
 export async function signPdf(file: File, name: string) {
   const label = name.trim();
   if (!label) throw new Error("Enter a signature name first.");
-  const pdf = await PDFDocument.load(await file.arrayBuffer());
+  const pdf = await loadPdf(file);
   const font = await pdf.embedFont(StandardFonts.HelveticaOblique);
   const size = 14;
   for (const page of pdf.getPages()) {
@@ -259,7 +276,7 @@ export async function signPdf(file: File, name: string) {
       color: INK,
       opacity: 0.45,
     });
-    page.drawText(label, { x, y: 26, size, font, color: INK });
+    page.drawText(latin1(label), { x, y: 26, size, font, color: INK });
   }
   const bytes = await pdf.save();
   downloadBlob(bytesToBlob(bytes, "application/pdf"), `${stem(file.name)}-signed.pdf`);
@@ -439,16 +456,15 @@ export type PdfFormDraft = {
   options?: string[];
 };
 
-function formOf(fileBytes: ArrayBuffer) {
-  return PDFDocument.load(fileBytes).then(async (pdf) => {
-    const form = pdf.getForm();
-    if (!form.getFields().length) throw new Error("PDF ini tidak punya form field.");
-    return { pdf, form };
-  });
+async function formOf(file: File) {
+  const pdf = await loadPdf(file);
+  const form = pdf.getForm();
+  if (!form.getFields().length) throw new Error("This PDF has no form fields to fill.");
+  return { pdf, form };
 }
 
 export async function listPdfFields(file: File): Promise<PdfFormDraft[]> {
-  const { form } = await formOf(await file.arrayBuffer());
+  const { form } = await formOf(file);
   const drafts: PdfFormDraft[] = [];
   for (const field of form.getFields()) {
     const name = field.getName();
@@ -467,7 +483,7 @@ export async function listPdfFields(file: File): Promise<PdfFormDraft[]> {
 }
 
 export async function fillPdf(file: File, values: Record<string, string>) {
-  const { pdf, form } = await formOf(await file.arrayBuffer());
+  const { pdf, form } = await formOf(file);
   const font = await pdf.embedFont(StandardFonts.Helvetica);
   for (const field of form.getFields()) {
     const next = values[field.getName()];

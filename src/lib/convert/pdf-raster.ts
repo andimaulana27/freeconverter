@@ -1,51 +1,86 @@
 import { getDocument, GlobalWorkerOptions, ImageKind, OPS } from "pdfjs-dist";
-import { bytesToBlob, downloadBlob, stem } from "@/lib/file";
-import { encodeBmp } from "@/lib/convert/image";
+import { bytesToBlob, stem } from "@/lib/file";
+import { encodeBmp } from "@/lib/convert/bmp";
 
 GlobalWorkerOptions.workerSrc = "/pdf.worker.min.mjs";
 
-export type PdfImageOutput = "jpg" | "png" | "webp" | "bmp" | "tiff";
+export type PdfImageOutput = "jpg" | "png" | "webp" | "bmp";
+
+function pdfError(error: unknown) {
+  const message = error instanceof Error ? error.message : String(error);
+  if (/worker|setting up fake worker|Failed to fetch|Failed to load/i.test(message)) {
+    return new Error("The PDF engine failed to load. Refresh the page and try again.");
+  }
+  if (/password|encrypted/i.test(message)) {
+    return new Error("This PDF is password-protected.");
+  }
+  if (/Invalid PDF|PDF header|FormatError/i.test(message)) {
+    return new Error("This PDF is damaged or unreadable.");
+  }
+  return error instanceof Error ? error : new Error("Could not read this PDF.");
+}
+
+async function openPdf(file: File) {
+  try {
+    const data = new Uint8Array(await file.arrayBuffer());
+    return await getDocument({ data, useSystemFonts: true }).promise;
+  } catch (error) {
+    throw pdfError(error);
+  }
+}
+
+export async function renderPdfPages(
+  file: File,
+  each: (canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, index: number, total: number) => Promise<void>,
+) {
+  const pdf = await openPdf(file);
+  for (let i = 1; i <= pdf.numPages; i += 1) {
+    const page = await pdf.getPage(i);
+    const base = page.getViewport({ scale: 1 });
+    const scale = Math.min(2, 4096 / Math.max(base.width, base.height, 1));
+    const viewport = page.getViewport({ scale });
+    const canvas = document.createElement("canvas");
+    canvas.width = Math.max(1, Math.floor(viewport.width));
+    canvas.height = Math.max(1, Math.floor(viewport.height));
+    const ctx = canvas.getContext("2d");
+    if (!ctx) throw new Error("Canvas is not available in this browser.");
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    await page.render({ canvas, canvasContext: ctx, viewport }).promise;
+    await each(canvas, ctx, i, pdf.numPages);
+  }
+}
 
 async function canvasToImageBlob(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, output: PdfImageOutput) {
   if (output === "bmp") {
     return bytesToBlob(encodeBmp(ctx.getImageData(0, 0, canvas.width, canvas.height)), "image/bmp");
   }
-  if (output === "tiff") {
-    const { encodeTiff } = await import("@/lib/convert/image");
-    return bytesToBlob(await encodeTiff(ctx.getImageData(0, 0, canvas.width, canvas.height)), "image/tiff");
-  }
   const mime = output === "png" ? "image/png" : output === "webp" ? "image/webp" : "image/jpeg";
   const quality = output === "png" ? undefined : 0.86;
-  return new Promise<Blob>((resolve, reject) => {
-    canvas.toBlob((next) => (next ? resolve(next) : reject(new Error("Could not encode the PDF page."))), mime, quality);
+  const blob = await new Promise<Blob | null>((resolve) => {
+    canvas.toBlob((next) => resolve(next), mime, quality);
   });
+  if (blob) return blob;
+  if (output === "webp") {
+    throw new Error("This browser cannot write WebP. Choose PNG or JPG instead.");
+  }
+  throw new Error("Could not encode the PDF page.");
 }
 
 export async function pdfToImages(file: File, output: PdfImageOutput) {
-  const data = new Uint8Array(await file.arrayBuffer());
-  const task = getDocument({ data, useSystemFonts: true });
-  const pdf = await task.promise;
-  for (let i = 1; i <= pdf.numPages; i += 1) {
-    const page = await pdf.getPage(i);
-    const viewport = page.getViewport({ scale: 2 });
-    const canvas = document.createElement("canvas");
-    canvas.width = Math.max(1, Math.floor(viewport.width));
-    canvas.height = Math.max(1, Math.floor(viewport.height));
-    const ctx = canvas.getContext("2d");
-    if (!ctx) throw new Error("Canvas tidak tersedia.");
-    ctx.fillStyle = "#ffffff";
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    await page.render({ canvas, canvasContext: ctx, viewport }).promise;
+  const parts: { name: string; blob: Blob }[] = [];
+  const base = stem(file.name);
+  await renderPdfPages(file, async (canvas, ctx, i, total) => {
     const blob = await canvasToImageBlob(canvas, ctx, output);
-    const suffix = pdf.numPages === 1 ? `.${output}` : `-p${i}.${output}`;
-    downloadBlob(blob, `${stem(file.name)}${suffix}`);
-    if (i < pdf.numPages) await new Promise((resolve) => window.setTimeout(resolve, 180));
-  }
+    const suffix = total === 1 ? `.${output}` : `-p${i}.${output}`;
+    parts.push({ name: `${base}${suffix}`, blob });
+  });
+  const { downloadZip } = await import("@/lib/convert/zip-download");
+  await downloadZip(parts, `${base}-${output}.zip`);
 }
 
 export async function pdfToText(file: File) {
-  const data = new Uint8Array(await file.arrayBuffer());
-  const pdf = await getDocument({ data, useSystemFonts: true }).promise;
+  const pdf = await openPdf(file);
   const parts: string[] = [];
   for (let i = 1; i <= pdf.numPages; i += 1) {
     const page = await pdf.getPage(i);
@@ -93,7 +128,7 @@ async function pixelsToPng(width: number, height: number, rgba: Uint8ClampedArra
   canvas.width = width;
   canvas.height = height;
   const ctx = canvas.getContext("2d");
-  if (!ctx) throw new Error("Canvas tidak tersedia.");
+  if (!ctx) throw new Error("Canvas is not available in this browser.");
   const buffer = new ArrayBuffer(rgba.byteLength);
   const pixels = new Uint8ClampedArray(buffer);
   pixels.set(rgba);
@@ -144,7 +179,7 @@ async function drawToPng(source: CanvasImageSource, width: number, height: numbe
   canvas.width = Math.max(1, width);
   canvas.height = Math.max(1, height);
   const ctx = canvas.getContext("2d");
-  if (!ctx) throw new Error("Canvas tidak tersedia.");
+  if (!ctx) throw new Error("Canvas is not available in this browser.");
   ctx.drawImage(source, 0, 0, canvas.width, canvas.height);
   return new Promise<Blob>((resolve, reject) => {
     canvas.toBlob((blob) => (blob ? resolve(blob) : reject(new Error("Could not encode the PDF image."))), "image/png");
@@ -182,8 +217,7 @@ async function objToBlob(img: unknown): Promise<Blob | null> {
 }
 
 export async function extractPdfImages(file: File) {
-  const data = new Uint8Array(await file.arrayBuffer());
-  const pdf = await getDocument({ data, useSystemFonts: true }).promise;
+  const pdf = await openPdf(file);
   const blobs: Blob[] = [];
   const take = async (img: unknown) => {
     const blob = await objToBlob(img);
@@ -215,9 +249,12 @@ export async function extractPdfImages(file: File) {
     throw new Error("This PDF has no embedded images. Use PDF to JPG to rasterize full pages.");
   }
   const base = stem(file.name);
-  for (let i = 0; i < blobs.length; i += 1) {
-    const ext = blobs[i].type === "image/jpeg" ? "jpg" : "png";
-    downloadBlob(blobs[i], blobs.length === 1 ? `${base}.${ext}` : `${base}-img${i + 1}.${ext}`);
-    if (i < blobs.length - 1) await new Promise((resolve) => window.setTimeout(resolve, 180));
-  }
+  const { downloadZip } = await import("@/lib/convert/zip-download");
+  await downloadZip(
+    blobs.map((blob, i) => {
+      const ext = blob.type === "image/jpeg" ? "jpg" : "png";
+      return { name: blobs.length === 1 ? `${base}.${ext}` : `${base}-img${i + 1}.${ext}`, blob };
+    }),
+    `${base}-images.zip`,
+  );
 }

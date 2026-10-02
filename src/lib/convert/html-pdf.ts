@@ -49,14 +49,14 @@ async function rasterHtml(doc: Document) {
   const img = await new Promise<HTMLImageElement>((resolve, reject) => {
     const image = new Image();
     image.onload = () => resolve(image);
-    image.onerror = () => reject(new Error("gagal"));
+    image.onerror = () => reject(new Error("This HTML could not be drawn as an image. The text-only PDF fallback will be used."));
     image.src = url;
   });
   const canvas = document.createElement("canvas");
   canvas.width = width;
   canvas.height = height;
   const ctx = canvas.getContext("2d");
-  if (!ctx) throw new Error("Canvas tidak tersedia.");
+  if (!ctx) throw new Error("Canvas is not available in this browser.");
   ctx.fillStyle = "#ffffff";
   ctx.fillRect(0, 0, width, height);
   ctx.drawImage(img, 0, 0);
@@ -77,7 +77,7 @@ async function canvasSliceToPdf(canvas: HTMLCanvasElement, filename: string) {
     slice.width = canvas.width;
     slice.height = h;
     const ctx = slice.getContext("2d");
-    if (!ctx) throw new Error("Canvas tidak tersedia.");
+    if (!ctx) throw new Error("Canvas is not available in this browser.");
     ctx.fillStyle = "#ffffff";
     ctx.fillRect(0, 0, slice.width, slice.height);
     ctx.drawImage(canvas, 0, top, canvas.width, h, 0, 0, canvas.width, h);

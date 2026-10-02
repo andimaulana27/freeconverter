@@ -31,3 +31,8 @@ export function bytesToBlob(bytes: Uint8Array, type: string) {
 export function downloadBytes(bytes: Uint8Array, filename: string, type: string) {
   downloadBlob(bytesToBlob(bytes, type), filename);
 }
+
+export function isTiffName(name: string) {
+  const ext = extOf(name);
+  return ext === "tif" || ext === "tiff";
+}

@@ -1,4 +1,3 @@
-import { compress } from "woff2-encoder";
 import { downloadBytes, stem } from "@/lib/file";
 
 function tagOf(bytes: Uint8Array) {
@@ -89,9 +88,15 @@ async function woff1ToSfnt(bytes: Uint8Array) {
 export async function fontToWoff2(file: File) {
   const bytes = new Uint8Array(await file.arrayBuffer());
   let sfnt = bytes;
-  if (isWoff2(bytes)) throw new Error("File ini sudah WOFF2.");
+  if (isWoff2(bytes)) throw new Error("This file is already WOFF2.");
   if (isWoff(bytes)) sfnt = await woff1ToSfnt(bytes);
-  else if (!isSfnt(bytes)) throw new Error("Bukan file TTF, OTF, atau WOFF.");
-  const woff2 = await compress(sfnt);
-  downloadBytes(woff2, `${stem(file.name)}.woff2`, "font/woff2");
+  else if (!isSfnt(bytes)) throw new Error("Choose a TTF, OTF, or WOFF file.");
+  try {
+    const { compress } = await import("woff2-encoder");
+    const woff2 = await compress(sfnt);
+    downloadBytes(new Uint8Array(woff2), `${stem(file.name)}.woff2`, "font/woff2");
+  } catch (error) {
+    if (error instanceof Error && /already WOFF2|TTF, OTF, or WOFF/.test(error.message)) throw error;
+    throw new Error("Could not encode this font as WOFF2 in the browser.");
+  }
 }

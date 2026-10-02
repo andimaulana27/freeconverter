@@ -4,6 +4,7 @@ import type JSZip from "jszip";
 
 function xml(value: string) {
   return value
+    .replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g, "")
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;")
@@ -82,8 +83,12 @@ function rowsToCsv(rows: string[][]) {
 }
 
 async function zipOf(file: File) {
-  const JSZip = (await import("jszip")).default;
-  return JSZip.loadAsync(await file.arrayBuffer());
+  try {
+    const JSZip = (await import("jszip")).default;
+    return await JSZip.loadAsync(await file.arrayBuffer());
+  } catch {
+    throw new Error("This Office file is damaged or is not a modern XLSX/PPTX package.");
+  }
 }
 
 async function readSharedStrings(zip: JSZip) {
@@ -211,41 +216,6 @@ async function rowsToXlsx(rows: string[][], filename: string) {
   downloadBlob(blob, filename);
 }
 
-async function textToDocx(text: string, filename: string) {
-  const JSZip = (await import("jszip")).default;
-  const zip = new JSZip();
-  const paragraphs = text
-    .replace(/\r\n/g, "\n")
-    .split("\n")
-    .map((line) => `<w:p><w:r><w:t xml:space="preserve">${xml(line)}</w:t></w:r></w:p>`)
-    .join("");
-  zip.file(
-    "[Content_Types].xml",
-    `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">
-<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>
-<Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/>
-</Types>`,
-  );
-  zip.file(
-    "_rels/.rels",
-    `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
-<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/>
-</Relationships>`,
-  );
-  zip.file(
-    "word/document.xml",
-    `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:body>${paragraphs}<w:sectPr/></w:body></w:document>`,
-  );
-  const blob = await zip.generateAsync({
-    type: "blob",
-    mimeType: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-  });
-  downloadBlob(blob, filename);
-}
-
 async function pptxToText(file: File) {
   const zip = await zipOf(file);
   const slides = zip.file(/ppt\/slides\/slide\d+\.xml/).sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true }));
@@ -260,35 +230,9 @@ async function pptxToText(file: File) {
   return out;
 }
 
-async function docxHtml(file: File) {
-  const mammoth = await import("mammoth");
-  const result = await mammoth.convertToHtml({ arrayBuffer: await file.arrayBuffer() });
-  const html = result.value?.trim();
-  if (!html) throw new Error("This Word file is empty or unreadable. Legacy .doc files are not supported.");
-  return html;
-}
-
 export async function convertOffice(file: File, slug: string, output: string) {
   const name = stem(file.name);
   const ext = file.name.split(".").pop()?.toLowerCase() ?? "";
-
-  if (slug === "docx-to-html" || (ext === "docx" && output === "html")) {
-    downloadBlob(new Blob([`<!doctype html><html><head><meta charset="utf-8"></head><body>${await docxHtml(file)}</body></html>`], { type: "text/html" }), `${name}.html`);
-    return;
-  }
-  if (slug === "docx-to-txt" || (ext === "docx" && output === "txt")) {
-    const mammoth = await import("mammoth");
-    const result = await mammoth.extractRawText({ arrayBuffer: await file.arrayBuffer() });
-    const text = result.value?.trim();
-    if (!text) throw new Error("This Word file is empty or unreadable.");
-    downloadBlob(new Blob([text], { type: "text/plain;charset=utf-8" }), `${name}.txt`);
-    return;
-  }
-  if (slug === "docx-to-pdf" || (ext === "docx" && output === "pdf")) {
-    const { htmlStringToPdf } = await import("@/lib/convert/html-pdf");
-    await htmlStringToPdf(await docxHtml(file), `${name}.pdf`);
-    return;
-  }
 
   if (slug === "xlsx-to-csv" || (ext === "xlsx" && output === "csv")) {
     downloadBlob(new Blob([rowsToCsv(await xlsxToRows(file))], { type: "text/csv;charset=utf-8" }), `${name}.csv`);
@@ -345,17 +289,6 @@ export async function convertOffice(file: File, slug: string, output: string) {
   }
   if (slug === "pptx-to-pdf" || (ext === "pptx" && output === "pdf")) {
     await textToPdf(await pptxToText(file), `${name}.pdf`);
-    return;
-  }
-
-  if (slug === "pdf-to-txt") {
-    const { pdfToText } = await import("@/lib/convert/pdf-raster");
-    downloadBlob(new Blob([await pdfToText(file)], { type: "text/plain;charset=utf-8" }), `${name}.txt`);
-    return;
-  }
-  if (slug === "pdf-to-docx") {
-    const { pdfToText } = await import("@/lib/convert/pdf-raster");
-    await textToDocx(await pdfToText(file), `${name}.docx`);
     return;
   }
 

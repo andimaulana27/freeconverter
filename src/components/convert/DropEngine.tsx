@@ -4,9 +4,10 @@ import { useEffect, useMemo, useState } from "react";
 import dynamic from "next/dynamic";
 import type { ToolDef } from "@/lib/tools";
 import { acceptsInput, siblingConversions, sourceKey, toolsForDropped } from "@/lib/tools";
-import { extOf } from "@/lib/file";
+import { extOf, isTiffName } from "@/lib/file";
 import {
   DEFAULT_CROP,
+  asRasterOutput,
   type CropBox,
   type ImageTurn,
 } from "@/lib/convert/image-types";
@@ -26,11 +27,32 @@ const FillFormStage = dynamic(
   { ssr: false, loading: () => <p className="mt-5 text-sm text-mute">Reading form fields…</p> },
 );
 
+function convertErrorMessage(error: unknown) {
+  const message = error instanceof Error ? error.message : "Conversion failed.";
+  if (/Failed to load chunk|Loading chunk|Failed to fetch dynamically imported module|error loading dynamically imported module/i.test(message)) {
+    return "A conversion module failed to load. Refresh the page and try again.";
+  }
+  if (/WinAnsi|WinAnsiEncoding|cannot encode/i.test(message)) {
+    return "This text uses characters the PDF font cannot write. Try simpler Latin text.";
+  }
+  if (/password|encrypted/i.test(message)) {
+    return "This PDF is password-protected.";
+  }
+  return message;
+}
+
+async function pngReady(list: File[]) {
+  if (!list.some((file) => isTiffName(file.name))) return list;
+  const { tiffFilesAsPng } = await import("@/lib/convert/tiff");
+  return tiffFilesAsPng(list);
+}
+
 type Props = {
   tool?: ToolDef | null;
+  variant?: "default" | "hero";
 };
 
-export function DropEngine({ tool }: Props) {
+export function DropEngine({ tool, variant = "default" }: Props) {
   const { files, setFiles, clearFiles } = useConvertSession();
   const [busy, setBusy] = useState(false);
   const [drag, setDrag] = useState(0);
@@ -173,7 +195,7 @@ export function DropEngine({ tool }: Props) {
         setUnitResult(`${formatUnit(value)} ${unitTo}`);
         setDone(true);
       } catch (e) {
-        setError(e instanceof Error ? e.message : "Conversion failed.");
+        setError(convertErrorMessage(e));
       } finally {
         setBusy(false);
       }
@@ -196,7 +218,7 @@ export function DropEngine({ tool }: Props) {
         }
       }
       if (active?.need === "vps") {
-        throw new Error("This tool needs the dedicated worker. It is not available in the browser yet.");
+        throw new Error("This conversion needs a server worker and is not available in the browser yet. Choose a format this page can write locally.");
       }
       if (slug === "merge-pdf" || (!slug && ext === "pdf" && files.length > 1)) {
         const { mergePdfs } = await import("@/lib/convert/pdf");
@@ -252,17 +274,19 @@ export function DropEngine({ tool }: Props) {
       } else if (slug === "txt-to-pdf") {
         const { txtToPdf } = await import("@/lib/convert/pdf");
         await txtToPdf(first);
+      } else if (slug?.startsWith("docx-to-") || ext === "docx") {
+        const { convertDocx } = await import("@/lib/convert/docx");
+        await convertDocx(first, slug ?? "", output);
+      } else if (slug === "pdf-to-txt" || slug === "pdf-to-docx") {
+        const { convertPdfDocument } = await import("@/lib/convert/pdf-text");
+        await convertPdfDocument(first, slug);
       } else if (
-        slug?.startsWith("docx-to-") ||
         slug?.startsWith("xlsx-to-") ||
         slug?.startsWith("pptx-to-") ||
         slug === "csv-to-xlsx" ||
         slug === "csv-to-json" ||
         slug === "json-to-csv" ||
         slug === "json-to-xlsx" ||
-        slug === "pdf-to-txt" ||
-        slug === "pdf-to-docx" ||
-        ext === "docx" ||
         ext === "xlsx" ||
         ext === "pptx"
       ) {
@@ -271,47 +295,68 @@ export function DropEngine({ tool }: Props) {
       } else if (slug === "extract-pdf-images") {
         const { extractPdfImages } = await import("@/lib/convert/pdf-raster");
         await extractPdfImages(first);
+      } else if (slug === "pdf-to-tiff" || (ext === "pdf" && output === "tiff")) {
+        const { pdfToTiff } = await import("@/lib/convert/pdf-tiff");
+        await pdfToTiff(first);
       } else if (
         slug === "pdf-to-jpg" ||
         slug === "pdf-to-png" ||
         slug === "pdf-to-webp" ||
         slug === "pdf-to-bmp" ||
-        slug === "pdf-to-tiff" ||
-        (ext === "pdf" && (output === "jpg" || output === "png" || output === "webp" || output === "bmp" || output === "tiff"))
+        (ext === "pdf" && (output === "jpg" || output === "png" || output === "webp" || output === "bmp"))
       ) {
         const { pdfToImages } = await import("@/lib/convert/pdf-raster");
-        const out = output === "png" || output === "webp" || output === "bmp" || output === "tiff" ? output : "jpg";
+        const out = output === "png" || output === "webp" || output === "bmp" ? output : "jpg";
         await pdfToImages(first, out);
       } else if (slug === "jpg-to-pdf" || output === "pdf") {
-        const { imagesToPdf } = await import("@/lib/convert/pdf");
-        await imagesToPdf(files);
+        if (files.some((file) => isTiffName(file.name))) {
+          const { tiffImagesToPdf } = await import("@/lib/convert/tiff");
+          await tiffImagesToPdf(files);
+        } else {
+          const { imagesToPdf } = await import("@/lib/convert/pdf");
+          await imagesToPdf(files);
+        }
       } else if (slug === "ttf-to-woff2" || slug === "otf-to-woff2" || slug === "woff-to-woff2" || ext === "ttf" || ext === "otf" || ext === "woff") {
         const { fontToWoff2 } = await import("@/lib/convert/font");
         for (const file of files) await fontToWoff2(file);
       } else if (slug === "collage-maker") {
+        const ready = await pngReady(files);
         const { collageImages } = await import("@/lib/convert/image");
-        await collageImages(files, Number(collageCols));
+        await collageImages(ready, Number(collageCols));
       } else if (slug === "json-formatter" || (ext === "json" && output === "json")) {
         const { formatJson } = await import("@/lib/convert/json");
         await formatJson(first);
       } else if (slug === "rotate-image") {
+        const [ready] = await pngReady([first]);
         const { rasterTransform } = await import("@/lib/convert/image");
-        await rasterTransform(first, turn);
+        await rasterTransform(ready, turn);
       } else if (slug === "flip-image") {
+        const [ready] = await pngReady([first]);
         const { rasterTransform } = await import("@/lib/convert/image");
-        await rasterTransform(first, flip);
+        await rasterTransform(ready, flip);
       } else if (slug === "crop-image") {
+        const [ready] = await pngReady([first]);
         const { rasterCrop } = await import("@/lib/convert/image");
-        await rasterCrop(first, crop);
+        await rasterCrop(ready, crop);
       } else if (slug === "color-picker") {
         const { downloadColorSwatch } = await import("@/lib/convert/image");
         await downloadColorSwatch(hex);
       } else if (slug === "image-resizer") {
-        const { rasterConvert } = await import("@/lib/convert/image");
-        for (const file of files) await rasterConvert(file, "png", { width });
+        if (files.some((file) => isTiffName(file.name))) {
+          const { rasterConvertTiff } = await import("@/lib/convert/tiff");
+          for (const file of files) await rasterConvertTiff(file, "png", { width });
+        } else {
+          const { rasterConvert } = await import("@/lib/convert/image");
+          for (const file of files) await rasterConvert(file, "png", { width });
+        }
       } else if (slug === "image-compressor") {
-        const { rasterConvert } = await import("@/lib/convert/image");
-        for (const file of files) await rasterConvert(file, "jpg", { quality: 0.72 });
+        if (files.some((file) => isTiffName(file.name))) {
+          const { rasterConvertTiff } = await import("@/lib/convert/tiff");
+          for (const file of files) await rasterConvertTiff(file, "jpg", { quality: 0.72 });
+        } else {
+          const { rasterConvert } = await import("@/lib/convert/image");
+          for (const file of files) await rasterConvert(file, "jpg", { quality: 0.72 });
+        }
       } else if (slug === "gif-compressor") {
         const { rasterConvert } = await import("@/lib/convert/image");
         for (const file of files) await rasterConvert(file, "jpg", { quality: 0.7 });
@@ -319,10 +364,15 @@ export function DropEngine({ tool }: Props) {
         active?.engine === "canvas" ||
         ["png", "jpg", "jpeg", "webp", "bmp", "gif", "heic", "heif", "ico", "svg", "avif", "tif", "tiff"].includes(ext)
       ) {
-        const { asRasterOutput, rasterConvert } = await import("@/lib/convert/image");
         const out = asRasterOutput(output);
         if (!out) throw new Error("Choose an output format first.");
-        for (const file of files) await rasterConvert(file, out);
+        if (out === "tiff" || files.some((file) => isTiffName(file.name))) {
+          const { rasterConvertTiff } = await import("@/lib/convert/tiff");
+          for (const file of files) await rasterConvertTiff(file, out);
+        } else {
+          const { rasterConvert } = await import("@/lib/convert/image");
+          for (const file of files) await rasterConvert(file, out);
+        }
       } else if (ext === "pdf") {
         const { mergePdfs } = await import("@/lib/convert/pdf");
         await mergePdfs(files);
@@ -331,7 +381,7 @@ export function DropEngine({ tool }: Props) {
       }
       setDone(true);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Conversion failed.");
+      setError(convertErrorMessage(e));
     } finally {
       setBusy(false);
     }
@@ -341,6 +391,7 @@ export function DropEngine({ tool }: Props) {
     <div
       className={cn(
         "group relative overflow-hidden bg-paper transition duration-280",
+        variant === "hero" && "rounded-[22px] bg-white",
         dragging && "bg-accent-soft",
       )}
       onDragEnter={(e) => {
@@ -358,30 +409,6 @@ export function DropEngine({ tool }: Props) {
         if (e.dataTransfer.files?.length) take(e.dataTransfer.files);
       }}
     >
-      <span
-        className={cn(
-          "pointer-events-none absolute left-0 top-0 z-10 h-7 w-7 border-l-2 border-t-2 border-ink transition duration-280",
-          dragging && "h-11 w-11 border-accent animate-mark",
-        )}
-      />
-      <span
-        className={cn(
-          "pointer-events-none absolute right-0 top-0 z-10 h-7 w-7 border-r-2 border-t-2 border-ink transition duration-280",
-          dragging && "h-11 w-11 border-accent animate-mark",
-        )}
-      />
-      <span
-        className={cn(
-          "pointer-events-none absolute bottom-0 left-0 z-10 h-7 w-7 border-b-2 border-l-2 border-ink transition duration-280",
-          dragging && "h-11 w-11 border-accent animate-mark",
-        )}
-      />
-      <span
-        className={cn(
-          "pointer-events-none absolute bottom-0 right-0 z-10 h-7 w-7 border-b-2 border-r-2 border-ink transition duration-280",
-          dragging && "h-11 w-11 border-accent animate-mark",
-        )}
-      />
       <span
         className={cn(
           "pointer-events-none absolute inset-y-0 left-0 w-0 bg-accent transition-all duration-280",
@@ -418,23 +445,65 @@ export function DropEngine({ tool }: Props) {
           to={visualTo}
           category={active?.category}
           active={dragging}
+          variant={variant}
         />
-        <span className="flex flex-col gap-3 px-6 py-7 sm:px-8">
-          <span className="flex items-center justify-between gap-4">
-            <span className="text-[11px] font-medium uppercase tracking-[0.16em] text-faint">Workbench</span>
-            <span className="font-mono text-[10px] uppercase tracking-[0.12em] text-faint">
-              {active?.need === "vps" ? "Worker" : "Local"}
+        <span className={cn(
+          "flex flex-col gap-3 px-6 py-7 sm:px-8",
+          variant === "hero" && "items-start gap-2 px-5 py-5 sm:px-6",
+          !noFile && !files.length && variant !== "hero" && "mx-6 mb-2 items-center rounded-card border border-dashed border-accent/55 bg-[#fff8f7] py-8 text-center sm:mx-8 sm:py-9",
+        )}>
+          <span className="flex w-full items-center justify-between gap-4">
+            <span className={cn("flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.18em] text-mute", variant === "hero" && "text-[9px]")}>
+              {!noFile && !files.length ? (
+                <span className="relative flex h-1.5 w-1.5" aria-hidden>
+                  <span className="absolute inline-flex h-full w-full rounded-full bg-accent/55 motion-safe:animate-ping" />
+                  <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-accent" />
+                </span>
+              ) : null}
+              {variant === "hero" ? "Drop zone" : "Start here"}
+            </span>
+            <span className={cn("font-mono text-[10px] uppercase tracking-[0.12em] text-faint", variant === "hero" && "rounded-full bg-[#edf9f3] px-2.5 py-1 text-[8px] font-semibold text-[#16885c]")}>
+              {active?.need === "vps" ? "Worker" : variant === "hero" ? "Ready" : "Local"}
             </span>
           </span>
-          <span className="text-xl font-semibold tracking-tight text-ink sm:text-2xl">
-            {dragging ? "Release" : noFile ? "Pick units" : files.length ? (singleFile ? "Ready to convert" : "Add more, or convert") : "Drop a file"}
+          <span className={cn(
+            "text-xl font-semibold tracking-[-0.025em] text-ink sm:text-2xl",
+            variant === "hero" && "text-lg sm:text-xl",
+            !noFile && !files.length && variant !== "hero" && "text-2xl sm:text-[28px]",
+          )}>
+            {dragging
+              ? "Release to add the file"
+              : noFile
+                ? "Pick units"
+                : files.length
+                  ? (singleFile ? "Ready to convert" : "Add more, or convert")
+                  : visualFrom === "file"
+                    ? "Drop a file here"
+                    : `Drop your ${visualFrom.toUpperCase()} file here`}
           </span>
-          <span className="text-sm text-mute">{noFile ? "No file needed · stays on this device" : "Click to browse · stays on this device · ~30 MB"}</span>
+          <span className={cn("text-sm text-mute", variant === "hero" && "text-xs")}>
+            {noFile
+              ? variant === "hero" ? "No file needed · choose two units" : "No file needed · stays on this device"
+              : variant === "hero" ? "Drag and drop, or browse from this device" : "Drag and drop, or choose a file from this device · up to ~30 MB"}
+          </span>
+          {!noFile && !files.length ? (
+            <span className={cn("mt-4 inline-flex", variant === "hero" ? "self-start" : "self-center")}>
+              <span className={cn(
+                "group/upload inline-flex items-center gap-2 rounded-control bg-accent font-semibold text-white shadow-action transition duration-180 hover:-translate-y-0.5 hover:bg-accent-ink",
+                variant === "hero" ? "px-4 py-2.5 text-xs" : "px-5 py-3 text-sm",
+              )}>
+                <svg viewBox="0 0 20 20" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden>
+                  <path d="M10 3v9m0 0 3.5-3.5M10 12 6.5 8.5M4 16h12" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+                Upload file
+              </span>
+            </span>
+          ) : null}
         </span>
       </label>
 
       {files.length > 0 && !noFile ? (
-        <ul className="flex flex-col gap-1.5 px-6 pb-2 sm:px-8">
+        <ul className={cn("flex flex-col gap-1.5 px-6 pb-2 sm:px-8", variant === "hero" && "px-5 sm:px-6")}>
           {files.map((file, index) => (
             <FileChip
               key={file.name + file.size + index}
@@ -446,7 +515,7 @@ export function DropEngine({ tool }: Props) {
         </ul>
       ) : null}
 
-      <div className="px-6 pb-8 sm:px-8">
+      <div className={cn("px-6 pb-8 sm:px-8", variant === "hero" && "px-5 pb-6 sm:px-6")}>
         {tool ? (
           <OutputSwitch options={slugOptions} current={tool.slug} />
         ) : (
@@ -601,32 +670,29 @@ export function DropEngine({ tool }: Props) {
           </>
         ) : null}
 
-        <div className="mt-6 flex flex-wrap items-center gap-3">
-          <span className="relative">
-            {(!busy && (noFile || files.length > 0)) ? (
-              <span className="absolute inset-0 rounded-control bg-accent/40 animate-pulseRing pointer-events-none" aria-hidden />
-            ) : null}
+        {noFile || files.length > 0 ? (
+          <div className="mt-6 flex flex-wrap items-center gap-3">
             <Button onClick={run} loading={busy}>
-              {busy ? "Converting" : "Convert"}
+              {busy ? "Converting" : noFile ? "Convert" : output ? `Convert to ${output.toUpperCase()}` : "Convert file"}
             </Button>
-          </span>
-          {files.length > 0 && !noFile ? (
-            <Button
-              variant="secondary"
-              onClick={() => {
-                clearFiles();
-                setHomeSlug(null);
-                setError("");
-                setDone(false);
-                setCrop(DEFAULT_CROP);
-                setFormValues({});
-                setUnitResult("");
-              }}
-            >
-              Clear
-            </Button>
-          ) : null}
-        </div>
+            {files.length > 0 && !noFile ? (
+              <Button
+                variant="secondary"
+                onClick={() => {
+                  clearFiles();
+                  setHomeSlug(null);
+                  setError("");
+                  setDone(false);
+                  setCrop(DEFAULT_CROP);
+                  setFormValues({});
+                  setUnitResult("");
+                }}
+              >
+                Clear
+              </Button>
+            ) : null}
+          </div>
+        ) : null}
 
         {error ? <p className="mt-3 text-sm text-danger animate-enter">{error}</p> : null}
         {done && !error ? (

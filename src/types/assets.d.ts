@@ -13,3 +13,11 @@ declare module "utif" {
   };
   export default UTIF;
 }
+
+declare module "pako" {
+  const pako: {
+    inflate(data: Uint8Array | ArrayBuffer, options?: { to?: string }): Uint8Array;
+    deflate(data: Uint8Array | ArrayBuffer, options?: { to?: string }): Uint8Array;
+  };
+  export default pako;
+}

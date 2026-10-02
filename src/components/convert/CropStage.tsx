@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import type { CropBox } from "@/lib/convert/image-types";
+import { isTiffName } from "@/lib/file";
 import { cn } from "@/lib/cn";
 
 type Handle = "move" | "nw" | "ne" | "sw" | "se";
@@ -34,9 +35,30 @@ export function CropStage({ file, value, onChange, label = "Crop" }: Props) {
       setUrl("");
       return;
     }
-    const next = URL.createObjectURL(file);
-    setUrl(next);
-    return () => URL.revokeObjectURL(next);
+    let objectUrl = "";
+    let alive = true;
+    (async () => {
+      try {
+        let blob: Blob = file;
+        if (isTiffName(file.name)) {
+          const { tiffAsPngFile } = await import("@/lib/convert/tiff");
+          blob = await tiffAsPngFile(file);
+        }
+        const created = URL.createObjectURL(blob);
+        if (!alive) {
+          URL.revokeObjectURL(created);
+          return;
+        }
+        objectUrl = created;
+        setUrl(created);
+      } catch {
+        if (alive) setUrl("");
+      }
+    })();
+    return () => {
+      alive = false;
+      if (objectUrl) URL.revokeObjectURL(objectUrl);
+    };
   }, [file]);
 
   function point(event: React.PointerEvent) {

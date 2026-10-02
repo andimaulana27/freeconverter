@@ -152,8 +152,12 @@ export function conversionsFrom(source: string) {
   return tools.filter((item) => item.slug.startsWith(`${key}-to-`)).sort(byOutput);
 }
 
+export function browserConversionsFrom(source: string) {
+  return conversionsFrom(source).filter((item) => item.need === "browser");
+}
+
 export function toolsForDropped(source: string) {
-  const pairs = conversionsFrom(source);
+  const pairs = browserConversionsFrom(source);
   if (pairs.length) return pairs;
   const key = sourceKey(source);
   return tools.filter(
@@ -163,5 +167,5 @@ export function toolsForDropped(source: string) {
 
 export function siblingConversions(tool: ToolDef) {
   const source = conversionSource(tool);
-  return source ? conversionsFrom(source) : [];
+  return source ? browserConversionsFrom(source) : [];
 }
