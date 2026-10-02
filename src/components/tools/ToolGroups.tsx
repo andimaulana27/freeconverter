@@ -49,8 +49,8 @@ const GROUP_META: Record<string, { description: string; tone: string; mark: stri
   },
   PDF: {
     description: "Merge, split, arrange, and convert PDF documents.",
-    tone: "bg-[#ffe9e8] text-[#b92521]",
-    mark: "bg-[#df3732]",
+    tone: "bg-accent-soft text-accent-ink",
+    mark: "bg-accent",
   },
   Dokumen: {
     description: "Convert Word, OpenDocument, Pages, and other text files.",
@@ -122,6 +122,7 @@ const POPULAR = [
   "unit-converter",
 ];
 
+const FEATURED_GROUPS = new Set(["Gambar", "PDF", "Dokumen", "Utilitas"]);
 const TOOL_INDEX = new Map(tools.map((tool, index) => [tool.slug, index]));
 
 function SearchIcon() {
@@ -133,12 +134,26 @@ function SearchIcon() {
   );
 }
 
+function LibraryStepIcon({ index }: { index: number }) {
+  const paths = [
+    <><circle key="a" cx="8.5" cy="8.5" r="4.5" /><path key="b" d="m12 12 4 4" /></>,
+    <><path key="a" d="M3 5h14M3 10h14M3 15h14" /><circle key="b" cx="7" cy="5" r="1.5" fill="currentColor" stroke="none" /><circle key="c" cx="13" cy="10" r="1.5" fill="currentColor" stroke="none" /><circle key="d" cx="8" cy="15" r="1.5" fill="currentColor" stroke="none" /></>,
+    <><path key="a" d="M4 16 16 4M9 4h7v7" /><path key="b" d="M16 13v3H4V4h3" /></>,
+  ];
+
+  return (
+    <svg viewBox="0 0 20 20" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      {paths[index]}
+    </svg>
+  );
+}
+
 function ToolLink({ tool }: { tool: ToolDef }) {
   const index = TOOL_INDEX.get(tool.slug) ?? 0;
   return (
     <Link
       href={`/${tool.slug}`}
-      className="group relative isolate flex min-h-[124px] flex-col overflow-hidden rounded-2xl border border-[#e7e1de] bg-white p-4 shadow-[0_8px_30px_rgba(32,22,18,0.035)] transition duration-280 hover:-translate-y-1 hover:border-[#d7cdc8] hover:shadow-[0_16px_34px_rgba(32,22,18,0.09)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
+      className="group relative isolate flex min-h-[124px] flex-col overflow-hidden rounded-card border border-[#e7e1de] bg-white p-4 shadow-tile transition duration-280 hover:-translate-y-1 hover:border-[#d7cdc8] hover:shadow-panel focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
     >
       <span className="absolute inset-x-0 top-0 h-0.5 origin-left scale-x-0 bg-accent transition-transform duration-280 group-hover:scale-x-100" aria-hidden />
       <span className="absolute -right-10 -top-10 -z-10 h-24 w-24 rounded-full bg-accent-soft/0 transition duration-500 group-hover:bg-accent-soft/70" aria-hidden />
@@ -158,7 +173,7 @@ function ToolLink({ tool }: { tool: ToolDef }) {
       <h3 className="mt-3 text-sm font-semibold tracking-[-0.01em] text-ink">{tool.title}</h3>
       <p className="mt-1 line-clamp-2 text-[11px] leading-[1.55] text-mute">{toolBlurb(tool)}</p>
       {tool.need === "vps" ? (
-        <span className="mt-3 w-fit rounded-full bg-[#fff4df] px-2 py-0.5 text-[9px] font-bold uppercase tracking-[0.14em] text-[#a35e08]">
+        <span className="mt-3 w-fit rounded-full bg-[#fff4df] px-2 py-0.5 text-micro font-bold uppercase text-[#a35e08]">
           Coming soon
         </span>
       ) : null}
@@ -170,10 +185,12 @@ export function ToolGroups({
   showIntro = true,
   initialLimit = 8,
   popularLimit = 8,
+  compact = false,
 }: {
   showIntro?: boolean;
   initialLimit?: number;
   popularLimit?: number;
+  compact?: boolean;
 }) {
   const [active, setActive] = useState<(typeof GROUPS)[number]>("Semua");
   const [query, setQuery] = useState("");
@@ -197,9 +214,13 @@ export function ToolGroups({
     [active, normalizedQuery],
   );
 
-  const visibleGroups = GROUPS.slice(1).filter(
+  const matchingGroups = GROUPS.slice(1).filter(
     (group) => active === "Semua" || active === group,
   );
+  const visibleGroups =
+    compact && !normalizedQuery && active === "Semua"
+      ? matchingGroups.filter((group) => FEATURED_GROUPS.has(group))
+      : matchingGroups;
   const popular = POPULAR.map((slug) => tools.find((tool) => tool.slug === slug))
     .filter((tool): tool is ToolDef => Boolean(tool))
     .slice(0, popularLimit);
@@ -207,16 +228,16 @@ export function ToolGroups({
   return (
     <section id="tools" className="scroll-mt-24">
       {showIntro ? (
-        <div className="group/library relative isolate overflow-hidden rounded-[30px] border border-[#ded7d3] bg-white p-6 shadow-[0_24px_70px_rgba(44,30,24,0.065)] sm:p-9 lg:p-11">
+        <div className="group/library relative isolate overflow-hidden rounded-panel border border-[#ded7d3] bg-white p-6 shadow-panel sm:p-8 lg:p-10">
           <div
             className="pointer-events-none absolute inset-0 -z-10 opacity-55 [background-image:linear-gradient(rgba(24,20,18,0.035)_1px,transparent_1px),linear-gradient(90deg,rgba(24,20,18,0.035)_1px,transparent_1px)] [background-size:40px_40px]"
             aria-hidden
           />
           <div className="pointer-events-none absolute -right-28 -top-28 -z-10 h-80 w-80 rounded-full border-[52px] border-[#f2eeec] transition duration-700 group-hover/library:scale-110" aria-hidden />
 
-          <div className="relative grid items-end gap-9 lg:grid-cols-[1.15fr_0.85fr]">
+          <div className="relative grid items-end gap-8 lg:grid-cols-[1.15fr_0.85fr] lg:gap-10">
             <div>
-              <p className="flex items-center gap-3 text-[10px] font-bold uppercase tracking-[0.2em] text-accent">
+              <p className="flex items-center gap-3 text-eyebrow font-bold uppercase text-accent">
                 <span className="h-px w-7 bg-accent" />
                 Tool library
               </p>
@@ -228,28 +249,34 @@ export function ToolGroups({
               </p>
             </div>
 
-            <div className="relative overflow-hidden rounded-[22px] border border-[#2e2926] bg-[#181412] p-5 text-white shadow-[0_18px_45px_rgba(35,24,20,0.2)]">
+            <div className="relative overflow-hidden rounded-tile border border-[#2e2926] bg-[#181412] p-5 text-white shadow-panel-dark">
               <div
                 className="pointer-events-none absolute inset-0 opacity-25 [background-image:radial-gradient(circle,rgba(255,255,255,0.18)_1px,transparent_1.2px)] [background-size:10px_10px]"
                 aria-hidden
               />
               <div className="relative flex items-center justify-between border-b border-white/10 pb-4">
-                <p className="font-mono text-[8px] uppercase tracking-[0.16em] text-white/35">Library index</p>
-                <span className="flex items-center gap-2 font-mono text-[8px] uppercase tracking-[0.14em] text-[#75e0b1]">
+                <p className="font-mono text-micro uppercase text-white/55">Library index</p>
+                <span className="flex items-center gap-2 font-mono text-micro uppercase text-[#75e0b1]">
                   <span className="h-1.5 w-1.5 rounded-full bg-[#55d69a]" />
                   Ready
                 </span>
               </div>
-              <div className="relative mt-4 grid grid-cols-3 gap-2">
+              <div className="relative mt-4 grid grid-cols-3 gap-3" aria-label="How to use the tool library">
                 {[
-                  ["01", "Search", "Name or format"],
-                  ["02", "Filter", `${GROUPS.length - 1} categories`],
-                  ["03", "Launch", "Focused desk"],
-                ].map(([number, title, note]) => (
-                  <div key={number} className="group/index rounded-xl border border-white/10 bg-white/[0.05] p-3 transition duration-280 hover:-translate-y-0.5 hover:border-white/20 hover:bg-white/[0.08]">
-                    <span className="font-mono text-[8px] text-[#ff7771]">{number}</span>
-                    <p className="mt-4 text-[10px] font-semibold text-white/80">{title}</p>
-                    <p className="mt-1 text-[8px] leading-3 text-white/30">{note}</p>
+                  ["01", "Search", "Type a name or format"],
+                  ["02", "Filter", `Choose from ${GROUPS.length - 1} categories`],
+                  ["03", "Launch", "Open a focused workspace"],
+                ].map(([number, title, note], index) => (
+                  <div key={number} className="group/index relative min-h-[132px] overflow-hidden rounded-card border border-white/10 bg-white/[0.05] p-3.5 transition duration-280 hover:-translate-y-0.5 hover:border-white/20 hover:bg-white/[0.08]">
+                    <span className="absolute -right-7 -top-7 h-16 w-16 rounded-full border border-white/[0.06] transition duration-500 group-hover/index:scale-125 group-hover/index:border-accent/20" aria-hidden />
+                    <div className="relative flex items-start justify-between gap-3">
+                      <span className="flex h-9 w-9 items-center justify-center rounded-control border border-white/10 bg-[#241f1c] text-accent-light transition duration-280 group-hover/index:border-accent/40 group-hover/index:bg-accent group-hover/index:text-white">
+                        <LibraryStepIcon index={index} />
+                      </span>
+                      <span className="font-mono text-micro text-accent-light">{number}</span>
+                    </div>
+                    <p className="relative mt-4 text-xs font-semibold text-white/90">{title}</p>
+                    <p className="relative mt-1 text-[10px] leading-4 text-white/50">{note}</p>
                   </div>
                 ))}
               </div>
@@ -258,7 +285,7 @@ export function ToolGroups({
         </div>
       ) : null}
 
-      <div className={cn("sticky top-[76px] z-30 overflow-hidden rounded-2xl border border-white/10 bg-[#181412]/95 p-2.5 shadow-[0_16px_45px_rgba(34,23,18,0.18)] backdrop-blur-xl", showIntro && "mt-5")}>
+      <div className={cn("sticky top-[76px] z-30 overflow-hidden rounded-card border border-white/10 bg-[#181412]/95 p-2.5 shadow-panel-dark backdrop-blur-xl", showIntro && "mt-10 sm:mt-12")}>
         <div className="flex flex-col gap-2 lg:flex-row">
           <label className="relative flex min-w-0 flex-1 items-center">
             <span className="pointer-events-none absolute left-3.5 text-[#8f8782]">
@@ -294,7 +321,7 @@ export function ToolGroups({
       </div>
 
       {!showIntro ? (
-        <div className="mt-10">
+        <div className="mt-10 sm:mt-12">
           <FormatCatalog
             onPickFormat={(format) => {
               setQuery(format);
@@ -305,22 +332,22 @@ export function ToolGroups({
       ) : null}
 
       {!normalizedQuery && active === "Semua" ? (
-        <div className="mt-10">
+        <div className="mt-10 sm:mt-12">
           <div className="mb-4 flex items-end justify-between gap-4">
             <div>
-              <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#6f6763]">Most used</p>
+              <p className="text-eyebrow font-bold uppercase text-[#6f6763]">Most used</p>
               <h3 className="mt-1 text-xl font-semibold tracking-tight text-ink">Popular shortcuts</h3>
             </div>
             <span className="hidden text-xs text-faint sm:block">Local processing · no sign-up</span>
           </div>
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {popular.map((tool) => <ToolLink key={tool.slug} tool={tool} />)}
           </div>
-          <AdSlot className="mt-10" />
+          {compact ? null : <AdSlot className="mt-10 sm:mt-12" />}
         </div>
       ) : null}
 
-      <div className="mt-12 space-y-14">
+      <div className="mt-10 space-y-10 sm:mt-12 sm:space-y-12">
         {visibleGroups.map((group) => {
           const list = visibleTools.filter((tool) => tool.category === group);
           if (!list.length) return null;
@@ -342,7 +369,7 @@ export function ToolGroups({
                   <p className="mt-1 text-sm text-mute">{meta.description}</p>
                 </div>
               </div>
-              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
                 {shown.map((tool) => <ToolLink key={tool.slug} tool={tool} />)}
               </div>
               {!isExpanded && list.length > shown.length ? (
@@ -359,8 +386,55 @@ export function ToolGroups({
         })}
       </div>
 
+      {compact && !normalizedQuery && active === "Semua" ? (
+        <div className="group/catalog relative mt-10 isolate overflow-hidden rounded-panel border border-[#ded7d3] bg-white p-6 shadow-panel sm:mt-12 sm:p-8">
+          <div
+            className="pointer-events-none absolute inset-0 -z-10 opacity-50 [background-image:linear-gradient(rgba(24,20,18,0.035)_1px,transparent_1px),linear-gradient(90deg,rgba(24,20,18,0.035)_1px,transparent_1px)] [background-size:40px_40px]"
+            aria-hidden
+          />
+          <div className="pointer-events-none absolute -left-16 -top-20 -z-10 h-56 w-56 rounded-full border-[38px] border-[#f2eeec] transition duration-700 group-hover/catalog:scale-110" aria-hidden />
+
+          <div className="relative flex flex-col justify-between gap-7 sm:flex-row sm:items-center">
+            <div className="flex items-start gap-4 sm:gap-5">
+              <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-card border border-[#e7e1de] bg-accent-soft text-accent shadow-tile">
+                <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden>
+                  <rect x="3.5" y="3.5" width="6" height="6" rx="1.5" />
+                  <rect x="14.5" y="3.5" width="6" height="6" rx="1.5" />
+                  <rect x="3.5" y="14.5" width="6" height="6" rx="1.5" />
+                  <path d="M17.5 14.5v6M14.5 17.5h6" strokeLinecap="round" />
+                </svg>
+              </span>
+              <div>
+                <p className="text-eyebrow font-bold uppercase text-accent">Complete catalog</p>
+                <h3 className="mt-2 text-2xl font-semibold tracking-[-0.035em] text-ink">
+                  Need a different format?
+                </h3>
+                <p className="mt-2 max-w-xl text-sm leading-6 text-mute">
+                  Explore every image, document, archive, media, and utility route in one searchable directory.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex shrink-0 flex-col items-start gap-3 sm:items-end">
+              <p className="font-mono text-micro uppercase text-faint">
+                {GROUPS.length - 1} categories · {tools.length} focused tools
+              </p>
+              <Link
+                href="/tools"
+                className="group inline-flex w-fit items-center gap-3 rounded-control bg-accent px-5 py-3 text-sm font-semibold text-white shadow-action transition duration-180 hover:-translate-y-0.5 hover:bg-accent-ink"
+              >
+                Browse all {tools.length} tools
+                <svg viewBox="0 0 20 20" className="h-4 w-4 transition group-hover:translate-x-1" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden>
+                  <path d="M3 10h13m-5-5 5 5-5 5" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </Link>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
       {visibleTools.length === 0 ? (
-        <div className="mt-10 rounded-2xl border border-dashed border-[#ddd6d2] bg-white/60 px-6 py-14 text-center">
+        <div className="mt-10 rounded-2xl border border-dashed border-[#ddd6d2] bg-white/60 px-6 py-12 text-center sm:mt-12">
           <p className="font-semibold text-ink">No matching tools found.</p>
           <p className="mt-1 text-sm text-mute">Try another keyword or switch to “All”.</p>
         </div>
