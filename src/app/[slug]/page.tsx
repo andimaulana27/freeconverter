@@ -3,7 +3,6 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { DropEngine } from "@/components/convert/DropEngine";
 import { FormatGlyph } from "@/components/convert/FormatArtwork";
-import { FormatPair } from "@/components/convert/FormatPair";
 import { ToolSignals } from "@/components/convert/ToolSignals";
 import { AdSlot } from "@/components/layout/AdSlot";
 import { JsonLd } from "@/components/seo/JsonLd";
@@ -13,6 +12,38 @@ import { SITE_NAME } from "@/lib/site";
 import { conversionSource, getTool, relatedTools, siblingConversions, toolBlurb, tools } from "@/lib/tools";
 
 type Props = { params: Promise<{ slug: string }> };
+
+function ArrowIcon() {
+  return (
+    <svg viewBox="0 0 20 20" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden>
+      <path d="M3 10h13m-5-5 5 5-5 5" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+function StepIcon({ index }: { index: number }) {
+  const paths = [
+    <><path key="a" d="M5 3h7l4 4v10H5z" /><path key="b" d="M12 3v4h4M8 12h5M10.5 9.5v5" /></>,
+    <><path key="a" d="M4 6h9l-2.5-2.5M16 14H7l2.5 2.5M13 6l-2.5 2.5M7 14l2.5-2.5" /><circle key="b" cx="15.5" cy="6" r="1.5" /></>,
+    <><path key="a" d="M10 3v10m0 0 4-4m-4 4L6 9M4 17h12" /></>,
+  ];
+
+  return (
+    <svg viewBox="0 0 20 20" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      {paths[index]}
+    </svg>
+  );
+}
+
+function SpecIcon({ type }: { type: "input" | "output" | "privacy" }) {
+  return (
+    <svg viewBox="0 0 20 20" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      {type === "input" ? <><path d="M4 3h8l4 4v10H4z" /><path d="M12 3v4h4M7 11h6M7 14h4" /></> : null}
+      {type === "output" ? <><path d="M4 10h11m-4-4 4 4-4 4" /><path d="M4 4v12" /></> : null}
+      {type === "privacy" ? <><path d="M10 2.5 16.5 5v5c0 4-2.6 6.3-6.5 7.7C6.1 16.3 3.5 14 3.5 10V5z" /><path d="m7 10 2 2 4-4" /></> : null}
+    </svg>
+  );
+}
 
 export const dynamicParams = false;
 
@@ -33,142 +64,133 @@ export default async function ToolPage({ params }: Props) {
   if (!tool) notFound();
   const headline = toolHeadline(tool);
   const related = relatedTools(tool);
-  const alternatives = siblingConversions(tool);
-  const hasAlternatives = alternatives.length > 1;
+  const hasAlternatives = siblingConversions(tool).length > 1;
   const from = conversionSource(tool);
   const formats = (tool.inputs ?? []).map((item) => item.toUpperCase()).join(", ");
+  const primaryInput = (from ?? tool.inputs?.[0] ?? "file").toUpperCase();
+
   return (
-    <div className="flex flex-col gap-14 pb-8 sm:gap-20">
+    <div className="flex flex-col gap-10 sm:gap-12">
       <JsonLd
         data={tool.need === "browser" ? [toolJsonLd(tool), breadcrumbJsonLd(tool)] : breadcrumbJsonLd(tool)}
       />
 
-      <header>
-        <nav className="flex items-center gap-2 text-[11px] text-faint" aria-label="Breadcrumb">
-          <Link href="/" className="transition hover:text-ink">Home</Link>
-          <span>/</span>
-          <Link href="/tools" className="transition hover:text-ink">Tools</Link>
-          <span>/</span>
-          <span className="text-mute">{tool.title}</span>
-        </nav>
-        <div className="mt-8 grid items-end gap-8 lg:grid-cols-[1fr_auto]">
-          <div>
-            <div className="flex items-center gap-4">
-              <ToolIcon tool={tool} index={tools.findIndex((item) => item.slug === tool.slug)} className="h-12 w-12 rounded-2xl" />
-              {from ? <FormatPair from={from} to={tool.output} /> : (
-                <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-accent">{tool.category} tool</p>
-              )}
+      <section>
+        <h1 className="sr-only">{headline}</h1>
+        <div className="overflow-hidden rounded-panel border border-[#dcd4d0] bg-white shadow-panel">
+          <div className="flex items-center justify-between gap-4 bg-[#181412] px-5 py-4 text-white sm:px-7">
+            <div className="flex items-center gap-3">
+              <span className="grid h-8 w-8 place-items-center rounded-xl bg-accent text-white shadow-action">
+                <svg viewBox="0 0 20 20" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden>
+                  <path d="M10 3v10m0 0 4-4m-4 4L6 9M4 16h12" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </span>
+              <span>
+                <p className="text-micro font-bold uppercase sm:text-eyebrow">Conversion workspace</p>
+                <p className="mt-0.5 hidden text-micro text-white/40 sm:block">Drop or upload a file, then convert in this card.</p>
+              </span>
             </div>
-            <h1 className="mt-6 max-w-3xl text-4xl font-semibold leading-[1.02] tracking-[-0.05em] text-ink sm:text-5xl">
-              {headline}
-            </h1>
-            <p className="mt-4 max-w-2xl text-base leading-7 text-mute">{toolBlurb(tool)}</p>
-          </div>
-          <p className="hidden items-center gap-2 text-[11px] text-faint lg:flex">
-            <span className={`h-2 w-2 rounded-full ${tool.need === "browser" ? "bg-[#21a36e]" : "bg-[#d87512]"}`} />
-            {tool.need === "browser" ? "Ready in your browser" : "Worker coming soon"}
-          </p>
-        </div>
-      </header>
-
-      <section className="grid items-start gap-4 lg:grid-cols-[minmax(0,1fr)_300px]">
-        <div className="overflow-hidden rounded-[24px] border border-[#dfd8d4] bg-white shadow-[0_24px_70px_rgba(44,30,24,0.11)]">
-          <div className="flex items-center justify-between bg-[#181412] px-5 py-3.5 text-white">
-            <p className="text-[10px] font-bold uppercase tracking-[0.18em]">Conversion workspace</p>
-            <p className="font-mono text-[9px] uppercase tracking-[0.15em] text-white/45">
+            <p className="flex shrink-0 items-center gap-2 rounded-full border border-white/10 bg-white/[0.05] px-3 py-1.5 font-mono text-micro uppercase text-white/60">
+              <span className={`h-1.5 w-1.5 rounded-full ${tool.need === "browser" ? "bg-[#55d69a]" : "bg-[#d9923b]"}`} />
               {tool.need === "browser" ? "Local mode" : "Worker mode"}
             </p>
           </div>
           <DropEngine tool={tool} />
         </div>
 
-        <aside className="space-y-4 lg:sticky lg:top-20">
-          <div className="rounded-2xl border border-[#e5dfdc] bg-white p-5">
-            <p className="text-[9px] font-bold uppercase tracking-[0.18em] text-faint">This job</p>
-            <dl className="mt-4 space-y-4 text-sm">
-              <div className="flex items-start justify-between gap-4 border-b border-[#eee9e6] pb-3">
-                <dt className="text-mute">Accepts</dt>
-                <dd className="text-right font-mono text-xs font-semibold text-ink">{formats || "No file"}</dd>
-              </div>
-              <div className="flex items-start justify-between gap-4 border-b border-[#eee9e6] pb-3">
-                <dt className="text-mute">Output</dt>
-                <dd className="font-mono text-xs font-semibold text-accent">{tool.output.toUpperCase()}</dd>
-              </div>
-              <div className="flex items-start justify-between gap-4">
-                <dt className="text-mute">Privacy</dt>
-                <dd className="text-right text-xs font-semibold text-ink">
-                  {tool.need === "browser" ? "On-device" : "Private worker"}
-                </dd>
-              </div>
+        <div className="mt-5 grid items-stretch gap-4 lg:grid-cols-2">
+          <div className="h-full overflow-hidden rounded-tile border border-[#dfd8d4] bg-white shadow-tile">
+            <div className="flex items-center justify-between border-b border-[#eee9e6] px-5 py-4">
+              <p className="text-eyebrow font-bold uppercase text-ink">Job details</p>
+              <span className="font-mono text-micro uppercase text-faint">Focused route</span>
+            </div>
+            <dl className="divide-y divide-[#eee9e6] px-5">
+              {([
+                ["input" as const, "Accepts", formats || "No file"],
+                ["output" as const, "Output", tool.output.toUpperCase()],
+                ["privacy" as const, "Privacy", tool.need === "browser" ? "On-device" : "Private worker"],
+              ] as const).map(([type, label, value]) => (
+                <div key={label} className="flex items-center gap-3 py-4">
+                  <span className={`grid h-9 w-9 shrink-0 place-items-center rounded-xl ${type === "output" ? "bg-accent-soft text-accent" : type === "privacy" ? "bg-[#e7f8ef] text-[#16885c]" : "bg-[#f3f0ee] text-mute"}`}>
+                    <SpecIcon type={type} />
+                  </span>
+                  <dt className="text-xs text-mute">{label}</dt>
+                  <dd className={`ml-auto max-w-[45%] text-right font-mono text-[11px] font-semibold ${type === "output" ? "text-accent" : "text-ink"}`}>{value}</dd>
+                </div>
+              ))}
             </dl>
           </div>
-
-          {alternatives.length > 1 ? (
-            <div className="rounded-2xl border border-[#e5dfdc] bg-white p-5">
-              <p className="text-[9px] font-bold uppercase tracking-[0.18em] text-faint">Choose output</p>
-              <div className="mt-3 flex flex-wrap gap-2">
-                {alternatives.map((item) => {
-                  const active = item.slug === tool.slug;
-                  return (
-                    <Link
-                      key={item.slug}
-                      href={`/${item.slug}`}
-                      aria-current={active ? "page" : undefined}
-                      className={`rounded-lg px-3 py-2 font-mono text-[11px] font-semibold transition ${
-                        active ? "bg-accent text-white" : "bg-[#f5f2f0] text-mute hover:bg-[#ebe5e2] hover:text-ink"
-                      }`}
-                    >
-                      {item.output.toUpperCase()}
-                    </Link>
-                  );
-                })}
-              </div>
-            </div>
-          ) : null}
-
-          <ToolSignals need={tool.need} hasAlternatives={hasAlternatives} compact />
-        </aside>
+          <ToolSignals need={tool.need} hasAlternatives={hasAlternatives} />
+        </div>
       </section>
 
       <AdSlot />
 
-      <section className="grid gap-8 lg:grid-cols-[0.65fr_1.35fr]">
-        <div>
-          <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-accent">How it works</p>
-          <h2 className="mt-3 text-3xl font-semibold tracking-[-0.04em] text-ink">
-            One focused job.<br />Three clear steps.
-          </h2>
+      <section className="relative isolate overflow-hidden rounded-panel border border-white/10 bg-[#181412] p-6 text-white shadow-panel-dark sm:p-8 lg:p-10">
+        <div
+          className="pointer-events-none absolute inset-0 -z-10 opacity-35 [background-image:linear-gradient(rgba(255,255,255,0.05)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.05)_1px,transparent_1px)] [background-size:44px_44px]"
+          aria-hidden
+        />
+        <div className="pointer-events-none absolute -right-24 -top-28 -z-10 h-72 w-72 rounded-full border-[42px] border-white/[0.035]" aria-hidden />
+
+        <div className="flex flex-col justify-between gap-5 lg:flex-row lg:items-end">
+          <div>
+            <p className="flex items-center gap-3 text-eyebrow font-bold uppercase text-accent">
+              <span className="h-px w-7 bg-accent" />
+              How it works
+            </p>
+            <h2 className="mt-4 max-w-2xl text-4xl font-semibold leading-[1.02] tracking-[-0.05em] sm:text-5xl">
+              One focused job.<br />Three clear steps.
+            </h2>
+          </div>
+          <p className="max-w-sm text-sm leading-6 text-white/45">A direct route from {primaryInput} to {tool.output.toUpperCase()}, with only the controls this job needs.</p>
         </div>
-        <div className="grid gap-px overflow-hidden rounded-2xl border border-[#e5dfdc] bg-[#e5dfdc] sm:grid-cols-3">
+
+        <div className="mt-8 grid gap-4 sm:grid-cols-3">
           {[
             ["01", "Select", `Add your ${formats || "input"} file.`],
             ["02", "Convert", `Process it as ${tool.output.toUpperCase()}.`],
             ["03", "Download", "Save the finished file."],
-          ].map(([number, title, copy]) => (
-            <div key={number} className="bg-white p-5">
-              <span className="font-mono text-[10px] text-accent">{number}</span>
-              <h3 className="mt-8 text-base font-semibold text-ink">{title}</h3>
-              <p className="mt-1 text-xs leading-5 text-mute">{copy}</p>
+          ].map(([number, title, copy], index) => (
+            <div key={number} className="group/step relative overflow-hidden rounded-tile border border-white/10 bg-white/[0.045] p-5 transition duration-280 hover:-translate-y-1 hover:border-white/20 hover:bg-white/[0.075] sm:p-6">
+              <div className="flex items-center justify-between">
+                <span className="grid h-11 w-11 place-items-center rounded-2xl border border-white/10 bg-[#211c19] text-accent-light transition duration-280 group-hover/step:-rotate-3 group-hover/step:scale-105">
+                  <StepIcon index={index} />
+                </span>
+                <span className="font-mono text-micro text-white/35">{number}</span>
+              </div>
+              <h3 className="mt-7 text-lg font-semibold text-white">{title}</h3>
+              <p className="mt-2 text-xs leading-5 text-white/45">{copy}</p>
+              <p className="mt-6 flex items-center gap-2 border-t border-white/10 pt-4 font-mono text-micro uppercase text-white/45">
+                <span className={`h-1.5 w-1.5 rounded-full ${index === 2 ? "bg-[#55d69a]" : "bg-accent-light"}`} />
+                Step {number}
+              </p>
             </div>
           ))}
         </div>
       </section>
 
       {related.length ? (
-        <section>
-          <div className="mb-5 flex items-end justify-between gap-4">
+        <section className="relative isolate overflow-hidden rounded-panel border border-[#ded7d3] bg-white p-6 shadow-panel sm:p-8 lg:p-10">
+          <div
+            className="pointer-events-none absolute inset-0 -z-10 opacity-45 [background-image:linear-gradient(rgba(24,20,18,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(24,20,18,0.03)_1px,transparent_1px)] [background-size:40px_40px]"
+            aria-hidden
+          />
+          <div className="mb-6 flex items-end justify-between gap-4">
             <div>
-              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-accent">Keep working</p>
-              <h2 className="mt-2 text-2xl font-semibold tracking-tight text-ink">Related tools</h2>
+              <p className="text-eyebrow font-bold uppercase text-accent">Keep working</p>
+              <h2 className="mt-2 text-3xl font-semibold tracking-[-0.04em] text-ink">Related tools</h2>
             </div>
-            <Link href="/tools" className="text-xs font-semibold text-mute transition hover:text-accent">View all tools →</Link>
+            <Link href="/tools" className="group flex items-center gap-2 text-xs font-semibold text-mute transition hover:text-accent">
+              View all tools <span className="transition group-hover:translate-x-1"><ArrowIcon /></span>
+            </Link>
           </div>
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {related.map((item, index) => (
               <Link
                 key={item.slug}
                 href={`/${item.slug}`}
-                className="group rounded-2xl border border-[#e5dfdc] bg-white p-4 transition duration-280 hover:-translate-y-1 hover:shadow-[0_14px_32px_rgba(40,27,22,0.08)]"
+                className="group rounded-card border border-[#e5dfdc] bg-white p-5 shadow-tile transition duration-280 hover:-translate-y-1 hover:border-[#d3cac6] hover:shadow-panel"
               >
                 <div className="flex items-center justify-between">
                   <ToolIcon tool={item} index={index + 2} />
@@ -176,22 +198,41 @@ export default async function ToolPage({ params }: Props) {
                 </div>
                 <h3 className="mt-4 text-sm font-semibold text-ink">{toolHeadline(item)}</h3>
                 <p className="mt-1 line-clamp-2 text-[11px] leading-5 text-mute">{toolBlurb(item)}</p>
+                <span className="mt-4 flex items-center gap-2 border-t border-[#eee9e6] pt-3 font-mono text-micro uppercase text-faint transition group-hover:text-accent">
+                  Open workspace <span className="transition group-hover:translate-x-1">→</span>
+                </span>
               </Link>
             ))}
           </div>
         </section>
       ) : null}
 
-      <section className="grid gap-8 border-t border-[#e5dfdc] pt-12 lg:grid-cols-[1fr_320px] lg:gap-14">
-        <div>
-          <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-accent">About this converter</p>
-          <h2 className="mt-3 text-2xl font-semibold tracking-tight text-ink">{headline}, without the detour.</h2>
-          <p className="mt-4 max-w-2xl text-sm leading-7 text-mute">
-            This {SITE_NAME} workspace is built specifically for {headline.toLowerCase()}. It accepts {formats || "no file input"} and produces {tool.output.toUpperCase()}.
-            {tool.need === "browser" ? " Processing happens on this device whenever the browser supports it." : " Processing starts when the dedicated worker is available."}
-          </p>
+      <section className="group/about relative isolate overflow-hidden rounded-panel border border-[#ded7d3] bg-[#f6f3f1] p-6 shadow-panel sm:p-8 lg:p-10">
+        <div
+          className="pointer-events-none absolute inset-0 -z-10 opacity-50 [background-image:radial-gradient(circle,rgba(24,20,18,0.1)_1px,transparent_1px)] [background-size:12px_12px] [mask-image:linear-gradient(to_right,black,transparent_55%)]"
+          aria-hidden
+        />
+        <div className="pointer-events-none absolute -left-20 -bottom-24 -z-10 h-64 w-64 rounded-full border-[42px] border-white/70 transition duration-700 group-hover/about:scale-110" aria-hidden />
+
+        <div className="grid items-stretch gap-8 lg:grid-cols-[minmax(0,1fr)_340px] lg:gap-10">
+          <div className="flex flex-col justify-center">
+            <p className="flex items-center gap-3 text-eyebrow font-bold uppercase text-accent">
+              <span className="h-px w-7 bg-accent" />
+              About this converter
+            </p>
+            <h2 className="mt-4 max-w-2xl text-3xl font-semibold leading-[1.04] tracking-[-0.045em] text-ink sm:text-4xl">{headline}, without the detour.</h2>
+            <p className="mt-5 max-w-2xl text-sm leading-7 text-mute">
+              This {SITE_NAME} workspace is built specifically for {headline.toLowerCase()}. It accepts {formats || "no file input"} and produces {tool.output.toUpperCase()}.
+              {tool.need === "browser" ? " Processing happens on this device whenever the browser supports it." : " Processing starts when the dedicated worker is available."}
+            </p>
+            <div className="mt-7 flex flex-wrap gap-2">
+              {["Focused controls", tool.need === "browser" ? "On-device" : "Private worker", "No sign-up"].map((label) => (
+                <span key={label} className="rounded-full border border-[#ded7d3] bg-white px-3 py-2 font-mono text-micro font-semibold uppercase text-faint shadow-drop">{label}</span>
+              ))}
+            </div>
+          </div>
+          <AdSlot format="rectangle" className="min-h-56 bg-white/70" />
         </div>
-        <AdSlot format="rectangle" />
       </section>
     </div>
   );
