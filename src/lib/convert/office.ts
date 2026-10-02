@@ -233,63 +233,67 @@ async function pptxToText(file: File) {
 export async function convertOffice(file: File, slug: string, output: string) {
   const name = stem(file.name);
   const ext = file.name.split(".").pop()?.toLowerCase() ?? "";
+  const target = output || slug.split("-to-")[1] || "";
 
-  if (slug === "xlsx-to-csv" || (ext === "xlsx" && output === "csv")) {
-    downloadBlob(new Blob([rowsToCsv(await xlsxToRows(file))], { type: "text/csv;charset=utf-8" }), `${name}.csv`);
-    return;
-  }
-  if (slug === "xlsx-to-json" || (ext === "xlsx" && output === "json")) {
-    const rows = await xlsxToRows(file);
-    const [header, ...body] = rows;
-    const data = body.map((row) => Object.fromEntries(header.map((key, i) => [key || `col${i + 1}`, row[i] ?? ""])));
-    downloadBlob(new Blob([JSON.stringify(data, null, 2)], { type: "application/json" }), `${name}.json`);
-    return;
-  }
-  if (slug === "xlsx-to-pdf" || (ext === "xlsx" && output === "pdf")) {
-    await rowsToPdf(await xlsxToRows(file), `${name}.pdf`);
-    return;
+  if (ext === "xlsx" || slug.startsWith("xlsx-to-")) {
+    if (target === "csv") {
+      downloadBlob(new Blob([rowsToCsv(await xlsxToRows(file))], { type: "text/csv;charset=utf-8" }), `${name}.csv`);
+      return;
+    }
+    if (target === "json") {
+      const rows = await xlsxToRows(file);
+      const [header, ...body] = rows;
+      const data = body.map((row) => Object.fromEntries(header.map((key, i) => [key || `col${i + 1}`, row[i] ?? ""])));
+      downloadBlob(new Blob([JSON.stringify(data, null, 2)], { type: "application/json" }), `${name}.json`);
+      return;
+    }
+    if (target === "pdf") {
+      await rowsToPdf(await xlsxToRows(file), `${name}.pdf`);
+      return;
+    }
   }
 
-  if (slug === "csv-to-xlsx") {
-    await rowsToXlsx(parseCsv(await file.text()), `${name}.xlsx`);
-    return;
+  if (ext === "csv" || slug.startsWith("csv-to-")) {
+    if (target === "xlsx") {
+      await rowsToXlsx(parseCsv(await file.text()), `${name}.xlsx`);
+      return;
+    }
+    if (target === "json") {
+      const rows = parseCsv(await file.text());
+      const [header, ...body] = rows;
+      if (!header?.length) throw new Error("CSV kosong.");
+      const data = body.map((row) => Object.fromEntries(header.map((key, i) => [key || `col${i + 1}`, row[i] ?? ""])));
+      downloadBlob(new Blob([JSON.stringify(data, null, 2)], { type: "application/json" }), `${name}.json`);
+      return;
+    }
   }
-  if (slug === "csv-to-json") {
-    const rows = parseCsv(await file.text());
-    const [header, ...body] = rows;
-    if (!header?.length) throw new Error("CSV kosong.");
-    const data = body.map((row) => Object.fromEntries(header.map((key, i) => [key || `col${i + 1}`, row[i] ?? ""])));
-    downloadBlob(new Blob([JSON.stringify(data, null, 2)], { type: "application/json" }), `${name}.json`);
-    return;
-  }
-  if (slug === "json-to-csv") {
+
+  if (ext === "json" || slug.startsWith("json-to-")) {
     let parsed: unknown;
     try {
       parsed = JSON.parse(await file.text());
     } catch {
       throw new Error("JSON tidak valid.");
     }
-    downloadBlob(new Blob([rowsToCsv(jsonToRows(parsed))], { type: "text/csv;charset=utf-8" }), `${name}.csv`);
-    return;
-  }
-  if (slug === "json-to-xlsx") {
-    let parsed: unknown;
-    try {
-      parsed = JSON.parse(await file.text());
-    } catch {
-      throw new Error("JSON tidak valid.");
+    if (target === "csv") {
+      downloadBlob(new Blob([rowsToCsv(jsonToRows(parsed))], { type: "text/csv;charset=utf-8" }), `${name}.csv`);
+      return;
     }
-    await rowsToXlsx(jsonToRows(parsed), `${name}.xlsx`);
-    return;
+    if (target === "xlsx") {
+      await rowsToXlsx(jsonToRows(parsed), `${name}.xlsx`);
+      return;
+    }
   }
 
-  if (slug === "pptx-to-txt" || (ext === "pptx" && output === "txt")) {
-    downloadBlob(new Blob([await pptxToText(file)], { type: "text/plain;charset=utf-8" }), `${name}.txt`);
-    return;
-  }
-  if (slug === "pptx-to-pdf" || (ext === "pptx" && output === "pdf")) {
-    await textToPdf(await pptxToText(file), `${name}.pdf`);
-    return;
+  if (ext === "pptx" || slug.startsWith("pptx-to-")) {
+    if (target === "txt") {
+      downloadBlob(new Blob([await pptxToText(file)], { type: "text/plain;charset=utf-8" }), `${name}.txt`);
+      return;
+    }
+    if (target === "pdf") {
+      await textToPdf(await pptxToText(file), `${name}.pdf`);
+      return;
+    }
   }
 
   throw new Error("This document conversion is not available in the browser yet.");

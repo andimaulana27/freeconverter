@@ -115,9 +115,10 @@ export async function mergePdfs(files: File[]) {
   downloadBlob(bytesToBlob(bytes, "application/pdf"), "merged.pdf");
 }
 
-export async function rotatePdf(file: File) {
+export async function rotatePdf(file: File, turn = 90) {
   const src = await loadPdf(file);
-  src.getPages().forEach((page) => page.setRotation(degrees((page.getRotation().angle + 90) % 360)));
+  const angle = ((Math.round(turn / 90) * 90) % 360 + 360) % 360;
+  src.getPages().forEach((page) => page.setRotation(degrees((page.getRotation().angle + angle) % 360)));
   const bytes = await src.save();
   downloadBlob(bytesToBlob(bytes, "application/pdf"), `${stem(file.name)}-rotated.pdf`);
 }

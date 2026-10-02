@@ -1,9 +1,9 @@
 import pako from "pako";
 import UTIFImport from "utif";
-import { encodeBmp } from "@/lib/convert/bmp";
 import { blobFromCanvas, canvasContext, canvasFromImageFile } from "@/lib/convert/canvas-draw";
-import { downloadBlob, downloadBytes, isTiffName, stem } from "@/lib/file";
-import type { RasterOutput } from "@/lib/convert/image-types";
+import { downloadBytes, isTiffName, stem } from "@/lib/file";
+import { isOpaqueRaster, type RasterOutput } from "@/lib/convert/image-types";
+import { writeCanvasImage } from "@/lib/convert/raster-write";
 
 type Ifd = { width: number; height: number };
 
@@ -25,7 +25,7 @@ function utifApi(): UtifApi {
   return api;
 }
 
-export async function canvasFromTiff(file: File, opts?: { width?: number; background?: string }) {
+export async function canvasFromTiff(file: File, opts?: { width?: number; height?: number; stretch?: boolean; background?: string }) {
   const UTIF = utifApi();
   const data = new Uint8Array(await file.arrayBuffer());
   const pages = UTIF.decode(data);
@@ -36,9 +36,19 @@ export async function canvasFromTiff(file: File, opts?: { width?: number; backgr
   if (natural.width > 8192 || natural.height > 8192) {
     throw new Error("This TIFF is too large to convert in the browser.");
   }
-  const scale = opts?.width ? Math.min(1, opts.width / natural.width) : 1;
-  const width = Math.max(1, Math.round(natural.width * scale));
-  const height = Math.max(1, Math.round(natural.height * scale));
+  const maxEdge = 8192;
+  let width = natural.width;
+  let height = natural.height;
+  if (opts?.stretch && opts.width && opts.height) {
+    width = Math.max(1, Math.min(maxEdge, Math.round(opts.width)));
+    height = Math.max(1, Math.min(maxEdge, Math.round(opts.height)));
+  } else if (opts?.width || opts?.height) {
+    const scaleX = opts.width ? opts.width / natural.width : Infinity;
+    const scaleY = opts.height ? opts.height / natural.height : Infinity;
+    const scale = Math.min(scaleX, scaleY, maxEdge / Math.max(natural.width, natural.height));
+    width = Math.max(1, Math.round(natural.width * scale));
+    height = Math.max(1, Math.round(natural.height * scale));
+  }
   const source = canvasContext(natural.width, natural.height);
   const expected = natural.width * natural.height * 4;
   const buffer = new ArrayBuffer(expected);
@@ -70,27 +80,13 @@ export async function tiffToJpegBytes(file: File, quality = 0.9) {
   return new Uint8Array(await blob.arrayBuffer());
 }
 
-const MIME: Record<string, string> = {
-  jpg: "image/jpeg",
-  jpeg: "image/jpeg",
-  png: "image/png",
-  webp: "image/webp",
-  gif: "image/gif",
-};
-
-export async function rasterConvertTiff(file: File, output: RasterOutput, opts?: { quality?: number; width?: number }) {
+export async function rasterConvertTiff(file: File, output: RasterOutput, opts?: { quality?: number; width?: number; height?: number; stretch?: boolean }) {
   const name = stem(file.name);
-  const opaque = output === "jpg" || output === "bmp" || output === "tiff";
-  const { canvas, ctx } = isTiffName(file.name)
-    ? await canvasFromTiff(file, { width: opts?.width, background: opaque ? "#ffffff" : undefined })
-    : await canvasFromImageFile(file, { width: opts?.width, background: opaque ? "#ffffff" : undefined });
+  const draw = { width: opts?.width, height: opts?.height, stretch: opts?.stretch, background: isOpaqueRaster(output) ? "#ffffff" : undefined };
+  const { canvas, ctx } = isTiffName(file.name) ? await canvasFromTiff(file, draw) : await canvasFromImageFile(file, draw);
 
   if (output === "tiff") {
     downloadBytes(encodeTiff(ctx.getImageData(0, 0, canvas.width, canvas.height)), `${name}.tiff`, "image/tiff");
-    return;
-  }
-  if (output === "bmp") {
-    downloadBytes(encodeBmp(ctx.getImageData(0, 0, canvas.width, canvas.height)), `${name}.bmp`, "image/bmp");
     return;
   }
   if (output === "ico") {
@@ -99,11 +95,7 @@ export async function rasterConvertTiff(file: File, output: RasterOutput, opts?:
     await rasterConvert(new File([blob], `${name}.png`, { type: "image/png" }), "ico");
     return;
   }
-  if (output === "gif") {
-    throw new Error("The browser cannot write animated GIFs. Choose PNG or JPG instead.");
-  }
-  const blob = await blobFromCanvas(canvas, MIME[output] ?? "image/png", opts?.quality ?? 0.86);
-  downloadBlob(blob, `${name}.${output === "jpg" ? "jpg" : output}`);
+  await writeCanvasImage(canvas, ctx, output, name, opts);
 }
 
 export async function tiffAsPngFile(file: File) {

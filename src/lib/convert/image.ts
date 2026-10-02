@@ -1,23 +1,16 @@
 import { encodeBmp } from "@/lib/convert/bmp";
 import { blobFromCanvas, canvasContext, canvasFromImageFile, loadImage, sizeOf } from "@/lib/convert/canvas-draw";
-import { asRasterOutput, type RasterOutput } from "@/lib/convert/image-types";
+import { asRasterOutput, isOpaqueRaster, type RasterOutput } from "@/lib/convert/image-types";
+import { writeCanvasImage } from "@/lib/convert/raster-write";
 import { downloadBlob, downloadBytes, stem } from "@/lib/file";
 import type { CropBox, ImageTurn } from "@/lib/convert/image-types";
 
 export type { RasterOutput };
 export { asRasterOutput, encodeBmp };
 
-const MIME: Record<string, string> = {
-  jpg: "image/jpeg",
-  jpeg: "image/jpeg",
-  png: "image/png",
-  webp: "image/webp",
-  gif: "image/gif",
-};
-
 const ICON_SIZES = [16, 32, 48];
 
-async function canvasFromFile(file: File, opts?: { width?: number; background?: string }) {
+async function canvasFromFile(file: File, opts?: { width?: number; height?: number; stretch?: boolean; background?: string }) {
   return canvasFromImageFile(file, opts);
 }
 
@@ -58,33 +51,47 @@ async function encodeIco(file: File) {
   return buf;
 }
 
-export async function rasterConvert(file: File, output: RasterOutput, opts?: { quality?: number; width?: number }) {
+export async function rasterConvert(file: File, output: RasterOutput, opts?: { quality?: number; width?: number; height?: number; stretch?: boolean }) {
   const name = stem(file.name);
   if (output === "ico") {
     downloadBytes(await encodeIco(file), `${name}.ico`, "image/x-icon");
     return;
   }
-  const opaque = output === "jpg" || output === "bmp";
-  const { canvas, ctx } = await canvasFromFile(file, {
-    width: opts?.width,
-    background: opaque ? "#ffffff" : undefined,
-  });
-  if (output === "bmp") {
-    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-    downloadBytes(encodeBmp(imageData), `${name}.bmp`, "image/bmp");
-    return;
-  }
   if (output === "tiff") {
     throw new Error("Choose the TIFF converter for this file.");
   }
-  if (output === "gif") {
-    throw new Error("The browser cannot write animated GIFs. Choose PNG or JPG instead.");
-  }
-  const blob = await blobFromCanvas(canvas, MIME[output] ?? "image/png", opts?.quality ?? 0.86);
-  downloadBlob(blob, `${name}.${output === "jpg" ? "jpg" : output}`);
+  const { canvas, ctx } = await canvasFromFile(file, {
+    width: opts?.width,
+    height: opts?.height,
+    stretch: opts?.stretch,
+    background: isOpaqueRaster(output) ? "#ffffff" : undefined,
+  });
+  await writeCanvasImage(canvas, ctx, output, name, opts);
 }
 
-export async function rasterCrop(file: File, crop: CropBox) {
+async function writeJobImage(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, output: string, name: string) {
+  if (output === "pdf") {
+    const blob = await blobFromCanvas(canvas, "image/jpeg", 0.9);
+    const { imagesToPdf } = await import("@/lib/convert/pdf");
+    await imagesToPdf([new File([blob], `${name}.jpg`, { type: "image/jpeg" })]);
+    return;
+  }
+  const raster = asRasterOutput(output);
+  if (!raster) throw new Error("Choose an output format first.");
+  if (raster === "ico") {
+    const blob = await blobFromCanvas(canvas, "image/png");
+    downloadBytes(await encodeIco(new File([blob], `${name}.png`, { type: "image/png" })), `${name}.ico`, "image/x-icon");
+    return;
+  }
+  if (raster === "tiff") {
+    const { encodeTiff } = await import("@/lib/convert/tiff");
+    downloadBytes(encodeTiff(ctx.getImageData(0, 0, canvas.width, canvas.height)), `${name}.tiff`, "image/tiff");
+    return;
+  }
+  await writeCanvasImage(canvas, ctx, raster, name);
+}
+
+export async function rasterCrop(file: File, crop: CropBox, output: string = "png") {
   const img = await loadImage(file);
   const natural = sizeOf(img);
   const sx = Math.max(0, Math.round(crop.x * natural.width));
@@ -92,9 +99,12 @@ export async function rasterCrop(file: File, crop: CropBox) {
   const sw = Math.max(1, Math.min(natural.width - sx, Math.round(crop.w * natural.width)));
   const sh = Math.max(1, Math.min(natural.height - sy, Math.round(crop.h * natural.height)));
   const { canvas, ctx } = canvasContext(sw, sh);
+  if (isOpaqueRaster(output) || output === "pdf") {
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(0, 0, sw, sh);
+  }
   ctx.drawImage(img, sx, sy, sw, sh, 0, 0, sw, sh);
-  const blob = await blobFromCanvas(canvas, "image/png");
-  downloadBlob(blob, `${stem(file.name)}-crop.png`);
+  await writeJobImage(canvas, ctx, output, `${stem(file.name)}-crop`);
 }
 
 export async function downloadColorSwatch(hex: string) {
@@ -110,7 +120,7 @@ export async function downloadColorSwatch(hex: string) {
   }
 }
 
-export async function rasterTransform(file: File, turn: ImageTurn) {
+export async function rasterTransform(file: File, turn: ImageTurn, output: string = "png") {
   const img = await loadImage(file);
   const { width, height } = sizeOf(img);
   const swap = turn === "90" || turn === "270";
@@ -134,11 +144,10 @@ export async function rasterTransform(file: File, turn: ImageTurn) {
   }
   ctx.drawImage(img, 0, 0);
   ctx.restore();
-  const blob = await blobFromCanvas(canvas, "image/png");
-  downloadBlob(blob, `${stem(file.name)}-${turn}.png`);
+  await writeJobImage(canvas, ctx, output, `${stem(file.name)}-${turn}`);
 }
 
-export async function collageImages(files: File[], cols: number) {
+export async function collageImages(files: File[], cols: number, output: string = "png") {
   if (files.length < 2) throw new Error("Choose at least two images.");
   const columns = cols === 3 ? 3 : 2;
   const loaded: Awaited<ReturnType<typeof canvasFromFile>>[] = [];
@@ -175,6 +184,6 @@ export async function collageImages(files: File[], cols: number) {
     }
     y += rowHeights[row] + gap;
   }
-  const blob = await blobFromCanvas(canvas, "image/png");
-  downloadBlob(blob, "collage.png");
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  await writeJobImage(canvas, ctx, output, "collage");
 }

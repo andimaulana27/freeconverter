@@ -44,11 +44,12 @@ async function textToDocx(text: string, filename: string) {
   downloadBlob(blob, filename);
 }
 
-export async function convertPdfDocument(file: File, slug: string) {
+export async function convertPdfDocument(file: File, slug: string, output = "") {
   const { pdfToText } = await import("@/lib/convert/pdf-raster");
   const name = stem(file.name);
   const text = await pdfToText(file);
-  if (slug === "pdf-to-docx") {
+  const target = output || (slug.endsWith("docx") ? "docx" : "txt");
+  if (target === "docx") {
     await textToDocx(text, `${name}.docx`);
     return;
   }

@@ -29,6 +29,50 @@ async function openPdf(file: File) {
   }
 }
 
+export async function previewPdfPages(file: File, limit = 24) {
+  const pdf = await openPdf(file);
+  const total = pdf.numPages;
+  const count = Math.min(total, limit);
+  const thumbs: { page: number; url: string }[] = [];
+  for (let i = 1; i <= count; i += 1) {
+    const page = await pdf.getPage(i);
+    const base = page.getViewport({ scale: 1 });
+    const scale = Math.min(1.2, 160 / Math.max(base.width, 1));
+    const viewport = page.getViewport({ scale: Math.max(0.12, scale) });
+    const canvas = document.createElement("canvas");
+    canvas.width = Math.max(1, Math.floor(viewport.width));
+    canvas.height = Math.max(1, Math.floor(viewport.height));
+    const ctx = canvas.getContext("2d");
+    if (!ctx) throw new Error("Canvas is not available in this browser.");
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    await page.render({ canvas, canvasContext: ctx, viewport }).promise;
+    thumbs.push({ page: i, url: canvas.toDataURL("image/jpeg", 0.72) });
+  }
+  return { total, thumbs };
+}
+
+export async function renderPdfPageFile(file: File, pageNumber = 1) {
+  const pdf = await openPdf(file);
+  const page = await pdf.getPage(Math.min(pdf.numPages, Math.max(1, pageNumber)));
+  const base = page.getViewport({ scale: 1 });
+  const scale = Math.min(1.4, 720 / Math.max(base.width, 1));
+  const viewport = page.getViewport({ scale: Math.max(0.2, scale) });
+  const canvas = document.createElement("canvas");
+  canvas.width = Math.max(1, Math.floor(viewport.width));
+  canvas.height = Math.max(1, Math.floor(viewport.height));
+  const ctx = canvas.getContext("2d");
+  if (!ctx) throw new Error("Canvas is not available in this browser.");
+  ctx.fillStyle = "#ffffff";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  await page.render({ canvas, canvasContext: ctx, viewport }).promise;
+  const blob = await new Promise<Blob | null>((resolve) => {
+    canvas.toBlob((next) => resolve(next), "image/jpeg", 0.86);
+  });
+  if (!blob) throw new Error("Could not preview this PDF page.");
+  return new File([blob], "page.jpg", { type: "image/jpeg" });
+}
+
 export async function renderPdfPages(
   file: File,
   each: (canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, index: number, total: number) => Promise<void>,
@@ -51,14 +95,13 @@ export async function renderPdfPages(
   }
 }
 
-async function canvasToImageBlob(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, output: PdfImageOutput) {
+async function canvasToImageBlob(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, output: PdfImageOutput, quality = 0.86) {
   if (output === "bmp") {
     return bytesToBlob(encodeBmp(ctx.getImageData(0, 0, canvas.width, canvas.height)), "image/bmp");
   }
   const mime = output === "png" ? "image/png" : output === "webp" ? "image/webp" : "image/jpeg";
-  const quality = output === "png" ? undefined : 0.86;
   const blob = await new Promise<Blob | null>((resolve) => {
-    canvas.toBlob((next) => resolve(next), mime, quality);
+    canvas.toBlob((next) => resolve(next), mime, output === "png" ? undefined : quality);
   });
   if (blob) return blob;
   if (output === "webp") {
@@ -67,11 +110,11 @@ async function canvasToImageBlob(canvas: HTMLCanvasElement, ctx: CanvasRendering
   throw new Error("Could not encode the PDF page.");
 }
 
-export async function pdfToImages(file: File, output: PdfImageOutput) {
+export async function pdfToImages(file: File, output: PdfImageOutput, opts?: { quality?: number }) {
   const parts: { name: string; blob: Blob }[] = [];
   const base = stem(file.name);
   await renderPdfPages(file, async (canvas, ctx, i, total) => {
-    const blob = await canvasToImageBlob(canvas, ctx, output);
+    const blob = await canvasToImageBlob(canvas, ctx, output, opts?.quality ?? 0.86);
     const suffix = total === 1 ? `.${output}` : `-p${i}.${output}`;
     parts.push({ name: `${base}${suffix}`, blob });
   });
