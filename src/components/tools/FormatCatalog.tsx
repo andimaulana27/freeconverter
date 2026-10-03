@@ -93,7 +93,7 @@ export function FormatCatalog({ onPickFormat }: Props) {
 
       <div className="relative flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <p className="text-eyebrow font-bold uppercase text-accent">Format catalog</p>
+          <p className="text-eyebrow font-bold uppercase text-accent-ink">Format catalog</p>
           <h2 className="mt-2 text-2xl font-semibold tracking-[-0.03em] text-ink">
             {formatCatalogCount} formats across {FORMAT_CATALOG.length} categories
           </h2>
