@@ -14,11 +14,12 @@ import {
   uploadCover,
 } from "@/app/admin/posts/actions";
 import { BlockEditor, blocksFromBody, toBlogBlocks, type DraftBlock } from "@/components/cms/BlockEditor";
+import { QualityPanel } from "@/components/cms/QualityPanel";
 import { StatusBadge } from "@/components/cms/StatusBadge";
 import { Button, ButtonLink } from "@/components/ui/Button";
 import { SEO_LIMITS, validateForPublish } from "@/lib/cms/quality";
 import { slugify } from "@/lib/cms/slug";
-import type { CatalogTool, CmsPost, CmsSchedule, CmsTopic, EditorPayload } from "@/lib/cms/types";
+import type { CatalogTool, CmsPost, CmsSchedule, CmsTopic, EditorPayload, QualityReportRow } from "@/lib/cms/types";
 
 type SaveState = "saved" | "dirty" | "saving" | "conflict" | "error";
 
@@ -84,12 +85,14 @@ export function PostEditor({
   tools,
   canPublish,
   schedule,
+  qualityReport,
 }: {
   post: CmsPost;
   topics: CmsTopic[];
   tools: CatalogTool[];
   canPublish: boolean;
   schedule: CmsSchedule | null;
+  qualityReport: QualityReportRow | null;
 }) {
   const router = useRouter();
   const [post, setPost] = useState(initialPost);
@@ -505,6 +508,8 @@ export function PostEditor({
           <BlockEditor blocks={draft.blocks} onChange={(blocks) => setDraft({ ...draft, blocks })} />
         </div>
       </section>
+
+      <QualityPanel post={post} initialReport={qualityReport} canPublish={canPublish} editorDirty={saveState === "dirty" || saveState === "saving"} />
 
       <section className="rounded-[22px] border border-black/[0.07] bg-white p-5 shadow-tile sm:p-6">
         <p className="font-mono text-[9px] font-bold uppercase tracking-[0.14em] text-accent">Readiness</p>

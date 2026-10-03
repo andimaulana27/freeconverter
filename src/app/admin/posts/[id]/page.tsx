@@ -4,6 +4,7 @@ import { AdminChrome } from "@/app/admin/AdminChrome";
 import { PostEditor } from "@/components/cms/PostEditor";
 import { canPublish } from "@/lib/auth/roles";
 import { requireCms } from "@/lib/auth/session";
+import { latestQualityReport } from "@/lib/cms/editorial-server";
 import { fetchPendingSchedule, fetchPost, listTopics } from "@/lib/cms/server";
 import { tools } from "@/lib/tools";
 
@@ -19,10 +20,11 @@ export const maxDuration = 180;
 export default async function EditPostPage({ params }: Props) {
   const { id } = await params;
   const session = await requireCms(`/admin/posts/${id}`);
-  const [post, topics, schedule] = await Promise.all([
+  const [post, topics, schedule, quality] = await Promise.all([
     fetchPost(session.supabase, id),
     listTopics(session.supabase),
     fetchPendingSchedule(session.supabase, id),
+    latestQualityReport(session.supabase, id),
   ]);
   if (!post) notFound();
 
@@ -34,6 +36,7 @@ export default async function EditPostPage({ params }: Props) {
         canPublish={canPublish(session.role)}
         schedule={schedule}
         tools={tools.map((tool) => ({ slug: tool.slug, title: tool.title, category: tool.category }))}
+        qualityReport={quality}
       />
     </AdminChrome>
   );
