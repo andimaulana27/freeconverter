@@ -40,8 +40,8 @@ function GoogleUnit({ spec }: { spec: AdSpec }) {
         style={{ width: spec.width, height: spec.height }}
       >
         <span>
-          <span className="block font-mono text-micro font-bold uppercase text-faint">Fixed ad unit</span>
-          <span className="mt-1 block text-[10px] text-[#9a918c]">{spec.width} × {spec.height}</span>
+          <span className="block font-mono text-micro font-bold uppercase text-mute">Fixed ad unit</span>
+          <span className="mt-1 block text-[10px] text-mute">{spec.width} × {spec.height}</span>
         </span>
       </div>
     );
@@ -89,7 +89,7 @@ export function AdSlot({ className, format = "leaderboard" }: Props) {
     <aside
       aria-label="Advertisement"
       className={cn(
-        "group relative flex flex-col items-center justify-center gap-2 overflow-hidden border border-[#ded7d3] bg-[#f6f3f1] text-faint shadow-drop",
+        "group relative flex flex-col items-center justify-center gap-2 overflow-hidden border border-[#ded7d3] bg-[#f6f3f1] text-mute shadow-drop",
         format === "leaderboard"
           ? "left-1/2 min-h-[132px] w-screen max-w-full -translate-x-1/2 rounded-tile px-0 py-4 sm:left-auto sm:w-full sm:translate-x-0"
           : format === "rectangle"
@@ -102,7 +102,7 @@ export function AdSlot({ className, format = "leaderboard" }: Props) {
         className="absolute inset-0 opacity-45 [background-image:linear-gradient(rgba(24,20,18,0.035)_1px,transparent_1px),linear-gradient(90deg,rgba(24,20,18,0.035)_1px,transparent_1px)] [background-size:32px_32px]"
         aria-hidden
       />
-      <span className="relative font-mono text-[8px] font-bold uppercase tracking-[0.16em] text-[#918984]">Advertisement</span>
+      <span className="relative font-mono text-[8px] font-bold uppercase tracking-[0.16em] text-mute">Advertisement</span>
       <div className="relative flex w-full justify-center overflow-visible">
         {ready ? <GoogleUnit key={`${spec.width}x${spec.height}:${spec.slot ?? "preview"}`} spec={spec} /> : (
           <div className="h-[100px] w-[320px] sm:h-[90px] sm:w-[728px]" aria-hidden />
