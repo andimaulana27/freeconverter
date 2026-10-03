@@ -17,8 +17,8 @@ import { fetchPost, writeAudit, type StaffClient } from "@/lib/cms/server";
 
 const MAX_ILLUSTRATION_BYTES = 1_400_000;
 
-function asVisualBrief(value: unknown, title: string, kicker: string): VisualBrief {
-  const fallback = fallbackVisualBrief(title, kicker);
+function asVisualBrief(value: unknown, title: string, kicker: string, seed = title): VisualBrief {
+  const fallback = fallbackVisualBrief(title, kicker, seed);
   if (!value || typeof value !== "object") return fallback;
   const raw = value as Record<string, unknown>;
   const titleLines = Array.isArray(raw.titleLines)
@@ -73,7 +73,7 @@ export async function processMediaJob(client: StaffClient, jobId: string) {
 
   const title = typeof job.payload.title === "string" ? job.payload.title : post.title;
   const kicker = typeof job.payload.kicker === "string" ? job.payload.kicker : post.topic?.name || "GUIDE";
-  const brief = asVisualBrief(job.payload.visualBrief, title, kicker);
+  const brief = asVisualBrief(job.payload.visualBrief, title, kicker, post.id);
   const prompt = brief.illustrationPrompt;
   const promptHash = createHash("sha256").update(prompt).digest("hex").slice(0, 32);
 

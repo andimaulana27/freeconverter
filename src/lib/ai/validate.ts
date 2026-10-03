@@ -1,4 +1,5 @@
 import { parseBlogBody, readingMinutesFromBody, type BlogBlock, type BlogBody } from "@/lib/blog/content";
+import { visualBriefFromSeed } from "@/lib/cms/cover-template";
 import { SEO_LIMITS, validateForPublish } from "@/lib/cms/quality";
 import type { QualityIssue } from "@/lib/cms/types";
 import { isValidSlug, slugify } from "@/lib/cms/slug";
@@ -108,19 +109,10 @@ export function seoLimits() {
   return SEO_LIMITS;
 }
 
-export function fallbackVisualBrief(title: string, kicker: string): VisualBrief {
+export function fallbackVisualBrief(title: string, kicker: string, seed = title): VisualBrief {
+  const brief = visualBriefFromSeed(title, kicker, seed);
   return {
-    templateKey: "brand-bar",
-    palette: "paper",
-    motif: "rule",
-    kicker: kicker.slice(0, 32) || "GUIDE",
-    titleLines: title.trim().split(/\s+/).reduce<string[]>((lines, word) => {
-      const current = lines[lines.length - 1];
-      if (!current || `${current} ${word}`.length > 26) lines.push(word);
-      else lines[lines.length - 1] = `${current} ${word}`;
-      return lines;
-    }, []).slice(0, 4),
-    altText: `Branded AllYouConvert cover for ${title}`.slice(0, 160),
+    ...brief,
     illustrationPrompt: `Abstract geometric file-conversion motif on white, black, gray, and one red accent. No text, letters, logos, UI, or watermarks. Subject: ${title.slice(0, 80)}`,
   };
 }

@@ -37,6 +37,7 @@ export async function applyCover(input: {
     source: input.illustration && dataUri ? "ai" : "template",
     approve: canPublish(input.role),
     templateKey: input.brief.templateKey,
+    variant: `${input.brief.palette}:${input.brief.motif}:hero`,
     seed: input.postId,
     provider: input.illustration ? "google" : null,
     modelId: input.illustration?.modelId ?? null,

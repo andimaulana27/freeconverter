@@ -326,7 +326,7 @@ export async function generateAiCoverForPost(input: {
 }) {
   const post = await fetchPost(input.client, input.postId);
   if (!post) throw new Error("Guide not found.");
-  const brief = fallbackVisualBrief(input.title || post.title, input.kicker || post.topic?.name || "GUIDE");
+  const brief = fallbackVisualBrief(input.title || post.title, input.kicker || post.topic?.name || "GUIDE", post.id);
   const imageProfile = await loadModelProfile(input.client, "cover_illustration");
   try {
     const image = await generateIllustrationPng({
