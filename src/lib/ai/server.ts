@@ -84,6 +84,9 @@ export function parseProgress(value: unknown): BatchProgress {
       })
     : [];
   return {
+    source: raw.source === "daily_bot" ? "daily_bot" : raw.source === "manual" ? "manual" : undefined,
+    publishAt: typeof raw.publishAt === "string" ? raw.publishAt : undefined,
+    slotId: typeof raw.slotId === "string" ? raw.slotId : undefined,
     direction: typeof raw.direction === "string" ? raw.direction : "",
     audience: typeof raw.audience === "string" ? raw.audience : "search users converting files",
     language: typeof raw.language === "string" ? raw.language : "en",

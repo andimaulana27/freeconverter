@@ -2,6 +2,7 @@ import "server-only";
 
 import { compactCatalog, productGrounding, toolFacts } from "@/lib/ai/catalog";
 import { applyCover, estimateTokenUsd } from "@/lib/ai/cover";
+import { markEditorialSlot } from "@/lib/ai/daily-bot";
 import { generateStructured } from "@/lib/ai/generate";
 import { isProviderAuthError, sanitizeAiError } from "@/lib/ai/provider";
 import { articleDraftSchema, briefOutlineSchema, seoPayloadSchema } from "@/lib/ai/schemas";
@@ -23,6 +24,7 @@ import { postSnapshot } from "@/lib/cms/quality";
 import { evaluatePostQuality, recordAlert, saveQualityReport } from "@/lib/cms/editorial-server";
 import { createPublishSchedule } from "@/lib/cms/schedules";
 import { fetchPost, insertRevision, listTopics, uniqueSlug, writeAudit, type StaffClient } from "@/lib/cms/server";
+import { clockOrSoon } from "@/lib/blog/cadence";
 import { canonicalPathForSlug, slugify } from "@/lib/cms/slug";
 
 class JobCancelledError extends Error {
@@ -355,8 +357,12 @@ export async function processArticleJob(client: StaffClient, jobId: string) {
     });
 
     const publishIssues = [...allIssues];
+    const dailyBot = batchStart.progress.source === "daily_bot";
     const canAuto =
-      batchStart.publishing_mode === "auto" && settings.autoPublishEnabled && canPublish(role) && publishIssues.length === 0;
+      batchStart.publishing_mode === "auto" &&
+      (settings.autoPublishEnabled || dailyBot) &&
+      canPublish(role) &&
+      publishIssues.length === 0;
     const canSchedule = batchStart.publishing_mode === "scheduled" && canPublish(role) && publishIssues.length === 0;
     if (batchStart.publishing_mode !== "draft" && publishIssues.length) {
       await recordAlert(client, {
@@ -367,6 +373,7 @@ export async function processArticleJob(client: StaffClient, jobId: string) {
         entityId: postId,
       });
     }
+    let scheduled = false;
     if ((canAuto || canSchedule) && post.status === "draft") {
       const jobs = await client
         .from("generation_jobs")
@@ -374,12 +381,22 @@ export async function processArticleJob(client: StaffClient, jobId: string) {
         .eq("batch_id", started.batch_id)
         .eq("status", "completed");
       const index = (jobs.data ?? []).length;
-      const runAt = new Date(Date.now() + index * settings.autoPublishStaggerMinutes * 60_000).toISOString();
+      const runAt = dailyBot
+        ? clockOrSoon(batchStart.progress.publishAt)
+        : new Date(Date.now() + index * settings.autoPublishStaggerMinutes * 60_000).toISOString();
       await createPublishSchedule(client, { postId, runAt, actorId, action: "publish" });
       await client
         .from("blog_posts")
         .update({ status: "scheduled", scheduled_for: runAt, updated_by: actorId })
         .eq("id", postId);
+      scheduled = true;
+    }
+    if (dailyBot && batchStart.progress.slotId) {
+      await markEditorialSlot(client, batchStart.progress.slotId, {
+        post_id: postId,
+        status: scheduled ? "scheduled" : publishIssues.length ? "held" : "queued",
+        error: publishIssues[0]?.message ?? null,
+      });
     }
 
     await writeAudit(client, {

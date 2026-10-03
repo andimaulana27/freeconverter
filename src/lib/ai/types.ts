@@ -53,6 +53,9 @@ export type TitleCandidate = {
 };
 
 export type BatchProgress = {
+  source?: "manual" | "daily_bot";
+  publishAt?: string;
+  slotId?: string;
   direction?: string;
   audience?: string;
   language?: string;

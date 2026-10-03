@@ -14,6 +14,13 @@ export const titleBatchSchema = z.object({
   titles: z.array(titleCandidateSchema).min(3).max(15),
 });
 
+export const dailyTitleSchema = z.object({
+  title: z.string().min(8).max(90),
+  slugSuggestion: z.string().min(3).max(80),
+  searchIntent: z.string().min(8).max(180),
+  rationale: z.string().min(8).max(280),
+});
+
 export const outlineSectionSchema = z.object({
   heading: z.string().min(4).max(120),
   questions: z.array(z.string().min(4).max(180)).min(1).max(4),

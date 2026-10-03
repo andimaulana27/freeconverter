@@ -2,6 +2,7 @@ import "server-only";
 
 import { randomUUID } from "node:crypto";
 import { isRetryableGenerationError, processArticleJob } from "@/lib/ai/article-job";
+import { markEditorialSlot, planDailyBlog } from "@/lib/ai/daily-bot";
 import { processMediaJob } from "@/lib/ai/media-job";
 import { sanitizeAiError } from "@/lib/ai/provider";
 import { recordProviderResult, resolveGoogleApiKey } from "@/lib/ai/secrets";
@@ -42,6 +43,16 @@ async function failOrRetryArticle(client: ReturnType<typeof createServiceSupabas
     error: message,
     next_attempt_at: retry ? backoffIso(job.attempts) : null,
   });
+  if (!retry && !job.cancel_requested) {
+    const batch = await fetchBatch(client, job.batch_id);
+    if (batch?.progress.source === "daily_bot" && batch.progress.slotId) {
+      await markEditorialSlot(client, batch.progress.slotId, {
+        status: job.post_id ? "held" : "failed",
+        error: message,
+        ...(job.post_id ? { post_id: job.post_id } : {}),
+      });
+    }
+  }
 }
 
 async function failOrRetryMedia(client: ReturnType<typeof createServiceSupabaseClient>, jobId: string, error: unknown) {
@@ -124,8 +135,16 @@ export async function processGenerationQueue(): Promise<WorkerTickResult> {
 }
 
 export async function kickGenerationWorker() {
+  let dailyQueued = 0;
   try {
-    return await processGenerationQueue();
+    const client = createServiceSupabaseClient();
+    dailyQueued = (await planDailyBlog(client)).queued;
+  } catch (error) {
+    console.error("daily blog bot", sanitizeAiError(error));
+  }
+  try {
+    const result = await processGenerationQueue();
+    return { ...result, dailyQueued };
   } catch (error) {
     console.error("generation worker", sanitizeAiError(error));
     return {
@@ -134,6 +153,7 @@ export async function kickGenerationWorker() {
       articleCompleted: 0,
       mediaCompleted: 0,
       failed: 0,
+      dailyQueued,
     };
   }
 }
