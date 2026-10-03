@@ -1,6 +1,6 @@
 # Blog, Admin CMS, Ads, and AI Architecture
 
-Status: Phase 2 complete; Phase 3 is next  
+Status: Phase 3 complete; Phase 4 is next  
 Last updated: 2026-10-03  
 Canvas: `blog-admin-ai-architecture.canvas.tsx`
 
@@ -77,17 +77,13 @@ Next.js App Router renders blog index and article pages as Server Components. Pu
 
 ### Admin application
 
-The admin area lives under `/admin` and uses Supabase Auth. Phase 1 ships login, MFA challenge, role-gated dashboard chrome, and `noindex` on every admin route. Later phases add:
+The admin area lives under `/admin` and uses Supabase Auth. Phase 1 ships login, MFA challenge, role-gated dashboard chrome, and `noindex` on every admin route. Phase 3 adds the CMS dashboard, post list, structured editor, authenticated preview, revisions, cover controls, and draft/review/publish/unpublish/archive/schedule actions. Later phases add:
 
-- dashboard and content health;
-- post editor and preview;
-- revisions and rollback;
 - generation batches and job progress;
 - advertising creatives and placements;
-- media library;
+- a standalone media library browser;
 - AI providers, models, prompts, budgets, and key health;
-- publishing schedules;
-- users, roles, and audit logs.
+- users, roles, and a richer audit UI.
 
 ### Data and storage
 
@@ -109,9 +105,9 @@ A batch of 5–15 articles must not run inside one browser request. The admin ac
 - `blog_post_revisions` stores immutable content snapshots, change source, editor, and restoration metadata.
 - `blog_topics` stores focused public topics, descriptions, and SEO metadata.
 - `blog_tags` and `blog_post_tags` provide optional cross-topic labels; add only when they improve discovery.
-- `media_assets` tracks uploaded or generated covers and inline media, dimensions, alt text, ownership, and Storage paths.
-- Before visual generation ships, add source/provenance (`upload`, `template`, or `ai`), provider/model and prompt hashes, generation status, focal point, and variant metadata through an additive migration.
-- Add `blog_post_media` when the editor needs ordered, typed relations such as `cover`, `inline`, `diagram`, and `social`; do not depend only on URLs embedded in article JSON.
+- `media_assets` tracks uploaded or generated covers and inline media, dimensions, alt text, ownership, Storage paths, source (`upload`, `template`, or `ai`), focal point, variant, and approval.
+- `blog_post_media` stores ordered, typed relations such as `cover`, `inline`, `diagram`, and `social`.
+- `blog_slug_redirects` maps retired public slugs to the current slug when a published guide is renamed.
 - `publishing_schedules` tracks scheduled publish, unpublish, and retry state.
 
 Recommended post states are `draft`, `review`, `scheduled`, `published`, and `archived`.
@@ -405,7 +401,7 @@ Acceptance: published posts are indexable, drafts are private, and public layout
 - The byline is AllYouConvert. `admin_profiles` stays staff-only, so public pages do not join it.
 - Homepage order comes from public `site_settings.homepage_guide_slugs`, then fills from the latest published posts up to `homepage_guide_count` (3).
 - `/blog?topic=` is `noindex` with a canonical of `/blog`. Dedicated topic routes stay deferred.
-- Published pages revalidate every 300 seconds. On-demand revalidation waits for the Phase 3 publish action.
+- Published pages revalidate every 300 seconds. Phase 3 also calls `revalidatePath` on publish, archive, and saves to already-published posts.
 - Covers render only when the asset is public and stored in `blog-public`.
 - `noindex` posts can stay published and readable, and they are left out of the sitemap and RSS.
 - Three hand-reviewed launch guides are seeded. They are not an AI batch. `/blog/topic/[slug]` is still not built.
@@ -429,21 +425,64 @@ Acceptance: published posts are indexable, drafts are private, and public layout
 
 #### Phase 2 follow-up (does not block Phase 3)
 
-- Publish revalidation is time-based until the editor can call `revalidatePath`.
 - Topic landing pages wait until a topic has more than a single guide.
-- An unrelated untracked `src/lib/cms/schedules.ts` currently fails `tsc` because its imports are missing. It is not part of this phase.
+- Public Auth signup should still be disabled in the project settings, and TOTP should be enrolled on the first administrator.
 
 ### Phase 3 — admin CMS
 
-Status: planned
+Status: complete  
+Completed: 2026-10-03
 
-- build dashboard, post list, structured editor, preview, revisions, and media library;
-- add automatic-template, optional AI-illustration, upload, regenerate, focal-point, alt-text, and image-approval controls;
+- build dashboard, post list, structured editor, preview, and revisions;
+- add automatic-template, upload, regenerate, focal-point, alt-text, and image-approval controls in the editor (AI illustration stays Phase 5);
 - add draft, review, publish, unpublish, archive, and scheduled workflows;
 - add autosave, conflict handling, slug redirects, and audit events;
 - implement role-specific controls.
 
 Acceptance: an editor can create, preview, revise, schedule, publish, and restore an article safely.
+
+#### Phase 3 decisions
+
+- The editor writes the same Phase 2 `BlogBody` v1 blocks (`paragraph`, `heading`, `list`, `steps`, `faq`, `note`, `cta`). There is no second article schema.
+- Autosave runs about 2.2 seconds after edits and compares `updated_at`. A mismatch returns a conflict and asks the editor to reload.
+- Quality gates run on publish and schedule, not on draft save or submit-for-review. Gates cover title/slug/excerpt/SEO length, heading plus paragraph, ~400 words, valid catalog tool links, and cover alt/approval/public bucket when a cover exists.
+- Authors can create and submit drafts. Publish, unpublish, archive, and schedule are limited to `editor` and `super_admin`. Media approval is publisher-only in both the UI and a trigger.
+- Covers can be uploaded or generated as a branded SVG template. The AI illustration control is visible and disabled until Phase 5.
+- `blog_slug_redirects` are written only when a **published** slug changes. Public `/blog/[slug]` issues a 308 when the old slug still points at a live published target.
+- Authenticated preview reuses `GuideArticle` inside `SiteShell` with `ads={false}` and `noindex`.
+- Due schedules are processed by `GET/POST /api/cron/publish` (Vercel cron `*/5 * * * *`, `Authorization: Bearer $CRON_SECRET`) and also when a publisher opens `/admin`.
+- Publish and archive call `revalidatePath` for `/`, `/blog`, the slug, sitemap, and RSS. Scheduled publish keeps the post’s `noindex` flag instead of forcing index.
+- A standalone media library page is not in this phase. Cover upload, template, focal point, alt text, and approval live in the post editor.
+
+#### Phase 3 schema
+
+Additive remote migration `20261003021058_phase3_cms_media_and_redirects` (20 application tables): `blog_post_media`, `blog_slug_redirects`, and provenance columns on `media_assets`. SVG is allowed in the blog Storage buckets. RLS remains ENABLE + FORCE.
+
+#### Phase 3 routes
+
+- `/admin` — content health counts, recent guides, pending-schedule processor for publishers.
+- `/admin/posts` — filterable list (status, topic, title/slug search).
+- `/admin/posts/new` — create a draft and redirect into the editor.
+- `/admin/posts/[id]` — structured editor, related tools, cover controls, quality gate, publishing actions.
+- `/admin/posts/[id]/preview` — noindex article preview without production ads.
+- `/admin/posts/[id]/revisions` — restore a snapshot into the current row without publishing.
+- `/api/cron/publish` — 401 without `CRON_SECRET`.
+- `/blog/[slug]` — 308 through `blog_slug_redirects` when the target is still published.
+
+#### Phase 3 verification
+
+- Super admin `admin@allyouconvert.com` created draft `phase3-cms-verification-draft`, autosaved heading/paragraph/tool link, generated an approved branded cover, saved a revision, restored it, previewed with ads off, and submitted for review. Audit events recorded `post.create`, `post.save`, `post.cover_template`, `post.revision`, `post.restore`, and `post.submit_review`.
+- Public `/blog/phase3-cms-verification-draft` returned 404 while the row was draft/review. Unauthenticated `/admin/posts` redirected to login. `/api/cron/publish` returned 401. Primary header still has no Blog link.
+- A temporary `phase3-slug-redirect-probe` row 308’d to `/blog/convert-png-to-jpg-in-the-browser`. The probe redirect and the verification post were deleted afterward. Live published slugs remain the three launch guides.
+- Publish was not executed on the short verification draft. The quality gate correctly required more body copy, and the production blog was left unchanged.
+- `npx tsc --noEmit` passed after the CMS routes landed.
+
+#### Phase 3 follow-up (does not block Phase 4)
+
+- Add a standalone media library browser for reuse across posts.
+- Set `CRON_SECRET` on Vercel before relying on production schedule execution.
+- Two-tab conflict handling is implemented; it was not exercised as a dual-session browser test.
+- Topic landing pages, Auth signup lock, and TOTP enrollment remain open.
 
 ### Phase 4 — ads manager
 
@@ -521,4 +560,4 @@ An implementation phase is not complete until both artifacts match the actual co
 
 ## 16. Immediate next step
 
-Begin Phase 3: admin dashboard, post list, structured editor, preview, revisions, and publish, unpublish, archive, and schedule workflows. Keep Blog out of the primary header. After implementation, update this document and the Canvas together.
+Begin Phase 4: ad manager for structured AdSense units and manual image creatives, wired to the existing fixed-size slots. Keep Blog out of the primary header. After implementation, update this document and the Canvas together.
