@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { GuideBody, splitGuideBlocks } from "@/components/blog/GuideBody";
 import { GuideCard } from "@/components/blog/GuideCard";
+import { CoverPlate } from "@/components/blog/CoverPlate";
 import { AdSlot } from "@/components/layout/AdSlot";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { ToolIcon } from "@/components/tools/ToolIcon";
@@ -84,26 +85,19 @@ export function GuideArticle({
             </p>
           </header>
 
-          {post.cover ? (
-            post.cover.url.includes(".svg") ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={post.cover.url}
-                alt={post.cover.alt}
-                width={1200}
-                height={630}
-                className="mt-8 aspect-[1.91/1] w-full rounded-tile border border-[#e5dfdc] object-cover"
-              />
-            ) : (
-              <Image
-                src={post.cover.url}
-                alt={post.cover.alt}
-                width={1200}
-                height={630}
-                className="mt-8 aspect-[1.91/1] w-full rounded-tile border border-[#e5dfdc] object-cover"
-              />
-            )
-          ) : null}
+          {post.cover && !post.cover.url.includes(".svg") ? (
+            <Image
+              src={post.cover.url}
+              alt={post.cover.alt}
+              width={1200}
+              height={630}
+              className="mt-8 aspect-[1.91/1] w-full rounded-tile border border-[#e5dfdc] object-cover"
+            />
+          ) : (
+            <div className="mt-8 overflow-hidden rounded-tile border border-[#e5dfdc]">
+              <CoverPlate title={post.title} kicker={post.topic?.name ?? "Guide"} seed={post.slug} featured />
+            </div>
+          )}
 
           {toc.length ? (
             <details className="mt-8 rounded-card border border-[#e5dfdc] bg-white p-4 lg:hidden">

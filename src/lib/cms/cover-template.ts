@@ -81,6 +81,9 @@ export function brandedCoverSvg(title: string, kicker = "GUIDE", brief?: Partial
   const colors = PALETTE[palette];
   const lines = (brief?.titleLines?.length ? brief.titleLines : fallback.titleLines).slice(0, 4);
   const label = (brief?.kicker || kicker || "GUIDE").toUpperCase();
+  const fontSize = lines.length > 3 ? 40 : lines.length === 3 ? 52 : 64;
+  const lineGap = fontSize + 10;
+  const titleStart = lines.length > 2 ? 236 : 268;
   const illustration = brief?.illustrationDataUri
     ? `<image href="${escapeXml(brief.illustrationDataUri)}" x="0" y="0" width="1200" height="630" preserveAspectRatio="xMidYMid slice"/>
        <rect width="1200" height="630" fill="${colors.bg}" fill-opacity="0.78"/>`
@@ -89,7 +92,7 @@ export function brandedCoverSvg(title: string, kicker = "GUIDE", brief?: Partial
   const text = lines
     .map(
       (line, index) =>
-        `<text x="72" y="${210 + index * 64}" fill="${colors.ink}" font-family="Arial, Helvetica, sans-serif" font-size="48" font-weight="700">${escapeXml(line)}</text>`,
+        `<text x="72" y="${titleStart + index * lineGap}" fill="${colors.ink}" font-family="Georgia, 'Times New Roman', serif" font-size="${fontSize}" font-weight="700">${escapeXml(line)}</text>`,
     )
     .join("");
 
