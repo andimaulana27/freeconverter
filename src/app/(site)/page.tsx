@@ -7,12 +7,11 @@ import { JsonLd } from "@/components/seo/JsonLd";
 import { ToolIcon } from "@/components/tools/ToolIcon";
 import { ToolGroups } from "@/components/tools/ToolGroups";
 import { LatestGuides } from "@/components/blog/LatestGuides";
-import { BLOG_REVALIDATE_SECONDS } from "@/lib/blog/queries";
 import { homeMetadata, websiteJsonLd } from "@/lib/seo";
 import { getTool, tools, type ToolDef } from "@/lib/tools";
 
 export const metadata: Metadata = homeMetadata();
-export const revalidate = BLOG_REVALIDATE_SECONDS;
+export const revalidate = 300;
 
 const CATEGORY_LINKS = [
   { slug: "image-compressor", label: "Images", note: "Convert & edit" },

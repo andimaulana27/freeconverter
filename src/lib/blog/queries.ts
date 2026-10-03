@@ -5,8 +5,6 @@ import { createClient } from "@supabase/supabase-js";
 import { parseBlogBody, readingMinutesFromBody, safeGuideHref, type BlogBody } from "@/lib/blog/content";
 import { getSupabasePublicKey, getSupabaseUrl, hasSupabasePublicConfig } from "@/lib/supabase/env";
 
-export const BLOG_REVALIDATE_SECONDS = 300;
-
 export type BlogTopic = {
   slug: string;
   name: string;

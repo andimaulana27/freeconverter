@@ -3,9 +3,9 @@ import Link from "next/link";
 import { GuideCard } from "@/components/blog/GuideCard";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { blogBreadcrumbJsonLd, blogIndexJsonLd, blogIndexMetadata } from "@/lib/blog/metadata";
-import { BLOG_REVALIDATE_SECONDS, listPublishedPosts } from "@/lib/blog/queries";
+import { listPublishedPosts } from "@/lib/blog/queries";
 
-export const revalidate = BLOG_REVALIDATE_SECONDS;
+export const revalidate = 300;
 
 type Props = {
   searchParams: Promise<{ topic?: string }>;

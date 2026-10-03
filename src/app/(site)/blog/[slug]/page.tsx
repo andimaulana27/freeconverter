@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import { notFound, permanentRedirect } from "next/navigation";
 import { GuideArticle } from "@/components/blog/GuideArticle";
 import { blogPostMetadata } from "@/lib/blog/metadata";
-import { BLOG_REVALIDATE_SECONDS, getPublishedPost, getPublishedSlugRedirect, listPublishedPosts, relatedGuides } from "@/lib/blog/queries";
+import { getPublishedPost, getPublishedSlugRedirect, listPublishedPosts, relatedGuides } from "@/lib/blog/queries";
 
-export const revalidate = BLOG_REVALIDATE_SECONDS;
+export const revalidate = 300;
 
 type Props = { params: Promise<{ slug: string }> };
 
