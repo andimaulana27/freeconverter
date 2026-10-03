@@ -7,23 +7,25 @@ import { StickyAdRails } from "@/components/layout/StickyAdRails";
 import { Container } from "@/components/ui/Container";
 import { ConvertSessionProvider } from "@/components/convert/ConvertSession";
 
-export function SiteShell({ children }: { children: ReactNode }) {
+export function SiteShell({ children, ads = true }: { children: ReactNode; ads?: boolean }) {
   return (
     <>
       <div className="flex min-h-screen flex-col">
         <ConvertSessionProvider>
           <Header />
           <main className="relative flex-1">
-            <StickyAdRails />
+            {ads ? <StickyAdRails /> : null}
             <Container className="pb-0 pt-10 sm:pt-12">{children}</Container>
-            <Container className="py-10 sm:py-12">
-              <AdSlot />
-            </Container>
+            {ads ? (
+              <Container className="py-10 sm:py-12">
+                <AdSlot />
+              </Container>
+            ) : null}
           </main>
           <Footer />
         </ConvertSessionProvider>
       </div>
-      {process.env.NEXT_PUBLIC_GOOGLE_ADSENSE_CLIENT ? (
+      {ads && process.env.NEXT_PUBLIC_GOOGLE_ADSENSE_CLIENT ? (
         <Script
           id="google-adsense"
           async
