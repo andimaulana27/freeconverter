@@ -43,8 +43,8 @@ export default function ToolsIndex() {
 
         <div className="relative grid items-end gap-8 lg:grid-cols-[1.15fr_0.85fr] lg:gap-10">
           <div>
-            <p className="flex items-center gap-3 text-eyebrow font-bold uppercase text-accent">
-              <span className="h-px w-7 bg-accent" />
+            <p className="flex items-center gap-3 text-eyebrow font-bold uppercase text-accent-ink">
+              <span className="h-px w-7 bg-accent-ink" />
               Format directory
             </p>
             <h1 className="mt-4 text-5xl font-semibold leading-[0.98] tracking-[-0.055em] text-ink sm:text-6xl">
@@ -64,7 +64,7 @@ export default function ToolsIndex() {
             <p className="relative mt-4 max-w-md text-sm leading-6 text-white/55">
               Search once, narrow the category, then open a workspace built specifically for that result.
             </p>
-            <dl className="relative mt-5 grid grid-cols-3 gap-px overflow-hidden rounded-card border border-white/10 bg-white/10">
+            <div className="relative mt-5 grid grid-cols-3 gap-px overflow-hidden rounded-card border border-white/10 bg-white/10">
               {[
                 [String(tools.length), "Conversion tools"],
                 [String(categoryCount), "File categories"],
@@ -75,12 +75,12 @@ export default function ToolsIndex() {
                     <DirectoryStatIcon index={index} />
                   </span>
                   <div>
-                    <dt className="text-lg font-semibold tracking-tight text-white">{value}</dt>
-                    <dd className="mt-1 text-micro font-semibold uppercase leading-4 text-white/45">{label}</dd>
+                    <p className="text-lg font-semibold tracking-tight text-white">{value}</p>
+                    <p className="mt-1 text-micro font-semibold uppercase leading-4 text-white/70">{label}</p>
                   </div>
                 </div>
               ))}
-            </dl>
+            </div>
           </div>
         </div>
       </header>
