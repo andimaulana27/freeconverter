@@ -3,7 +3,7 @@ import type { PostStatus } from "@/lib/cms/types";
 
 const LABELS: Record<PostStatus, string> = {
   draft: "Draft",
-  review: "Review",
+  review: "In review",
   scheduled: "Scheduled",
   published: "Published",
   archived: "Archived",
