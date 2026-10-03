@@ -20,7 +20,7 @@ const JOB_TONE: Record<GenerationJobStatus, "mute" | "warn" | "accent" | "ok"> =
 
 const BATCH_LABEL: Record<GenerationBatchStatus, string> = {
   pending: "Ready to start",
-  running: "Creating draft",
+  running: "Creating drafts",
   completed: "Completed",
   partial: "Completed with issues",
   failed: "Needs attention",
@@ -28,7 +28,7 @@ const BATCH_LABEL: Record<GenerationBatchStatus, string> = {
 };
 
 const JOB_LABEL: Record<GenerationJobStatus, string> = {
-  pending: "Waiting",
+  pending: "Queued",
   running: "Writing",
   completed: "Draft ready",
   failed: "Could not finish",
@@ -36,12 +36,12 @@ const JOB_LABEL: Record<GenerationJobStatus, string> = {
 };
 
 const BATCH_HELP: Record<GenerationBatchStatus, string> = {
-  pending: "Title ideas are ready and waiting for your selection.",
-  running: "The selected guide is being prepared.",
-  completed: "The requested draft was created successfully.",
-  partial: "Some work finished, but at least one step needs review.",
-  failed: "The run stopped before a usable draft was created.",
-  cancelled: "This run was stopped and will not continue.",
+  pending: "Title ideas are ready. Queue selected drafts when you are satisfied.",
+  running: "Independent jobs are writing drafts in the background.",
+  completed: "Every queued draft was created successfully.",
+  partial: "Some drafts finished, but at least one article or illustration needs review.",
+  failed: "The run stopped before usable drafts were created.",
+  cancelled: "This run was stopped and remaining jobs will not continue.",
 };
 
 export function BatchStatusBadge({ status }: { status: GenerationBatchStatus }) {

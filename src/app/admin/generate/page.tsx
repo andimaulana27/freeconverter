@@ -44,7 +44,7 @@ export default async function GenerateAdminPage() {
           </p>
           <h1 className="mt-3 text-4xl font-semibold tracking-[-0.055em]">AI draft assistant</h1>
           <p className="mt-2 max-w-2xl text-sm text-mute">
-            Turn a focused topic into title ideas, choose the best one, then create a private guide draft you can review and edit.
+            Turn a focused topic into title ideas, then queue 5–15 private drafts. Each article runs as its own job, so you can close this page.
           </p>
         </div>
       </div>
@@ -77,7 +77,7 @@ export default async function GenerateAdminPage() {
           <div>
             <p className="font-mono text-[9px] font-bold uppercase tracking-[0.14em] text-accent">Recent activity</p>
             <h2 className="mt-1 text-xl font-semibold tracking-[-0.03em]">Past draft runs</h2>
-            <p className="mt-1 text-sm text-mute">Reopen a previous topic to review its title ideas or generated draft.</p>
+            <p className="mt-1 text-sm text-mute">Reopen a previous topic to review titles, job progress, or saved drafts.</p>
           </div>
         </div>
         {batches.length ? (

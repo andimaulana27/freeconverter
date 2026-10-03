@@ -7,7 +7,7 @@ import { cn } from "@/lib/cn";
 const LINKS = [
   { href: "/admin", label: "Dashboard", note: "Overview & activity", icon: "dashboard", match: "exact" as const },
   { href: "/admin/posts", label: "Guides", note: "Editorial workflow", icon: "guides", match: "prefix" as const },
-  { href: "/admin/generate", label: "AI assistant", note: "Titles and private drafts", icon: "generate", match: "prefix" as const },
+  { href: "/admin/generate", label: "AI assistant", note: "Batch drafts and job progress", icon: "generate", match: "prefix" as const },
   { href: "/admin/ads", label: "Ads", note: "Creative placement", icon: "ads", match: "prefix" as const },
   { href: "/admin/security", label: "Security", note: "Account protection", icon: "security", match: "prefix" as const },
 ];

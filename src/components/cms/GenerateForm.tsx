@@ -73,7 +73,7 @@ export function GenerateForm({
       <p className="font-mono text-[9px] font-bold uppercase tracking-[0.14em] text-accent">01 / Direction</p>
       <h2 className="mt-1 text-xl font-semibold tracking-[-0.03em]">Start a new draft</h2>
       <p className="mt-2 text-sm text-mute">
-        First, ask for several title ideas. You will review and choose one before any article is written.
+        First, ask for several title ideas. You will choose 5–15 of them, then the worker writes each draft independently.
       </p>
       <p className="mt-3 flex items-center gap-2 text-xs text-faint"><span className="h-1.5 w-1.5 rounded-full bg-[#55d69a]" />{healthLabel}</p>
 
