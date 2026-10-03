@@ -1,7 +1,7 @@
 # Blog, Admin CMS, Ads, and AI Architecture
 
-Status: Phase 1 complete; Phase 2 is next  
-Last updated: 2026-10-02  
+Status: Phase 2 complete; Phase 3 is next  
+Last updated: 2026-10-03  
 Canvas: `blog-admin-ai-architecture.canvas.tsx`
 
 ## 1. Product direction
@@ -44,7 +44,7 @@ Keep `Blog` out of the primary header, as requested. Add it only to the footer u
 
 ### Public routes
 
-- `/blog` — featured article, latest guides, and topic filters.
+- `/blog` — featured article, latest guides, and topic filters. Topic filters use `?topic=` and stay `noindex` until a topic archive is worth its own route.
 - `/blog/[slug]` — article detail with breadcrumbs, table of contents, related tools, related articles, and ads.
 - `/blog/topic/[slug]` — create only after a topic has enough useful articles.
 - `/rss.xml` — published article feed.
@@ -387,7 +387,8 @@ Seeds: 8 placement keys, 5 prompt templates, 5 model profiles (`gemini-3.5-flash
 
 ### Phase 2 — public blog and SEO
 
-Status: planned
+Status: complete  
+Completed: 2026-10-03
 
 - build `/blog` and `/blog/[slug]` with the current visual language;
 - add homepage `Latest guides` and footer-only Blog navigation;
@@ -396,6 +397,41 @@ Status: planned
 - verify desktop, tablet, mobile, and noindex behavior.
 
 Acceptance: published posts are indexable, drafts are private, and public layout matches the site.
+
+#### Phase 2 decisions
+
+- Public reads use a session-less anon client, then filter `status = published` plus the publication window. A signed-in editor does not see drafts on `/blog`.
+- Article bodies are version `1` structured JSON. The renderer keeps known blocks as plain text and drops anything else. Internal links must be same-site paths and cannot point at `/admin`.
+- The byline is AllYouConvert. `admin_profiles` stays staff-only, so public pages do not join it.
+- Homepage order comes from public `site_settings.homepage_guide_slugs`, then fills from the latest published posts up to `homepage_guide_count` (3).
+- `/blog?topic=` is `noindex` with a canonical of `/blog`. Dedicated topic routes stay deferred.
+- Published pages revalidate every 300 seconds. On-demand revalidation waits for the Phase 3 publish action.
+- Covers render only when the asset is public and stored in `blog-public`.
+- `noindex` posts can stay published and readable, and they are left out of the sitemap and RSS.
+- Three hand-reviewed launch guides are seeded. They are not an AI batch. `/blog/topic/[slug]` is still not built.
+
+#### Phase 2 routes
+
+- `/blog` — featured guide, remaining guides, topic chips, RSS link.
+- `/blog/[slug]` — breadcrumbs, prose, table of contents, in-article leaderboard after the first section, desktop sidebar rectangle, related tools, related guides, and a tool CTA.
+- `/rss.xml` — published guides with `noindex = false`.
+- `/sitemap.xml` — `/blog` plus those same guides, with `lastModified` from `updated_at`.
+- Homepage `Latest guides` sits after the privacy section and before FAQ. Footer column AllYouConvert includes Blog. The primary header does not.
+
+#### Phase 2 verification
+
+- Anon REST returned the three published slugs and an empty array for draft `phase2-draft-probe`. That draft and an unknown slug both 404 on `/blog/[slug]`. The probe row was deleted after the check.
+- `/blog` and the PNG guide are `index, follow` with canonicals on `allyouconvert.com`. `?topic=tutorials` is `noindex, follow` and canonicalizes to `/blog`.
+- Setting `noindex` on the HEIC guide produced `noindex, follow` and removed it from RSS and the sitemap. The flag was turned back off.
+- Desktop (1613px), tablet (768px), and phone (390px) rendered the guide without horizontal overflow. The sidebar ad is hidden below the large breakpoint; the phone uses the collapsible contents list.
+- Homepage shows the three launch guides before FAQ. Header links stay converter categories. Footer includes Blog.
+- Article JSON-LD includes `Article`, `BreadcrumbList`, and `FAQPage`. The PNG guide links related tools to `/png-to-jpg` and `/image-compressor`.
+
+#### Phase 2 follow-up (does not block Phase 3)
+
+- Publish revalidation is time-based until the editor can call `revalidatePath`.
+- Topic landing pages wait until a topic has more than a single guide.
+- An unrelated untracked `src/lib/cms/schedules.ts` currently fails `tsc` because its imports are missing. It is not part of this phase.
 
 ### Phase 3 — admin CMS
 
@@ -485,4 +521,4 @@ An implementation phase is not complete until both artifacts match the actual co
 
 ## 16. Immediate next step
 
-Begin Phase 2: public `/blog` and `/blog/[slug]`, homepage `Latest guides`, footer-only Blog navigation, metadata, JSON-LD, sitemap, and RSS. Keep Blog out of the primary header. After implementation, update this document and the Canvas together.
+Begin Phase 3: admin dashboard, post list, structured editor, preview, revisions, and publish, unpublish, archive, and schedule workflows. Keep Blog out of the primary header. After implementation, update this document and the Canvas together.
