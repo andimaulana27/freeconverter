@@ -117,6 +117,39 @@ export type CmsSchedule = {
 export type QualityIssue = {
   field: string;
   message: string;
+  severity?: "error" | "warning";
+};
+
+export type QualityReportRow = {
+  id: string;
+  post_id: string;
+  score: number;
+  blocking_count: number;
+  warning_count: number;
+  findings: Record<string, unknown>;
+  editorial: Record<string, unknown> | null;
+  created_at: string;
+};
+
+export type MetricRow = {
+  id: string;
+  metric_date: string;
+  path: string;
+  metric_key: string;
+  value: number;
+  source: string;
+};
+
+export type OperationalAlert = {
+  id: string;
+  kind: "publish_failure" | "ad_failure" | "quality_hold" | "schedule_failure";
+  severity: "info" | "warning" | "error";
+  entity_type: string | null;
+  entity_id: string | null;
+  message: string;
+  metadata: Record<string, unknown>;
+  resolved_at: string | null;
+  created_at: string;
 };
 
 export type EditorPayload = {
