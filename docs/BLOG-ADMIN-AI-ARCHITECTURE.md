@@ -1,6 +1,6 @@
 # Blog, Admin CMS, Ads, and AI Architecture
 
-Status: Phase 5 complete; Phase 6 is next  
+Status: Phase 6 complete; Phase 7 is next  
 Last updated: 2026-10-03  
 Canvas: `blog-admin-ai-architecture.canvas.tsx`
 
@@ -113,8 +113,9 @@ Recommended post states are `draft`, `review`, `scheduled`, `published`, and `ar
 
 ### AI generation
 
-- `generation_batches` stores topic, article type, requested count, model profile, publishing mode, progress, cost estimate, and aggregate status.
-- `generation_jobs` stores one selected title, outline, generated draft, validation results, attempts, errors, token usage, and linked post.
+- `generation_batches` stores topic, article type, requested count, model profile, publishing mode, progress, cost estimate, cancel request, and aggregate status.
+- `generation_jobs` stores one selected title, outline, generated draft, validation results, attempts, errors, token usage, heartbeats, and linked post.
+- `generation_media_jobs` stores independent illustration jobs with retries, moderation, provenance, and cost so a failed image does not discard the article draft.
 - `ai_model_profiles` stores task-specific model settings, prompt version, temperature, thinking level, output limits, and active status.
 - `prompt_templates` stores versioned system and task prompts for titles, outlines, drafting, SEO, and review.
 - `integration_secret_refs` stores only provider, secret reference, masked suffix, health, priority, and usage metadata.
@@ -337,7 +338,7 @@ Acceptance: unauthorized users cannot access admin data, drafts, secrets, or pri
 #### Phase 1 decisions
 
 - Dedicated Supabase project **AllYouConvert** (`apktgfjwgsngbtvhlwen`, region `ap-southeast-1`) hosts Postgres 17, Auth, Storage, and RLS. Hosting target remains Vercel (`site_settings.hosting_target`).
-- AI secrets start as the server-only env var `GOOGLE_GENERATIVE_AI_API_KEY`. Vault rotation stays Phase 6.
+- AI secrets start as the server-only env var `GOOGLE_GENERATIVE_AI_API_KEY`. Vault rotation remains follow-up.
 - The first `super_admin` is provisioned through the server-only Auth Admin API with `raw_app_meta_data.role = super_admin`; email is confirmed and the trigger-synced `admin_profiles` row is active. The app has no public signup UI.
 - Public pages moved into the `(site)` route group so converter chrome and ads do not wrap `/admin`.
 - Write policies that used `FOR ALL` were split into insert/update/delete after a security-advisor warning about overlapping permissive SELECT policies.
@@ -552,7 +553,7 @@ Acceptance: AI output is schema-valid, traceable, editable, and never auto-publi
 
 - The first adapter is Google AI Studio through `@ai-sdk/google` `createGoogle({ apiKey })` and `GOOGLE_GENERATIVE_AI_API_KEY`. Vercel AI Gateway stays a later swap behind the same `generateStructured` / `generateIllustrationPng` boundary.
 - Structured calls use AI SDK `generateText` with `Output.object()` and Zod schemas, then `parseBlogBody` plus publish-quality checks before save.
-- MVP generates 5–15 titles, then **one** selected article in the admin request (`generation_batches.requested_count = 1`, `publishing_mode = draft`). Durable 5–15 article workers remain Phase 6.
+- MVP generated 5–15 titles, then **one** selected article in the admin request (`generation_batches.requested_count = 1`, `publishing_mode = draft`). Phase 6 replaced that with a durable 5–15 job queue.
 - Brief+outline share one model call; SEO+visual brief share one call. Draft is a separate call. Intermediate JSON stays in existing `generation_jobs` jsonb columns (`outline`, `draft`, `validation`, `token_usage`).
 - Optional illustration uses `gemini-3.1-flash-image` (`cover_illustration` profile). Failure records `coverError` and must not discard the article draft. The editor AI illustration control is live; it composites a text-free image behind the branded SVG title layer.
 - Covers pick template/palette/motif from the visual brief, with a slug seed fallback. Title typography is always coded SVG, never model-rendered text.
@@ -583,20 +584,57 @@ Additive remote migration `phase5_ai_generation_mvp` (still 20 application table
 #### Phase 5 follow-up (does not block Phase 6)
 
 - Run a logged-in generation of titles plus one draft and confirm audit events `generation.titles` / `generation.article` / `post.cover_ai`.
-- Durable 5–15 article jobs, retries, cancellation, and budgets remain Phase 6.
+- Durable 5–15 article jobs, retries, cancellation, and budgets shipped in Phase 6.
 - Optional editorial-review pass and AI Gateway routing remain later work.
 
 ### Phase 6 — durable batch generation
 
-Status: planned
+Status: complete  
+Completed: 2026-10-03
 
 - add 5–15 article batches, independent jobs, queue worker, retries, cancellation, and progress;
 - process AI supporting images as independent idempotent media jobs with retry, moderation, provenance, and cost tracking;
 - add budgets, concurrency limits, idempotency, timeouts, and failure recovery;
-- add draft, scheduled, and gated automatic publication modes;
-- add secure multi-key rotation and failover.
+- add draft, scheduled, and gated automatic publication modes.
 
 Acceptance: refreshing or closing admin does not interrupt generation and failed jobs recover safely.
+
+#### Phase 6 decisions
+
+- The worker is a Postgres claim-lock plus Vercel cron, not the Vercel Workflow SDK. `/api/cron/generate` runs every minute (`* * * * *`, `maxDuration` 300) with the same `CRON_SECRET` bearer check as publish. Enqueue, retry, and the batch progress page also kick the worker with `after()` so local admin use does not wait on cron.
+- Each selected title becomes its own `generation_jobs` row with a unique `idempotency_key`. Claim uses `FOR UPDATE SKIP LOCKED` in private schema `app`. Public RPC wrappers are `security definer`, `search_path = public, pg_temp`, and reject any caller whose `auth.role()` is not `service_role`. Execute is granted only to `service_role`.
+- Intermediate outline/draft JSON stays on the job, so a retry resumes instead of starting over. Cancel sets `cancel_requested` on the batch and pending jobs immediately; running jobs stop at the next checkpoint. Stale running rows (heartbeat older than 300s) are recovered to pending, failed, or cancelled.
+- Optional illustrations enqueue `generation_media_jobs` after the draft is saved. A failed or rejected image does not discard the article. The post editor AI cover control stays in-request and does not create a media job.
+- Hourly cap is `site_settings.generation_hourly_job_limit` (24) so a 15-article batch fits. Default concurrency is 2 article jobs and 2 media jobs. Checkpoint timeout is 240 seconds. Manual retry resets attempts.
+- Default publishing mode remains `draft`. Authors cannot select scheduled or auto. Auto-publish stays off (`auto_publish_enabled = false`) until quality is proven. When a publisher selects scheduled or gated auto, passing drafts are staggered through existing `publishing_schedules`.
+- Vault multi-key rotation was listed on the original Phase 6 plan and remains follow-up. The env key plus masked `integration_secret_refs` row is unchanged.
+
+#### Phase 6 schema
+
+Additive remote migrations `phase6_durable_generation` and `phase6_media_job_fk_indexes` (21 application tables): `generation_jobs` gained cancel, backoff, lock, and cost columns; `generation_batches.cancel_requested`; new `generation_media_jobs` with ENABLE + FORCE RLS and the same `app.can_access_batch` policies as jobs. Anon still has no grants on generation, media-job, or secret tables. Claim RPCs are not executable by `anon` or `authenticated`.
+
+#### Phase 6 routes
+
+- `/admin/generate` — direction form, 5–15 title ideas, provider health (super admin), recent batches. `noindex`.
+- `/admin/generate/[id]` — multi-select titles, queue independent jobs, live progress, cancel remaining, retry failed article or illustration jobs. `noindex`. `maxDuration` 300.
+- `/api/cron/generate` — service worker tick. 401 without `Authorization: Bearer CRON_SECRET`.
+- Public converter and blog routes unchanged. Blog stays out of the primary header.
+
+#### Phase 6 verification
+
+- `npx tsc --noEmit` passed after the durable worker, media jobs, and Generate UI landed.
+- Remote migrations applied to AllYouConvert: `generation_media_jobs` present with FORCE RLS; hourly limit 24; concurrency 2/2; stale 300s; auto-publish false.
+- Security advisor: no new findings (existing Auth leaked-password WARN unchanged). Performance advisor: unused-index INFO on a quiet database (indexes kept). Covering indexes added for `generation_media_jobs` foreign keys.
+- Grants: `anon` has no privileges on `generation_batches`, `generation_jobs`, `generation_media_jobs`, or `integration_secret_refs`. Claim functions execute for `service_role` (and owner) only.
+- Unauthenticated `/admin/generate` and `/admin/generate/[id]` redirected to login with `next=`. `/api/cron/generate` returned 401 `{"error":"Unauthorized"}` without a secret. Homepage primary nav stays converter categories; Blog remains footer-only. Latest guides still render before FAQ.
+- A signed-in 5–15 title-to-queue click-through was not available in this session. The Google env key is present locally for a later staff test.
+
+#### Phase 6 follow-up (does not block Phase 7)
+
+- Run a logged-in batch of several titles and confirm independent job progress, cancel, retry, media jobs, and audit events `generation.enqueue` / `generation.article` / `generation.media` / `generation.cancel`.
+- Add secure multi-key rotation and failover in Supabase Vault.
+- Set `CRON_SECRET` on Vercel if it is not already present for the publish cron.
+- Optional editorial-review pass and AI Gateway routing remain later work.
 
 ### Phase 7 — editorial quality and growth
 
@@ -638,4 +676,4 @@ An implementation phase is not complete until both artifacts match the actual co
 
 ## 16. Immediate next step
 
-Begin Phase 6: durable batch generation with independent jobs, retries, cancellation, progress, and media jobs. Keep Blog out of the primary header. After implementation, update this document and the Canvas together.
+Begin Phase 7: editorial quality and growth. Add similarity detection, fact validation, visual checks, internal-link suggestions, and privacy-safe search/converter metrics. Keep Blog out of the primary header. After implementation, update this document and the Canvas together.
