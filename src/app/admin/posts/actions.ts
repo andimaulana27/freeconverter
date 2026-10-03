@@ -3,8 +3,10 @@
 import { redirect } from "next/navigation";
 import { canPublish } from "@/lib/auth/roles";
 import { requireCms, requirePublisher } from "@/lib/auth/session";
-import { brandedCoverSvg } from "@/lib/cms/cover-template";
-import { postSnapshot, publishInputFromPost, validateForPublish } from "@/lib/cms/quality";
+import { brandedCoverSvg, visualBriefFromSeed } from "@/lib/cms/cover-template";
+import { evaluatePostQuality, recordAlert, runEditorialReview, saveQualityReport } from "@/lib/cms/editorial-server";
+import { linksAsListBlock } from "@/lib/cms/editorial";
+import { storedBody, postSnapshot } from "@/lib/cms/quality";
 import { cancelPendingSchedules, createPublishSchedule, processDueSchedules } from "@/lib/cms/schedules";
 import {
   applyArchive,
@@ -138,8 +140,18 @@ export async function changePostStatus(input: {
   }
 
   if (input.action === "publish") {
-    const issues = validateForPublish(publishInputFromPost(post));
-    if (issues.length) return { ok: false, error: issues[0].message, code: "validation", issues, post };
+    const { issues, report } = await evaluatePostQuality(session.supabase, post);
+    await saveQualityReport(session.supabase, { postId: post.id, report, actorId: session.user.id });
+    if (issues.length) {
+      await recordAlert(session.supabase, {
+        kind: "quality_hold",
+        severity: "warning",
+        message: issues[0].message,
+        entityType: "blog_post",
+        entityId: post.id,
+      });
+      return { ok: false, error: issues[0].message, code: "validation", issues, post };
+    }
     await cancelPendingSchedules(session.supabase, post.id);
     const next = await applyPublish(session.supabase, post, session.user.id);
     if (!next) return { ok: false, error: "Publish failed." };
@@ -193,7 +205,8 @@ export async function changePostStatus(input: {
   }
   const scheduleAction = input.scheduleAction ?? "publish";
   if (scheduleAction === "publish") {
-    const issues = validateForPublish(publishInputFromPost(post));
+    const { issues, report } = await evaluatePostQuality(session.supabase, post);
+    await saveQualityReport(session.supabase, { postId: post.id, report, actorId: session.user.id });
     if (issues.length) return { ok: false, error: issues[0].message, code: "validation", issues, post };
   }
   await createPublishSchedule(session.supabase, {
@@ -355,7 +368,8 @@ export async function generateTemplateCover(input: {
     return { ok: false, error: "This guide was updated in another tab. Reload before generating a cover.", code: "conflict", post };
   }
 
-  const svg = brandedCoverSvg(input.title || post.title, post.topic?.name ?? "GUIDE");
+  const brief = visualBriefFromSeed(input.title || post.title, post.topic?.name ?? "GUIDE", post.id);
+  const svg = brandedCoverSvg(input.title || post.title, brief.kicker, brief);
   const body = new Blob([svg], { type: "image/svg+xml" });
   try {
     const mediaId = await upsertPublicCover(session.supabase, {
@@ -363,11 +377,12 @@ export async function generateTemplateCover(input: {
       path: `covers/${post.id}/template.svg`,
       body,
       contentType: "image/svg+xml",
-      altText: `Branded cover for ${input.title || post.title}`,
+      altText: brief.altText,
       actorId: session.user.id,
       source: "template",
       approve: canPublish(session.role),
-      templateKey: "brand-bar",
+      templateKey: brief.templateKey,
+      variant: `${brief.palette}:${brief.motif}:hero`,
       seed: post.id,
       width: 1200,
       height: 630,
@@ -484,4 +499,105 @@ export async function removeCover(input: { postId: string; expectedUpdatedAt: st
 export async function runDueSchedulesAction() {
   const session = await requirePublisher("/admin");
   return processDueSchedules(session.supabase, session.user.id);
+}
+
+export async function runQualityScan(postId: string) {
+  const session = await requireCms(`/admin/posts/${postId}`);
+  const post = await fetchPost(session.supabase, postId);
+  if (!post) return { ok: false as const, error: "Guide not found." };
+  const { report, issues } = await evaluatePostQuality(session.supabase, post);
+  const row = await saveQualityReport(session.supabase, { postId: post.id, report, actorId: session.user.id });
+  return { ok: true as const, report, issues, row };
+}
+
+export async function runAiEditorialReview(postId: string) {
+  const session = await requireCms(`/admin/posts/${postId}`);
+  const post = await fetchPost(session.supabase, postId);
+  if (!post) return { ok: false as const, error: "Guide not found." };
+  try {
+    const { report } = await evaluatePostQuality(session.supabase, post);
+    const { output, step } = await runEditorialReview(session.supabase, post);
+    const editorial = { ...output, modelId: step.modelId, promptVersion: step.promptVersion };
+    await saveQualityReport(session.supabase, { postId: post.id, report, actorId: session.user.id, editorial });
+    if (output.verdict === "hold") {
+      await recordAlert(session.supabase, {
+        kind: "quality_hold",
+        severity: "error",
+        message: output.summary,
+        entityType: "blog_post",
+        entityId: post.id,
+      });
+    }
+    await writeAudit(session.supabase, {
+      actorId: session.user.id,
+      action: "post.editorial_review",
+      entityType: "blog_post",
+      entityId: post.id,
+      metadata: { verdict: output.verdict, modelId: step.modelId },
+    });
+    return { ok: true as const, editorial };
+  } catch (error) {
+    return { ok: false as const, error: error instanceof Error ? error.message : "Editorial review failed." };
+  }
+}
+
+export async function applySuggestedLinks(input: { postId: string; expectedUpdatedAt: string }): Promise<CmsActionResult> {
+  const session = await requireCms(`/admin/posts/${input.postId}`);
+  const post = await fetchPost(session.supabase, input.postId);
+  if (!post) return { ok: false, error: "Guide not found." };
+  const { report } = await evaluatePostQuality(session.supabase, post);
+  if (!report.links.length) return { ok: false, error: "No internal-link suggestions yet.", post };
+  const body = storedBody(post.body);
+  const nextBody = { version: 1 as const, blocks: [...body.blocks, linksAsListBlock(report.links)] };
+  return savePostContent(session.supabase, {
+    postId: post.id,
+    expectedUpdatedAt: input.expectedUpdatedAt,
+    payload: {
+      title: post.title,
+      slug: post.slug,
+      excerpt: post.excerpt ?? "",
+      seoTitle: post.seo_title ?? "",
+      seoDescription: post.seo_description ?? "",
+      topicId: post.topic_id,
+      toolSlugs: post.tool_slugs,
+      noindex: post.noindex,
+      body: nextBody,
+    },
+    actorId: session.user.id,
+    createRevision: true,
+  });
+}
+
+export async function rollbackPublishedGuide(postId: string): Promise<CmsActionResult> {
+  const session = await requirePublisher(`/admin/posts/${postId}`);
+  const post = await fetchPost(session.supabase, postId);
+  if (!post) return { ok: false, error: "Guide not found." };
+  if (post.status !== "published" && post.status !== "scheduled") {
+    return { ok: false, error: "Only live or scheduled guides can be rolled back.", post };
+  }
+  const archived = await applyArchive(session.supabase, post, session.user.id);
+  if (!archived) return { ok: false, error: "Rollback failed." };
+  const { data: revisions } = await session.supabase
+    .from("blog_post_revisions")
+    .select("id")
+    .eq("post_id", post.id)
+    .order("created_at", { ascending: false })
+    .limit(3);
+  const previous = (revisions ?? []).map((row) => String(row.id)).find((id) => id !== archived.current_revision_id);
+  await writeAudit(session.supabase, {
+    actorId: session.user.id,
+    action: "post.rollback",
+    entityType: "blog_post",
+    entityId: post.id,
+    metadata: { previousRevisionId: previous ?? null },
+  });
+  await recordAlert(session.supabase, {
+    kind: "publish_failure",
+    severity: "info",
+    message: `Rolled back ${post.slug} from the public site.`,
+    entityType: "blog_post",
+    entityId: post.id,
+  });
+  const next = await fetchPost(session.supabase, post.id);
+  return next ? { ok: true, post: next, message: "Guide taken offline. Restore an earlier revision if needed." } : { ok: false, error: "Guide not found." };
 }
