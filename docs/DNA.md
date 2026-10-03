@@ -44,6 +44,9 @@ See `docs/PALETTE.md`.
 Different from Smallpdf (rounded dashed card) and iLovePDF (icon grid):
 
 - Nav: Linear/Stripe — text links, no pills, one red **Convert** to `/`. Homepage groups and hash links include Utilitas.
+- Donate is a neutral support action after Utilities, opens the official PayPal.me page, and collapses to a heart icon on small screens.
+- Legal pages share one interactive document shell: Privacy/Terms switcher, sticky desktop contents, collapsible mobile contents, dark summary panel, anchored section cards, and back-to-top controls.
+- Button styling comes only from `src/components/ui/Button.tsx`; variants and sizes are documented in `docs/PALETTE.md` so menus and future pages reuse the same states.
 - Homepage hero is a dark conversion workbench: concrete file-format copy, live upload machine, route shortcuts, and no generic gradient/AI landing-page treatment.
 - Footer is a dark, multi-column tool directory. Every link must resolve to a real tool, category, or legal page; worker-backed tools remain honestly labeled on their destination page.
 - Tool page: two columns. Left = category, giant mono `FROM → TO`, H1. Right = workbench with corner marks, not a boxed dropzone.

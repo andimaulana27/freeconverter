@@ -23,7 +23,17 @@ FreeConverter is white, black, gray, and one red. Red is an action color, never 
 - Red appears on Convert, the output format, drag corners, and the progress bar.
 - Do not paint the hero or dropzone red (fashion full-bleed).
 - Nav is Linear/Stripe: text links, no pills, one red Convert on the right.
+- Donate uses the neutral support style and remains visually secondary to Convert.
 - Tool page is an editorial workbench: giant mono `FROM → TO`, then the stage. Not a centered dashed card like Smallpdf/iLovePDF.
+
+## Button scheme
+
+`src/components/ui/Button.tsx` is the single source of truth. Do not recreate these states with page-local class strings.
+
+- Six variants: `primary` (principal product action), `secondary` (standard outline), `ink` (strong neutral), `ghost` (low emphasis), `danger` (destructive), and `support` (donation/community).
+- Five sizes: `xs`, `sm`, `md`, `lg`, and `icon`.
+- Use `Button` for native actions, `ButtonLink` for internal navigation, and `ButtonAnchor` for external destinations.
+- Keep `primary` red for genuine principal actions. Donate uses `support`, never `primary`.
 
 ## Motion
 
