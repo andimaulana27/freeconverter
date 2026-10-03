@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/cn";
 import { SITE_NAME } from "@/lib/site";
+import { ButtonAnchor, ButtonLink } from "@/components/ui/Button";
 import { Container } from "@/components/ui/Container";
 import { Logo } from "@/components/layout/Logo";
 
@@ -14,6 +15,8 @@ const NAV = [
   { href: "/#dokumen", label: "Documents", index: "04" },
   { href: "/#utilitas", label: "Utilities", index: "05" },
 ];
+
+const DONATE_URL = "https://www.paypal.com/paypalme/HeruUtamaPutra";
 
 export function Header() {
   const path = usePathname();
@@ -31,7 +34,7 @@ export function Header() {
 
       <Container className="flex h-[72px] w-[calc(100%_-_2rem)] max-w-[1440px] items-center gap-4 px-0 sm:w-[calc(100%_-_3rem)] sm:gap-6 sm:px-0">
         <Link href="/" className="group flex shrink-0 items-center text-ink" aria-label={`${SITE_NAME} home`}>
-          <Logo priority className="transition duration-280 group-hover:-translate-y-0.5" />
+          <Logo priority className="max-w-[118px] transition duration-280 group-hover:-translate-y-0.5 sm:max-w-[168px]" />
         </Link>
 
         <span className="hidden h-7 w-px shrink-0 bg-[#ddd6d2] sm:block" aria-hidden />
@@ -57,16 +60,45 @@ export function Header() {
           })}
         </nav>
 
-        <Link
+        <ButtonAnchor
+          href={DONATE_URL}
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="Donate via PayPal (opens in a new tab)"
+          title="Donate via PayPal"
+          variant="support"
+          size="icon"
+          className="ml-auto sm:w-auto sm:gap-2 sm:px-3.5 lg:ml-0"
+        >
+          <svg
+            viewBox="0 0 20 20"
+            className="h-4 w-4 transition duration-280 group-hover:scale-110 group-hover:fill-current group-focus-visible:fill-current"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.7"
+            aria-hidden
+          >
+            <path
+              d="M10 16.3 3.9 10.5a3.8 3.8 0 0 1-.2-5.2 3.5 3.5 0 0 1 5.1-.1L10 6.4l1.2-1.2a3.5 3.5 0 0 1 5.1.1 3.8 3.8 0 0 1-.2 5.2L10 16.3Z"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+          <span className="hidden text-xs font-bold sm:inline">Donate</span>
+        </ButtonAnchor>
+
+        <ButtonLink
           href={path === "/" ? "/#converter" : "/#tools"}
-          className="group my-auto ml-auto inline-flex shrink-0 items-center gap-2 rounded-control bg-accent px-3.5 py-2.5 text-xs font-bold text-white shadow-action transition duration-180 hover:-translate-y-0.5 hover:bg-accent-ink active:scale-[0.98] lg:ml-0 sm:px-4"
+          variant="primary"
+          size="md"
+          className="my-auto px-3.5 text-xs font-bold sm:px-4"
         >
           <span className="sm:hidden">{path === "/" ? "Convert" : "Tools"}</span>
           <span className="hidden sm:inline">{path === "/" ? "Start converting" : "Browse tools"}</span>
           <svg viewBox="0 0 16 16" className="h-3.5 w-3.5 transition duration-180 group-hover:translate-x-0.5" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden>
             <path d="M2.5 8h10m-4-4 4 4-4 4" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
-        </Link>
+        </ButtonLink>
       </Container>
     </header>
   );
