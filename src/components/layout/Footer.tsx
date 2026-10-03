@@ -39,6 +39,7 @@ const FOOTER_GROUPS = [
     title: "AllYouConvert",
     links: [
       { href: "/tools", label: "All tools" },
+      { href: "/blog", label: "Blog" },
       { href: "/#converter", label: "Quick converter" },
       { href: "/privacy", label: "Privacy" },
       { href: "/terms", label: "Terms" },
