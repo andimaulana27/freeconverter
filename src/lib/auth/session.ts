@@ -1,7 +1,7 @@
 import "server-only";
 
 import { redirect } from "next/navigation";
-import { readUserRole, type StaffRole } from "@/lib/auth/roles";
+import { canPublish, canUseCms, readUserRole, type StaffRole } from "@/lib/auth/roles";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 
 export async function getStaffSession() {
@@ -36,5 +36,17 @@ export async function requireStaff(nextPath = "/admin"): Promise<{
   if (session.nextAal === "aal2" && session.currentAal !== "aal2") {
     redirect(`/admin/mfa?next=${encodeURIComponent(nextPath)}`);
   }
+  return session;
+}
+
+export async function requireCms(nextPath = "/admin/posts") {
+  const session = await requireStaff(nextPath);
+  if (!canUseCms(session.role)) redirect("/admin");
+  return session;
+}
+
+export async function requirePublisher(nextPath = "/admin") {
+  const session = await requireStaff(nextPath);
+  if (!canPublish(session.role)) redirect("/admin");
   return session;
 }
