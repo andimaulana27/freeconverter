@@ -87,7 +87,7 @@ export default async function ToolPage({ params }: Props) {
               </span>
               <span>
                 <p className="text-micro font-bold uppercase sm:text-eyebrow">Conversion workspace</p>
-                <p className="mt-0.5 hidden text-micro text-white/40 sm:block">Drop or upload a file, then convert in this card.</p>
+                <p className="mt-0.5 hidden text-micro text-white/70 sm:block">Drop or upload a file, then convert in this card.</p>
               </span>
             </div>
           </div>
@@ -104,8 +104,8 @@ export default async function ToolPage({ params }: Props) {
 
         <div className="grid items-stretch gap-8 lg:grid-cols-[minmax(0,1.05fr)_minmax(360px,0.95fr)] lg:gap-10">
           <div className="flex flex-col justify-center">
-            <p className="flex items-center gap-3 text-eyebrow font-bold uppercase text-accent">
-              <span className="h-px w-7 bg-accent" />
+            <p className="flex items-center gap-3 text-eyebrow font-bold uppercase text-accent-ink">
+              <span className="h-px w-7 bg-accent-ink" />
               Conversion blueprint
             </p>
             <h2 className="mt-4 max-w-2xl text-4xl font-semibold leading-[1.02] tracking-[-0.05em] text-ink sm:text-5xl">
@@ -152,7 +152,7 @@ export default async function ToolPage({ params }: Props) {
                 <div className="flex min-w-0 items-center gap-3 rounded-card border border-white/10 bg-white/[0.06] p-3">
                   <FormatGlyph format={primaryInput} category={tool.category} className="border-white/10 bg-white/[0.07] text-white" />
                   <span className="min-w-0">
-                    <span className="block text-micro font-bold uppercase text-white/35">Input</span>
+                    <span className="block text-micro font-bold uppercase text-white/70">Input</span>
                     <span className="mt-0.5 block truncate font-mono text-sm font-semibold text-white">{primaryInput}</span>
                   </span>
                 </div>
@@ -162,25 +162,25 @@ export default async function ToolPage({ params }: Props) {
                 <div className="flex min-w-0 items-center gap-3 rounded-card border border-accent/30 bg-accent/10 p-3">
                   <FormatGlyph format={tool.output} category={tool.category} className="border-accent/25 bg-accent text-white" />
                   <span className="min-w-0">
-                    <span className="block text-micro font-bold uppercase text-white/35">Output</span>
+                    <span className="block text-micro font-bold uppercase text-white/70">Output</span>
                     <span className="mt-0.5 block truncate font-mono text-sm font-semibold text-white">{tool.output.toUpperCase()}</span>
                   </span>
                 </div>
               </ShotHit>
             </div>
 
-            <dl className="relative grid grid-cols-3 gap-px overflow-hidden rounded-card border border-white/10 bg-white/10">
+            <div className="relative grid grid-cols-3 gap-px overflow-hidden rounded-card border border-white/10 bg-white/10">
               {[
                 [formats || primaryInput, "Accepted"],
                 [tool.output.toUpperCase(), "Result"],
                 [tool.need === "browser" ? "Local" : "Worker", "Mode"],
               ].map(([value, label]) => (
                 <div key={label} className="min-w-0 bg-[#1e1917] p-3">
-                  <dt className="truncate font-mono text-[11px] font-semibold text-white">{value}</dt>
-                  <dd className="mt-1 text-micro font-semibold uppercase text-white/35">{label}</dd>
+                  <p className="truncate font-mono text-[11px] font-semibold text-white">{value}</p>
+                  <p className="mt-1 text-micro font-semibold uppercase text-white/70">{label}</p>
                 </div>
               ))}
-            </dl>
+            </div>
           </div>
         </div>
       </section>
@@ -193,7 +193,7 @@ export default async function ToolPage({ params }: Props) {
           />
           <div className="mb-6 flex items-end justify-between gap-4">
             <div>
-              <p className="text-eyebrow font-bold uppercase text-accent">Keep working</p>
+              <p className="text-eyebrow font-bold uppercase text-accent-ink">Keep working</p>
               <h2 className="mt-2 text-3xl font-semibold tracking-[-0.04em] text-ink">Related tools</h2>
             </div>
             <Link href="/tools" className="group flex items-center gap-2 text-xs font-semibold text-mute transition hover:text-accent">
@@ -233,15 +233,15 @@ export default async function ToolPage({ params }: Props) {
 
         <div className="flex flex-col justify-between gap-5 lg:flex-row lg:items-end">
           <div>
-            <p className="flex items-center gap-3 text-eyebrow font-bold uppercase text-accent">
-              <span className="h-px w-7 bg-accent" />
+            <p className="flex items-center gap-3 text-eyebrow font-bold uppercase text-accent-light">
+              <span className="h-px w-7 bg-accent-light" />
               How it works
             </p>
             <h2 className="mt-4 max-w-2xl text-4xl font-semibold leading-[1.02] tracking-[-0.05em] sm:text-5xl">
               One focused job.<br />Three clear steps.
             </h2>
           </div>
-          <p className="max-w-sm text-sm leading-6 text-white/45">A direct route from {primaryInput} to {tool.output.toUpperCase()}, with only the controls this job needs.</p>
+          <p className="max-w-sm text-sm leading-6 text-white/75">A direct route from {primaryInput} to {tool.output.toUpperCase()}, with only the controls this job needs.</p>
         </div>
 
         <div className="relative mt-8 grid gap-4 sm:grid-cols-3">
@@ -262,11 +262,11 @@ export default async function ToolPage({ params }: Props) {
             <div key={number} className="group/step relative overflow-hidden rounded-tile border border-white/10 bg-white/[0.045] p-5 transition duration-280 hover:-translate-y-1 hover:border-white/20 hover:bg-white/[0.075] sm:p-6">
               <div className="relative flex items-center justify-between">
                 {index === 0 ? <ShotKick>{icon}</ShotKick> : index === 2 ? <ShotHit>{icon}</ShotHit> : icon}
-                <span className="font-mono text-micro text-white/35">{number}</span>
+                <span className="font-mono text-micro text-white/70">{number}</span>
               </div>
               <h3 className="mt-7 text-lg font-semibold text-white">{title}</h3>
-              <p className="mt-2 text-xs leading-5 text-white/45">{copy}</p>
-              <p className="mt-6 flex items-center gap-2 border-t border-white/10 pt-4 font-mono text-micro uppercase text-white/45">
+              <p className="mt-2 text-xs leading-5 text-white/75">{copy}</p>
+              <p className="mt-6 flex items-center gap-2 border-t border-white/10 pt-4 font-mono text-micro uppercase text-white/70">
                 <span className={`h-1.5 w-1.5 rounded-full ${index === 2 ? "bg-[#55d69a]" : "bg-accent-light"}`} />
                 Step {number}
               </p>
@@ -287,8 +287,8 @@ export default async function ToolPage({ params }: Props) {
 
         <div className="grid items-stretch gap-8 lg:grid-cols-[minmax(0,1fr)_340px] lg:gap-10">
           <div className="flex flex-col justify-center">
-            <p className="flex items-center gap-3 text-eyebrow font-bold uppercase text-accent">
-              <span className="h-px w-7 bg-accent" />
+            <p className="flex items-center gap-3 text-eyebrow font-bold uppercase text-accent-ink">
+              <span className="h-px w-7 bg-accent-ink" />
               About this converter
             </p>
             <h2 className="mt-4 max-w-2xl text-3xl font-semibold leading-[1.04] tracking-[-0.045em] text-ink sm:text-4xl">{headline}, without the detour.</h2>
