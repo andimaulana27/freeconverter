@@ -147,7 +147,7 @@ function ToolGlyph({ tool }: { tool: ToolDef }) {
       </>
     );
   }
-  if (slug.includes("ai-") || slug.includes("chat") || slug.includes("translate")) {
+  if ((slug.includes("ai-") && !slug.startsWith("ai-to-")) || slug.includes("chat") || slug.includes("translate")) {
     return (
       <>
         <path d="M12 3l1.4 4.6L18 9l-4.6 1.4L12 15l-1.4-4.6L6 9l4.6-1.4L12 3Z" />
@@ -155,10 +155,18 @@ function ToolGlyph({ tool }: { tool: ToolDef }) {
       </>
     );
   }
-  if (slug.includes("json") || slug.includes("unit")) {
+  if (slug.includes("json")) {
     return (
       <>
         <path d="M9 4C6 4 6 7 6 9s-1 3-3 3c2 0 3 1 3 3s0 5 3 5M15 4c3 0 3 3 3 5s1 3 3 3c-2 0-3 1-3 3s0 5-3 5" />
+      </>
+    );
+  }
+  if (slug.includes("unit") || category === "Utilitas") {
+    return (
+      <>
+        <path d="M4 7h16M4 12h16M4 17h16" />
+        <path d="M8 7v2.5M12 7v4M16 7v2.5M8 17v-2.5M16 17v-2.5" />
       </>
     );
   }
@@ -194,11 +202,36 @@ function ToolGlyph({ tool }: { tool: ToolDef }) {
       </>
     );
   }
-  if (category === "CAD" || category === "Vektor") {
+  if (category === "Vektor") {
+    return (
+      <>
+        <path d="M5 17c3.2-7.5 10.8-7.5 14 0" />
+        <path d="M5 17c1.4-1 2.4-2.6 2.6-4.4M19 17c-1.4-1-2.4-2.6-2.6-4.4" />
+        <circle cx="5" cy="17" r="1.4" />
+        <circle cx="19" cy="17" r="1.4" />
+      </>
+    );
+  }
+  if (category === "CAD") {
     return (
       <>
         <path d="m12 3 8 5v8l-8 5-8-5V8l8-5Z" />
         <path d="m4 8 8 5 8-5M12 13v8" />
+      </>
+    );
+  }
+  if (category === "Video") {
+    return (
+      <>
+        <rect x="3" y="6" width="13" height="12" rx="2" />
+        <path d="m16 10.2 5-2.4v8.4l-5-2.4" />
+      </>
+    );
+  }
+  if (category === "Audio") {
+    return (
+      <>
+        <path d="M4 10v4M8 7v10M12 4v16M16 8v8M20 11v2" />
       </>
     );
   }

@@ -23,6 +23,10 @@ const CATEGORY_LINKS = [
   { slug: "epub-to-pdf", label: "E-books", note: "Readers & comics" },
   { slug: "rar-to-zip", label: "Archives", note: "ZIP, RAR, 7Z" },
   { slug: "ttf-to-woff2", label: "Fonts", note: "Ready for the web" },
+  { slug: "ai-to-svg", label: "Vector", note: "SVG, AI, EPS" },
+  { slug: "mkv-to-mp4", label: "Video", note: "MP4, MOV, WEBM" },
+  { slug: "wav-to-mp3", label: "Audio", note: "MP3, WAV, FLAC" },
+  { slug: "unit-converter", label: "Utilities", note: "Everyday tools" },
 ] as const;
 
 const FAQS = [
