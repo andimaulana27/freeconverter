@@ -1,6 +1,6 @@
 import "server-only";
 
-import { validateForPublish } from "@/lib/cms/quality";
+import { evaluatePostQuality, recordAlert, saveQualityReport } from "@/lib/cms/editorial-server";
 import { applyArchive, applyPublish, fetchPost, type StaffClient, writeAudit } from "@/lib/cms/server";
 import type { CmsSchedule } from "@/lib/cms/types";
 
@@ -54,16 +54,8 @@ export async function processDueSchedules(client: StaffClient, actorId: string |
 
     try {
       if (schedule.action === "publish") {
-        const issues = validateForPublish({
-          title: post.title,
-          slug: post.slug,
-          excerpt: post.excerpt ?? "",
-          seoTitle: post.seo_title ?? "",
-          seoDescription: post.seo_description ?? "",
-          body: post.body,
-          toolSlugs: post.tool_slugs,
-          cover: post.cover ?? null,
-        });
+        const { issues, report } = await evaluatePostQuality(client, post);
+        await saveQualityReport(client, { postId: post.id, report, actorId });
         if (issues.length) throw new Error(issues.map((issue) => issue.message).join(" "));
         await applyPublish(client, post, actorId);
       } else {
@@ -93,6 +85,14 @@ export async function processDueSchedules(client: StaffClient, actorId: string |
         .from("publishing_schedules")
         .update({ status: "failed", last_error: message, attempts: schedule.attempts + 1 })
         .eq("id", schedule.id);
+      await recordAlert(client, {
+        kind: "schedule_failure",
+        severity: "error",
+        message,
+        entityType: "blog_post",
+        entityId: schedule.post_id,
+        metadata: { scheduleId: schedule.id },
+      });
       failures.push(message);
     }
   }

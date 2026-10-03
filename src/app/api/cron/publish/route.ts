@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { scanAdFailures } from "@/lib/cms/editorial-server";
 import { processDueSchedules } from "@/lib/cms/schedules";
 import { createServiceSupabaseClient } from "@/lib/supabase/service";
 
@@ -16,6 +17,7 @@ async function run(request: Request) {
   }
   const client = createServiceSupabaseClient();
   const result = await processDueSchedules(client, null);
+  await scanAdFailures(client);
   return NextResponse.json(result);
 }
 
