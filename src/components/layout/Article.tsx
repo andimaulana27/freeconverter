@@ -9,8 +9,8 @@ export function Article({ title, children }: Props) {
   return (
     <article className="grid gap-8 sm:gap-10 lg:grid-cols-[0.6fr_1.4fr] lg:gap-12">
       <header>
-        <p className="flex items-center gap-3 text-eyebrow font-bold uppercase text-accent">
-          <span className="h-px w-8 bg-accent" />
+        <p className="flex items-center gap-3 text-eyebrow font-bold uppercase text-accent-ink">
+          <span className="h-px w-8 bg-accent-ink" />
           Legal
         </p>
         <h1 className="mt-5 text-5xl font-semibold tracking-[-0.055em] text-ink">{title}</h1>
