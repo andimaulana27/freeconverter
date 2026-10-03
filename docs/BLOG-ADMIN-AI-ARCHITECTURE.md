@@ -1,6 +1,6 @@
 # Blog, Admin CMS, Ads, and AI Architecture
 
-Status: Phase 4 complete; Phase 5 is next  
+Status: Phase 5 complete; Phase 6 is next  
 Last updated: 2026-10-03  
 Canvas: `blog-admin-ai-architecture.canvas.tsx`
 
@@ -201,6 +201,8 @@ Suggested task profiles:
 - optional generated covers later: a supported Gemini image model behind the same provider adapter.
 
 When implementation starts, verify current model IDs and pricing again. Model availability changes faster than the application architecture.
+
+Phase 5 verified IDs (2026-10-03): `gemini-3.5-flash-lite` (titles), `gemini-3.8-flash` (outline, draft, SEO), `gemini-3.1-flash-image` (optional illustration). Thinking levels used are `low`, `medium`, and `high`. `minimal` is not sent because `gemini-3.8-flash` rejects it.
 
 Use AI SDK structured generation with `generateText` and `Output.object()` schemas. Validate every payload again on the server before storing or publishing it.
 
@@ -534,7 +536,8 @@ Additive remote migration `phase4_ads_manager` (still 20 application tables): tw
 
 ### Phase 5 — AI generation MVP
 
-Status: planned
+Status: complete  
+Completed: 2026-10-03
 
 - implement provider adapter, key health, model profiles, and prompt versions;
 - generate structured topic and title candidates;
@@ -544,6 +547,44 @@ Status: planned
 - capture token usage, model ID, prompt version, errors, and audit events.
 
 Acceptance: AI output is schema-valid, traceable, editable, and never auto-published by default.
+
+#### Phase 5 decisions
+
+- The first adapter is Google AI Studio through `@ai-sdk/google` `createGoogle({ apiKey })` and `GOOGLE_GENERATIVE_AI_API_KEY`. Vercel AI Gateway stays a later swap behind the same `generateStructured` / `generateIllustrationPng` boundary.
+- Structured calls use AI SDK `generateText` with `Output.object()` and Zod schemas, then `parseBlogBody` plus publish-quality checks before save.
+- MVP generates 5–15 titles, then **one** selected article in the admin request (`generation_batches.requested_count = 1`, `publishing_mode = draft`). Durable 5–15 article workers remain Phase 6.
+- Brief+outline share one model call; SEO+visual brief share one call. Draft is a separate call. Intermediate JSON stays in existing `generation_jobs` jsonb columns (`outline`, `draft`, `validation`, `token_usage`).
+- Optional illustration uses `gemini-3.1-flash-image` (`cover_illustration` profile). Failure records `coverError` and must not discard the article draft. The editor AI illustration control is live; it composites a text-free image behind the branded SVG title layer.
+- Covers pick template/palette/motif from the visual brief, with a slug seed fallback. Title typography is always coded SVG, never model-rendered text.
+- Super admins can test the provider from `/admin/generate`. Repeated authentication errors increment `consecutive_auth_failures` and disable generation after three failures. The key value never leaves the server.
+- Authors and editors can start draft batches. Publish, schedule, and media approval stay publisher-only. Hourly cap is `site_settings.generation_hourly_job_limit` (8).
+- Editorial-review profile remains seeded and unused in this phase.
+
+#### Phase 5 schema
+
+Additive remote migration `phase5_ai_generation_mvp` (still 20 application tables): `cover_illustration` prompt + model profile, `integration_secret_refs.consecutive_auth_failures`, and `generation_hourly_job_limit`. RLS remains ENABLE + FORCE. Anon still has no grants on generation or secret tables.
+
+#### Phase 5 routes
+
+- `/admin/generate` — direction form, provider health (super admin), recent batches. `noindex`. `maxDuration` 300.
+- `/admin/generate/[id]` — edit/reject titles, generate one draft, job trace (model IDs, tokens, stage).
+- `/admin/posts/[id]` — AI illustration cover control enabled.
+- Public converter and blog routes unchanged. Blog stays out of the primary header.
+
+#### Phase 5 verification
+
+- `npx tsc --noEmit` passed after the generation adapter, CMS cover helper, and admin Generate routes landed.
+- Remote migration applied to AllYouConvert: 6 model profiles including `cover_illustration` / `gemini-3.1-flash-image`; `consecutive_auth_failures` present; hourly limit 8.
+- Security advisor: no new findings (existing Auth leaked-password WARN unchanged). Performance advisor: unused-index INFO on a quiet database (indexes kept).
+- Grants: `anon` has no privileges on `generation_batches`, `generation_jobs`, `integration_secret_refs`, `ai_model_profiles`, or `prompt_templates`. Those remain `authenticated` + RLS.
+- Browser: unauthenticated `/admin/generate` redirected to `/admin/login?next=%2Fadmin%2Fgenerate`. Homepage primary nav stays converter categories; Blog remains footer-only. Latest guides still render before FAQ.
+- A signed-in title-to-draft click-through was not available in this session. The Google env key is present locally for a later staff test.
+
+#### Phase 5 follow-up (does not block Phase 6)
+
+- Run a logged-in generation of titles plus one draft and confirm audit events `generation.titles` / `generation.article` / `post.cover_ai`.
+- Durable 5–15 article jobs, retries, cancellation, and budgets remain Phase 6.
+- Optional editorial-review pass and AI Gateway routing remain later work.
 
 ### Phase 6 — durable batch generation
 
@@ -597,4 +638,4 @@ An implementation phase is not complete until both artifacts match the actual co
 
 ## 16. Immediate next step
 
-Begin Phase 5: AI generation MVP with a server-only provider adapter, structured title/outline/draft/SEO output, and a branded cover. Keep Blog out of the primary header. After implementation, update this document and the Canvas together.
+Begin Phase 6: durable batch generation with independent jobs, retries, cancellation, progress, and media jobs. Keep Blog out of the primary header. After implementation, update this document and the Canvas together.
