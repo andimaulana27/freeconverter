@@ -1,6 +1,6 @@
 # Blog, Admin CMS, Ads, and AI Architecture
 
-Status: Phase 7 complete; operational closeout shipped (media library, Vault rotation, gated topic archives, signup lock). Product DNA and the convert rollout canvas match this status.  
+Status: Phase 7 complete; operational closeout and the daily editorial bot are shipped. Product DNA and the convert rollout canvas match this status.  
 Last updated: 2026-10-03  
 Canvas: `blog-admin-ai-architecture.canvas.tsx`
 
@@ -186,7 +186,7 @@ Phase 1 implementation notes:
 8. Save a revision and create a post in `draft` or `review`.
 9. Publish only when the selected mode and quality gates allow it.
 
-Default publishing mode is `draft`. Automatic publishing should remain disabled until reviewed batches consistently pass quality checks. When enabled, it must publish gradually on a configured schedule instead of releasing 15 articles simultaneously.
+Default publishing mode for a manual batch is `draft`. The daily editorial bot is a separate path: it is on by default, writes one guide per clock slot, and publishes only when deterministic quality gates pass. A held draft stays private and raises `quality_hold`. Manual batches still cannot select automatic publishing while `auto_publish_enabled` is false.
 
 ## 8. Model recommendation
 
@@ -695,9 +695,39 @@ Shipped after Phase 7 so the documented follow-ups are in code:
 
 Verification: `npx tsc --noEmit` passed. Unauthenticated `/admin/media` redirected to `/admin/login?next=%2Fadmin%2Fmedia`. `/blog/topic/tutorials` 404s because each launch topic still has one guide. `/sitemap.xml` includes the three launch guides and no `/blog/topic/` URLs. Vault RPCs execute for `postgres` and `service_role` only. Security advisor still only reports the existing Auth leaked-password WARN.
 
+### Daily editorial bot — 2026-10-03
+
+The blog no longer needs a person to type a topic. `/api/cron/generate` plans the day before it drains the queue.
+
+- Defaults live in `site_settings`: `daily_blog_enabled = true`, `daily_publish_count = 4`, `daily_publish_times = 08:00, 12:00, 16:00, 20:00`, `daily_blog_timezone = Asia/Jakarta`.
+- A publisher changes the count (1–8) and the clock on `/admin/generate`. Authors can see the plan. The dashboard states whether the bot is on.
+- About 45 minutes before each clock time, the bot picks the least-covered catalog tool, rotates the article type, and asks for one title. The angle can be educational. The article still has to solve the problem with that tool.
+- The batch is `source: daily_bot`, `publishing_mode: auto`, and `includeIllustration: false`. Passing drafts are scheduled at the clock time. Quality failures stay drafts and the slot is `held`.
+- Manual auto-publish stays off (`auto_publish_enabled = false`). Only the daily path may schedule without that flag, and only after the same quality gates.
+- Covers for template guides render as HTML/CSS typography on `/blog`, article pages, and homepage cards. The stored asset remains the branded SVG for social cards. The daily path does not call the image model.
+- VPS tools may be described as processed by the dedicated worker. They must not be described as in-browser.
+
+#### Schema
+
+Additive migration `daily_blog_bot` (25 application tables): `editorial_slots` with ENABLE + FORCE RLS. Staff can select. Anonymous has no grants. Inserts and updates are service-role only. Unique key is the local date, clock time, and timezone.
+
+#### Routes
+
+- `/admin/generate` — daily clock form above the manual draft form. `noindex`.
+- `/api/cron/generate` — plans at most one due slot, then runs the existing worker. 401 without `Authorization: Bearer CRON_SECRET`.
+
+#### Verification
+
+- `npx tsc --noEmit` passed after the planner, clock form, and typographic covers.
+- Remote migration applied to AllYouConvert: `editorial_slots` has forced RLS; `anon` has no table privileges; authenticated has `SELECT` only; defaults are enabled, 4 posts, `08:00` `12:00` `16:00` `20:00`, `Asia/Jakarta`.
+- `08:00` and `20:00` Asia/Jakarta convert to `01:00Z` and `13:00Z`.
+- Security advisor: no new findings (existing Auth leaked-password WARN unchanged). Performance advisor: unused-index INFO on the new slot indexes (indexes kept). No new unindexed foreign key on `editorial_slots`.
+- Browser: `/blog` cards and the PNG guide hero use typographic covers. Primary header stays converter categories. `/png-to-jpg` still opens the converter. Phone width (390) keeps the cover title inside the card. Unauthenticated `/admin/generate` redirects to `/admin/login?next=%2Fadmin%2Fgenerate`. `/api/cron/generate` returns 401 without a secret.
+- A signed-in clock save and a live generated article were not run in this session, so production cron is what starts the first automatic guide.
+
 ## 14. Risks and guardrails
 
-- SEO risk: mass low-value AI content can reduce trust and search performance. Start with reviewed batches and measured topic clusters.
+- SEO risk: four automatic guides a day can still become repetitive. The bot rotates tools and article types, and the similarity gate holds near-duplicates instead of publishing them.
 - Factual risk: models may invent unsupported tool behavior. Ground every article in the local tool catalog and deterministic checks.
 - Cost risk: 15 parallel long drafts can spike usage. Enforce queues, concurrency, budgets, and task-specific model profiles.
 - Security risk: arbitrary scripts and plaintext keys create severe exposure. Store structured ad data and server-only secret references.
