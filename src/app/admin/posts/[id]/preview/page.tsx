@@ -26,10 +26,13 @@ export default async function PostPreviewPage({ params }: Props) {
 
   return (
     <SiteShell ads={false}>
-      <div className="mb-8 flex flex-wrap items-center justify-between gap-3 rounded-control border border-line bg-paper px-4 py-3 text-sm">
-        <p>Admin preview · this URL is noindex and does not load production ads.</p>
-        <Link href={`/admin/posts/${post.id}`} className="font-semibold text-accent">
-          Back to editor
+      <div className="mb-8 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-[#e5ddda] bg-[#faf8f7] px-5 py-4 text-sm shadow-drop">
+        <div className="flex items-center gap-3">
+          <span className="h-2 w-2 rounded-full bg-warn shadow-[0_0_0_4px_rgba(180,83,9,0.08)]" />
+          <p><span className="font-semibold text-ink">Preview only.</span> This guide is not public and ads are hidden.</p>
+        </div>
+        <Link href={`/admin/posts/${post.id}`} className="font-semibold text-accent transition hover:text-accent-ink">
+          ← Back to editor
         </Link>
       </div>
       <GuideArticle post={preview} related={related} ads={false} preview />

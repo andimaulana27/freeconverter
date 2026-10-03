@@ -13,6 +13,25 @@ export const metadata: Metadata = {
 
 type Props = { params: Promise<{ id: string }>; searchParams: Promise<{ error?: string }> };
 
+function revisionSource(value: string) {
+  const labels: Record<string, string> = {
+    autosave: "Auto-saved from editor",
+    manual: "Saved manually",
+    restore: "Restored from an earlier version",
+    publish: "Saved during publishing",
+    schedule: "Saved while scheduling",
+  };
+  return labels[value] ?? "Saved from editor";
+}
+
+function formatRevisionDate(value: string) {
+  return new Intl.DateTimeFormat("en-US", {
+    dateStyle: "medium",
+    timeStyle: "short",
+    timeZone: "UTC",
+  }).format(new Date(value));
+}
+
 export default async function RevisionsPage({ params, searchParams }: Props) {
   const { id } = await params;
   const { error } = await searchParams;
@@ -22,35 +41,39 @@ export default async function RevisionsPage({ params, searchParams }: Props) {
 
   return (
     <AdminChrome email={session.email} role={session.role} currentAal={session.currentAal}>
-      <div className="flex flex-wrap items-start justify-between gap-4">
+      <div className="flex flex-wrap items-end justify-between gap-5 rounded-[22px] border border-black/[0.07] bg-white p-6 shadow-tile">
         <div>
-          <p className="font-mono text-micro uppercase text-faint">Revisions</p>
-          <h1 className="mt-1 text-2xl font-semibold tracking-tight">{post.title}</h1>
+          <p className="flex items-center gap-2 font-mono text-micro font-bold uppercase text-accent"><span className="h-px w-6 bg-accent" /> Version history</p>
+          <h1 className="mt-3 text-3xl font-semibold tracking-[-0.05em]">{post.title}</h1>
+          <p className="mt-2 text-sm text-mute">Restore content safely without publishing it.</p>
         </div>
         <ButtonLink href={`/admin/posts/${post.id}`} variant="secondary" size="sm">
-          Back to editor
+          ← Back to editor
         </ButtonLink>
       </div>
-      <p className="mt-3 text-sm text-mute">Restoring copies content into the current draft. It does not publish by itself.</p>
       {error ? (
         <p role="alert" className="mt-4 rounded-control border border-accent/30 bg-accent-soft px-3 py-2 text-sm text-accent-ink">
           Restore failed. Reload the editor and try again if another tab saved first.
         </p>
       ) : null}
-      <ul className="mt-6 space-y-3">
-        {revisions.map((revision) => {
+      <ul className="mt-5 space-y-3">
+        {revisions.map((revision, index) => {
           const snapshot = revision.snapshot;
           const title = typeof snapshot.title === "string" ? snapshot.title : post.title;
           const slug = typeof snapshot.slug === "string" ? snapshot.slug : post.slug;
           return (
-            <li key={revision.id} className="rounded-card border border-line bg-paper p-4">
+            <li key={revision.id} className="group rounded-[18px] border border-black/[0.07] bg-white p-5 shadow-drop transition duration-280 hover:border-black/15 hover:shadow-tile">
               <div className="flex flex-wrap items-start justify-between gap-3">
-                <div>
-                  <p className="text-sm font-medium">{title}</p>
-                  <p className="mt-1 text-xs text-mute">
-                    {new Date(revision.created_at).toISOString().replace("T", " ").slice(0, 19)} UTC · {revision.change_source} · /{slug}
+                <div className="flex min-w-0 gap-4">
+                  <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-[#f4efed] font-mono text-[9px] text-accent">0{index + 1}</span>
+                  <div className="min-w-0">
+                  <p className="truncate text-sm font-semibold">{title}</p>
+                  <p className="mt-1 text-[10px] leading-5 text-faint" title={`Stored in UTC · ${revision.created_at}`}>
+                    {formatRevisionDate(revision.created_at)} · {revisionSource(revision.change_source)}
                   </p>
-                  {post.current_revision_id === revision.id ? <p className="mt-1 text-xs text-ok">Current revision</p> : null}
+                  <p className="font-mono text-[9px] text-faint">/{slug}</p>
+                  {post.current_revision_id === revision.id ? <p className="mt-2 text-[10px] font-semibold uppercase tracking-[0.12em] text-ok">● Current revision</p> : null}
+                  </div>
                 </div>
                 <form
                   action={async () => {
@@ -65,7 +88,7 @@ export default async function RevisionsPage({ params, searchParams }: Props) {
                   }}
                 >
                   <Button type="submit" variant="secondary" size="sm">
-                    Restore
+                    Restore version
                   </Button>
                 </form>
               </div>
