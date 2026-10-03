@@ -130,8 +130,8 @@ export default function HomePage() {
         <div className="relative p-6 sm:p-10 lg:p-12">
           <div className="grid items-center gap-6 sm:gap-10 lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)] lg:gap-12">
           <div>
-            <p className="flex items-center gap-3 text-eyebrow font-bold uppercase text-accent">
-              <span className="h-px w-7 bg-accent" />
+            <p className="flex items-center gap-3 text-eyebrow font-bold uppercase text-accent-light">
+              <span className="h-px w-7 bg-accent-light" />
               Built for everyday files
             </p>
             <h1 className="mt-5 max-w-xl text-[42px] font-semibold leading-[0.97] tracking-[-0.06em] sm:text-6xl sm:leading-[0.95] lg:text-[64px]">
@@ -228,7 +228,7 @@ export default function HomePage() {
           </div>
         </div>
 
-          <dl className="relative mt-6 grid overflow-hidden rounded-2xl border border-white/10 bg-black/20 sm:mt-10 sm:grid-cols-3 lg:mt-12">
+          <div className="relative mt-6 grid overflow-hidden rounded-2xl border border-white/10 bg-black/20 sm:mt-10 sm:grid-cols-3 lg:mt-12">
             {HERO_SIGNALS.map((item, index) => (
               <div
                 key={item.title}
@@ -240,18 +240,16 @@ export default function HomePage() {
                   </span>
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center justify-between gap-3">
-                      <dt className="text-lg font-semibold tracking-tight text-white">{item.value}</dt>
+                      <p className="text-lg font-semibold tracking-tight text-white">{item.value}</p>
                       <span className="font-mono text-micro text-white/35">0{index + 1}</span>
                     </div>
-                    <dd>
-                      <span className="mt-1 block text-micro font-bold uppercase tracking-[0.12em] text-white/60">{item.title}</span>
-                      <span className="mt-1.5 block text-[12px] leading-5 text-white/45">{item.note}</span>
-                    </dd>
+                    <p className="mt-1 text-micro font-bold uppercase tracking-[0.12em] text-white/60">{item.title}</p>
+                    <p className="mt-1.5 text-[12px] leading-5 text-white/45">{item.note}</p>
                   </div>
                 </div>
               </div>
             ))}
-          </dl>
+          </div>
         </div>
       </section>
 
@@ -291,8 +289,8 @@ export default function HomePage() {
 
         <div className="relative flex flex-col justify-between gap-6 lg:flex-row lg:items-end">
           <div>
-            <p className="flex items-center gap-3 text-eyebrow font-bold uppercase text-accent">
-              <span className="h-px w-7 bg-accent" />
+            <p className="flex items-center gap-3 text-eyebrow font-bold uppercase text-accent-light">
+              <span className="h-px w-7 bg-accent-light" />
               A clearer workflow
             </p>
             <h2 className="mt-4 max-w-2xl text-4xl font-semibold leading-[1.02] tracking-[-0.05em] sm:text-5xl">
@@ -357,7 +355,7 @@ export default function HomePage() {
               aria-hidden
             />
               <div className="relative">
-                <p className="text-eyebrow font-bold uppercase text-accent">Private by design</p>
+                <p className="text-eyebrow font-bold uppercase text-accent-light">Private by design</p>
                 <h2 className="mt-5 max-w-md text-4xl font-semibold leading-[0.98] tracking-[-0.055em] sm:text-5xl">
                 Your file takes the short route.
               </h2>
@@ -415,7 +413,7 @@ export default function HomePage() {
                   className="group/benefit relative overflow-hidden rounded-card border border-[#e8e2df] bg-white p-4 shadow-drop transition duration-280 hover:-translate-y-1 hover:border-[#d8cfca] hover:shadow-tile"
                 >
                   <span className="absolute -right-8 -top-8 h-20 w-20 rounded-full bg-accent-soft transition duration-500 group-hover/benefit:scale-[1.8]" aria-hidden />
-                  <span className="absolute right-3 top-3 font-mono text-micro text-accent/60 transition group-hover/benefit:text-accent">{item.number}</span>
+                  <span className="absolute right-3 top-3 font-mono text-micro text-accent-ink">{item.number}</span>
                   <span className="relative flex h-8 w-8 items-center justify-center rounded-lg bg-[#e7f8ef] text-[#16885c] transition duration-280 group-hover/benefit:scale-110 group-hover/benefit:rotate-6 group-hover/benefit:bg-accent group-hover/benefit:text-white">
                     <PrivacyIcon index={index} />
                   </span>
@@ -441,7 +439,7 @@ export default function HomePage() {
         <div className="grid gap-8 lg:grid-cols-[0.62fr_1.38fr] lg:gap-12">
           <div className="flex flex-col justify-between">
             <div>
-              <p className="text-eyebrow font-bold uppercase text-accent">Good to know</p>
+              <p className="text-eyebrow font-bold uppercase text-accent-ink">Good to know</p>
               <h2 className="mt-4 max-w-sm text-4xl font-semibold leading-[1.02] tracking-[-0.05em] text-ink sm:text-5xl">
                 The small print, made useful.
               </h2>
@@ -464,7 +462,7 @@ export default function HomePage() {
                 className="group overflow-hidden rounded-card border border-[#e1dad6] bg-white transition duration-280 open:border-[#cfc5c0] open:shadow-tile hover:-translate-y-0.5 hover:border-[#cfc5c0]"
               >
                 <summary className="flex cursor-pointer list-none items-center gap-4 p-4 text-sm font-semibold text-ink sm:p-5 [&::-webkit-details-marker]:hidden">
-                  <span className="font-mono text-micro font-semibold text-accent/80">0{index + 1}</span>
+                  <span className="font-mono text-micro font-semibold text-accent-ink">0{index + 1}</span>
                   <span className="hidden w-14 text-micro font-bold uppercase text-faint sm:block">{item.label}</span>
                   <span className="flex-1 transition duration-180 group-hover:translate-x-0.5">{item.question}</span>
                   <span className="relative flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-[#e3ddda] bg-[#faf8f7] transition duration-280 group-hover:border-[#d3cac6] group-open:rotate-45 group-open:border-accent group-open:bg-accent group-open:text-white">
