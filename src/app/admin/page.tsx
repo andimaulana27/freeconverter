@@ -89,6 +89,9 @@ export default async function AdminHomePage() {
                 <ButtonLink href="/admin/generate" variant="secondary" size="sm" className="border-white/10 bg-white/[0.06] text-white hover:border-white/20 hover:bg-white/10">
                   Generate
                 </ButtonLink>
+                <ButtonLink href="/admin/growth" variant="secondary" size="sm" className="border-white/10 bg-white/[0.06] text-white hover:border-white/20 hover:bg-white/10">
+                  Growth
+                </ButtonLink>
                 <ButtonLink href="/admin/posts/new" variant="primary" size="sm">
                   New guide <span aria-hidden>→</span>
                 </ButtonLink>
