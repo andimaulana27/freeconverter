@@ -1,5 +1,16 @@
 import { PLACEMENT_LABELS, type AdAssignment, type AdPlacement, type PlacementKey } from "@/lib/ads/types";
 
+const MOBILE_LABEL = {
+  hide: "Hidden on mobile",
+  swap: "Uses a smaller mobile banner",
+  stack: "Moves below the content",
+} as const;
+
+const FALLBACK_LABEL = {
+  placeholder: "keeps the reserved frame",
+  collapse: "removes the empty frame",
+} as const;
+
 const BOX: Record<PlacementKey, string> = {
   homepage_left_rail: "col-start-1 row-start-2 row-span-3",
   homepage_right_rail: "col-start-3 row-start-2 row-span-3",
@@ -48,7 +59,7 @@ export function AdsPreviewBoard({
                 <p className="font-mono text-[10px] font-bold uppercase text-faint">{PLACEMENT_LABELS[key]}</p>
                 <p className="mt-1 text-xs text-ink">
                   {placement.desktop_width}×{placement.desktop_height}
-                  {placement.mobile_width ? ` / ${placement.mobile_width}×${placement.mobile_height}` : ""} · {placement.mobile_policy}
+                  {placement.mobile_width ? ` / ${placement.mobile_width}×${placement.mobile_height}` : ""} · {MOBILE_LABEL[placement.mobile_policy]}
                 </p>
                 <p className="mt-1 text-xs text-mute">{assignedLabel(placement, assignments)}</p>
               </article>
@@ -72,7 +83,7 @@ export function AdsPreviewBoard({
                   {placement.desktop_width}×{placement.desktop_height}
                   {placement.mobile_width ? ` · mobile ${placement.mobile_width}×${placement.mobile_height}` : " · hidden on small screens"}
                 </p>
-                <p className="mt-1 text-xs text-mute">{assignedLabel(placement, assignments)} · fallback {placement.fallback_behavior}</p>
+                <p className="mt-1 text-xs text-mute">{assignedLabel(placement, assignments)} · if empty, {FALLBACK_LABEL[placement.fallback_behavior]}</p>
               </article>
             );
           })}
