@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 import { AdminNav } from "@/app/admin/AdminNav";
 import { signOutAdmin } from "@/app/admin/actions";
 import { Button } from "@/components/ui/Button";
-import { canUseCms, roleLabel, type StaffRole } from "@/lib/auth/roles";
+import { canManageAds, canUseCms, roleLabel, type StaffRole } from "@/lib/auth/roles";
 
 export function AdminChrome({
   email,
@@ -30,7 +30,7 @@ export function AdminChrome({
           </form>
         </div>
         <div className="mt-5">
-          <AdminNav showCms={canUseCms(role)} />
+          <AdminNav showCms={canUseCms(role)} showAds={canManageAds(role)} />
         </div>
         <div className="mt-6 hidden text-xs text-mute lg:block">
           <p className="truncate text-sm text-ink">{email}</p>

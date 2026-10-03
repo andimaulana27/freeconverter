@@ -75,6 +75,11 @@ export default async function AdminHomePage() {
         <article className="rounded-card border border-line bg-paper p-4">
           <p className="text-xs font-semibold uppercase tracking-[0.14em] text-faint">Ad placements</p>
           <p className="mt-2 text-2xl font-semibold">{placementCount.count ?? 0}</p>
+          {canManageAds(session.role) ? (
+            <p className="mt-2">
+              <ButtonLink href="/admin/ads">Open ads manager</ButtonLink>
+            </p>
+          ) : null}
         </article>
         <article className="rounded-card border border-line bg-paper p-4">
           <p className="text-xs font-semibold uppercase tracking-[0.14em] text-faint">Secret refs visible</p>
@@ -107,7 +112,7 @@ export default async function AdminHomePage() {
             <p className="mt-4 text-sm text-mute">No guides yet. Create the first draft from the post list.</p>
           )
         ) : (
-          <p className="mt-4 text-sm text-mute">This role does not have CMS access. Ads manager screens land in Phase 4.</p>
+          <p className="mt-4 text-sm text-mute">This role does not have CMS access.</p>
         )}
         <ul className="mt-6 space-y-1 text-sm text-mute">
           <li>CMS access: {cms ? "yes" : "no"}</li>
