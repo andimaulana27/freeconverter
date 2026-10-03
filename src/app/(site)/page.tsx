@@ -309,27 +309,20 @@ export default function HomePage() {
         </div>
 
         <div className="relative mt-8 grid gap-4 lg:grid-cols-3">
-          <div className="pointer-events-none absolute left-[16%] right-[16%] top-6 z-10 hidden h-10 lg:block" aria-hidden>
-            <ShotLane tone="light" className="mx-0 h-10" />
-          </div>
           {[
             ["Drop it", "Choose a file or drag it straight into the conversion desk.", "Input ready"],
             ["Shape it", "Pick the output and adjust only the settings that matter.", "Route set"],
             ["Take it", "Download a clean result and continue with your work.", "Output done"],
-          ].map(([title, copy, state], index) => {
-            const icon = (
-              <span className="flex h-12 w-12 items-center justify-center rounded-2xl border border-white/10 bg-[#211c19] text-accent-light shadow-[0_10px_25px_rgba(0,0,0,0.18)] transition duration-280 group-hover/step:-rotate-3 group-hover/step:scale-105">
-                <WorkflowIcon index={index} />
-              </span>
-            );
-            return (
+          ].map(([title, copy, state], index) => (
             <article
               key={title}
               className="group/step relative overflow-hidden rounded-tile border border-white/10 bg-white/[0.045] p-5 backdrop-blur-sm transition duration-280 hover:-translate-y-1 hover:border-white/20 hover:bg-white/[0.075] sm:p-6"
             >
               <span className="absolute -right-10 -top-10 h-24 w-24 rounded-full bg-accent/0 transition duration-500 group-hover/step:bg-accent/10" aria-hidden />
               <div className="relative flex items-center justify-between">
-                {index === 0 ? <ShotKick>{icon}</ShotKick> : index === 2 ? <ShotHit>{icon}</ShotHit> : icon}
+                <span className="flex h-12 w-12 items-center justify-center rounded-2xl border border-white/10 bg-[#211c19] text-accent-light shadow-[0_10px_25px_rgba(0,0,0,0.18)] transition duration-280 group-hover/step:-rotate-3 group-hover/step:scale-105">
+                  <WorkflowIcon index={index} />
+                </span>
                 <span className="font-mono text-micro text-white/40">0{index + 1}</span>
               </div>
               <h3 className="relative mt-8 text-xl font-semibold tracking-[-0.025em]">{title}</h3>
@@ -339,8 +332,7 @@ export default function HomePage() {
                 {state}
               </p>
             </article>
-            );
-          })}
+          ))}
         </div>
       </section>
 
