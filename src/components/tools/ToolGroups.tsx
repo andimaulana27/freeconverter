@@ -237,8 +237,8 @@ export function ToolGroups({
 
           <div className="relative grid items-end gap-8 lg:grid-cols-[1.15fr_0.85fr] lg:gap-10">
             <div>
-              <p className="flex items-center gap-3 text-eyebrow font-bold uppercase text-accent">
-                <span className="h-px w-7 bg-accent" />
+              <p className="flex items-center gap-3 text-eyebrow font-bold uppercase text-accent-ink">
+                <span className="h-px w-7 bg-accent-ink" />
                 Tool library
               </p>
               <h2 className="mt-4 max-w-2xl text-4xl font-semibold leading-[1.02] tracking-[-0.05em] text-ink sm:text-5xl">
@@ -402,7 +402,7 @@ export function ToolGroups({
                 </svg>
               </span>
               <div>
-                <p className="text-eyebrow font-bold uppercase text-accent">Complete catalog</p>
+                <p className="text-eyebrow font-bold uppercase text-accent-ink">Complete catalog</p>
                 <h3 className="mt-2 text-2xl font-semibold tracking-[-0.035em] text-ink">
                   Need a different format?
                 </h3>
