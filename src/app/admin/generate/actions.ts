@@ -18,6 +18,9 @@ import { kickGenerationWorker } from "@/lib/ai/worker";
 import { ARTICLE_TYPES, type ArticleType, type GenerationActionResult, type PublishingMode, type TitleCandidate } from "@/lib/ai/types";
 import { filterKnownToolSlugs } from "@/lib/ai/validate";
 import { sanitizeAiError } from "@/lib/ai/provider";
+import { createServiceSupabaseClient } from "@/lib/supabase/service";
+import { writeAudit } from "@/lib/cms/server";
+import { DAILY_BLOG_MAX_COUNT, normalizeClock } from "@/lib/blog/cadence";
 
 function asArticleType(value: string): ArticleType {
   return ARTICLE_TYPES.includes(value as ArticleType) ? (value as ArticleType) : "tool_tutorial";
@@ -217,4 +220,34 @@ export async function setGoogleSecretActiveAction(secretRef: string, active: boo
   if (!result.ok) return result;
   const health = await readGenerationHealth(session.supabase, session.role);
   return { ok: true, message: result.message, health };
+}
+
+export async function saveDailyCadenceAction(input: { enabled: boolean; count: number; times: string[] }): Promise<GenerationActionResult> {
+  const session = await requireCms("/admin/generate");
+  if (!canPublish(session.role)) return { ok: false, error: "Only a publisher can change the daily clock.", code: "forbidden" };
+  const enabled = input.enabled === true;
+  const count = Math.min(DAILY_BLOG_MAX_COUNT, Math.max(1, Math.round(input.count) || 1));
+  const times = input.times.map((value) => normalizeClock(value));
+  if (times.some((value) => !value)) return { ok: false, error: "Use 24-hour times such as 08:00.", code: "validation" };
+  const clocks = times.filter((value): value is string => Boolean(value));
+  if (clocks.length !== count) return { ok: false, error: "Set one time for each daily guide.", code: "validation" };
+  if (new Set(clocks).size !== clocks.length) return { ok: false, error: "Each publish time must be different.", code: "validation" };
+  const ordered = [...clocks].sort();
+  const client = createServiceSupabaseClient();
+  const { error } = await client.from("site_settings").upsert(
+    [
+      { key: "daily_blog_enabled", value: enabled, is_public: false, updated_by: session.user.id },
+      { key: "daily_publish_count", value: count, is_public: false, updated_by: session.user.id },
+      { key: "daily_publish_times", value: ordered, is_public: false, updated_by: session.user.id },
+    ],
+    { onConflict: "key" },
+  );
+  if (error) return { ok: false, error: "Could not save the daily clock.", code: "validation" };
+  await writeAudit(client, {
+    actorId: session.user.id,
+    action: "settings.daily_blog",
+    entityType: "site_settings",
+    metadata: { enabled, count, times: ordered },
+  });
+  return { ok: true, message: "Daily clock saved." };
 }

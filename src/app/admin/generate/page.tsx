@@ -1,14 +1,17 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { AdminChrome } from "@/app/admin/AdminChrome";
+import { DailyCadenceForm } from "@/components/cms/DailyCadenceForm";
 import { GenerateForm } from "@/components/cms/GenerateForm";
 import { BatchStatusBadge } from "@/components/cms/GenerationStatusBadge";
 import { ProviderHealthCard } from "@/components/cms/ProviderHealthCard";
 import { readGenerationHealth } from "@/lib/ai/secrets";
+import { listEditorialSlots, loadDailyCadence } from "@/lib/ai/daily-bot";
 import { listRecentBatches } from "@/lib/ai/server";
 import { ARTICLE_TYPE_LABELS } from "@/lib/ai/types";
-import { canManageSecrets } from "@/lib/auth/roles";
+import { canManageSecrets, canPublish } from "@/lib/auth/roles";
 import { requireCms } from "@/lib/auth/session";
+import { zonedDateKey, zonedSlotToUtc } from "@/lib/blog/cadence";
 import { tools } from "@/lib/tools";
 
 export const metadata: Metadata = {
@@ -28,11 +31,26 @@ function formatDate(value: string) {
 
 export default async function GenerateAdminPage() {
   const session = await requireCms("/admin/generate");
-  const [health, batches] = await Promise.all([
+  const [health, batches, cadence] = await Promise.all([
     readGenerationHealth(session.supabase, session.role),
     listRecentBatches(session.supabase),
+    loadDailyCadence(session.supabase),
   ]);
   const superAdmin = canManageSecrets(session.role);
+  const today = zonedDateKey(new Date(), cadence.timezone);
+  const planned = await listEditorialSlots(session.supabase, today, cadence.timezone);
+  const plannedByTime = new Map(planned.map((slot) => [slot.time, slot]));
+  const slots = cadence.times.map((time) => {
+    return (
+      plannedByTime.get(time) ?? {
+        time,
+        status: "waiting",
+        toolSlug: null,
+        error: null,
+        runAt: zonedSlotToUtc(today, time, cadence.timezone).toISOString(),
+      }
+    );
+  });
 
   return (
     <AdminChrome email={session.email} role={session.role} currentAal={session.currentAal}>
@@ -44,7 +62,7 @@ export default async function GenerateAdminPage() {
           </p>
           <h1 className="mt-3 text-4xl font-semibold tracking-[-0.055em]">AI draft assistant</h1>
           <p className="mt-2 max-w-2xl text-sm text-mute">
-            Turn a focused topic into title ideas, then queue 5–15 private drafts. Each article runs as its own job, so you can close this page.
+            The daily bot writes and schedules guides on its own. Change how many go out, and at which times. Manual drafts stay below when you want a specific topic.
           </p>
         </div>
       </div>
@@ -62,6 +80,17 @@ export default async function GenerateAdminPage() {
             : "The writing assistant has not been connected yet. Ask an administrator to finish setup."}
         </p>
       )}
+
+      <div className="mt-6">
+        <DailyCadenceForm
+          enabled={cadence.enabled}
+          count={cadence.count}
+          times={cadence.times}
+          timezone={cadence.timezone}
+          canEdit={canPublish(session.role)}
+          slots={slots}
+        />
+      </div>
 
       <div className="mt-6">
         <GenerateForm

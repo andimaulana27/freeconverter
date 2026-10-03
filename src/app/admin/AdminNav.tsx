@@ -8,7 +8,7 @@ const LINKS = [
   { href: "/admin", label: "Dashboard", note: "Overview & activity", icon: "dashboard", match: "exact" as const },
   { href: "/admin/posts", label: "Guides", note: "Editorial workflow", icon: "guides", match: "prefix" as const },
   { href: "/admin/media", label: "Media", note: "Covers and shared images", icon: "media", match: "prefix" as const },
-  { href: "/admin/generate", label: "AI assistant", note: "Batch drafts and job progress", icon: "generate", match: "prefix" as const },
+  { href: "/admin/generate", label: "AI assistant", note: "Daily bot and manual drafts", icon: "generate", match: "prefix" as const },
   { href: "/admin/growth", label: "Growth", note: "Quality, search, converter starts", icon: "growth", match: "prefix" as const },
   { href: "/admin/ads", label: "Ads", note: "Creative placement", icon: "ads", match: "prefix" as const },
   { href: "/admin/security", label: "Security", note: "Account protection", icon: "security", match: "prefix" as const },

@@ -3,6 +3,7 @@ import Link from "next/link";
 import { AdminChrome } from "@/app/admin/AdminChrome";
 import { StatusBadge } from "@/components/cms/StatusBadge";
 import { ButtonLink } from "@/components/ui/Button";
+import { loadDailyCadence } from "@/lib/ai/daily-bot";
 import { cronSecretConfigured } from "@/lib/ai/secrets";
 import { canManageAds, canManageSecrets, canPublish, canUseCms } from "@/lib/auth/roles";
 import { requireStaff } from "@/lib/auth/session";
@@ -52,6 +53,14 @@ export default async function AdminHomePage() {
   const publishedPercent = totalPosts ? Math.round((counts.published / totalPosts) * 100) : 0;
 
   const cronReady = cronSecretConfigured();
+  let dailyCadence: Awaited<ReturnType<typeof loadDailyCadence>> | null = null;
+  if (cms) {
+    try {
+      dailyCadence = await loadDailyCadence(session.supabase);
+    } catch {
+      dailyCadence = null;
+    }
+  }
 
   return (
     <AdminChrome email={session.email} role={session.role} currentAal={session.currentAal}>
@@ -65,6 +74,12 @@ export default async function AdminHomePage() {
       {canManageSecrets(session.role) && !cronReady ? (
         <p className="mb-4 rounded-control border border-accent/30 bg-accent-soft px-3 py-2 text-sm text-accent-ink">
           CRON_SECRET is not set on this server. Scheduled publish and generation workers will reject unauthenticated ticks until it is present.
+        </p>
+      ) : null}
+      {dailyCadence ? (
+        <p className="mb-4 rounded-control border border-black/[0.08] bg-white px-3 py-2 text-sm text-ink">
+          Daily blog bot is {dailyCadence.enabled ? "on" : "paused"}. {dailyCadence.count} guides a day at {dailyCadence.times.join(", ")} ({dailyCadence.timezone}).{" "}
+          <Link href="/admin/generate" className="font-semibold text-accent-ink underline">Change the clock</Link>
         </p>
       ) : null}
       <section className="group relative isolate overflow-hidden rounded-[26px] border border-white/10 bg-[#181412] p-6 text-white shadow-panel-dark sm:p-8">
