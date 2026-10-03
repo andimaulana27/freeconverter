@@ -275,7 +275,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      <AdSlot />
+      <AdSlot placement="homepage_media_showcase" />
 
       <ToolGroups compact initialLimit={4} popularLimit={4} />
 
@@ -336,7 +336,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      <AdSlot />
+      <AdSlot placement="page_in_body" />
 
       <section className="group/privacy relative isolate overflow-hidden rounded-panel border border-[#ded7d3] bg-white shadow-panel">
         <div

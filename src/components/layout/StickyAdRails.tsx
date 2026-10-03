@@ -59,7 +59,7 @@ export function StickyAdRails() {
         }}
       >
         <div className="sticky top-24">
-          <AdSlot format="skyscraper" />
+          <AdSlot placement={pathname === "/" ? "homepage_left_rail" : "page_left_rail"} />
         </div>
       </div>
       <div
@@ -70,7 +70,7 @@ export function StickyAdRails() {
         }}
       >
         <div className="sticky top-24">
-          <AdSlot format="skyscraper" />
+          <AdSlot placement={pathname === "/" ? "homepage_right_rail" : "page_right_rail"} />
         </div>
       </div>
     </>

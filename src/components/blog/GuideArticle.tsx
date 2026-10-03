@@ -120,11 +120,11 @@ export function GuideArticle({
             <GuideBody blocks={before} />
             {after.length ? (
               <>
-                {ads ? <div className="my-8"><AdSlot /></div> : null}
+                {ads ? <div className="my-8"><AdSlot placement="article_in_body" /></div> : null}
                 <GuideBody blocks={after} />
               </>
             ) : ads ? (
-              <div className="mt-8"><AdSlot /></div>
+              <div className="mt-8"><AdSlot placement="article_in_body" /></div>
             ) : null}
           </div>
         </div>
@@ -142,7 +142,7 @@ export function GuideArticle({
               </ol>
             </nav>
           ) : null}
-          {ads ? <AdSlot format="rectangle" className="hidden lg:flex" /> : null}
+          {ads ? <AdSlot placement="article_sidebar" className="hidden lg:flex" /> : null}
         </aside>
       </article>
 

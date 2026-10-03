@@ -222,7 +222,7 @@ export default async function ToolPage({ params }: Props) {
         </section>
       ) : null}
 
-      <AdSlot />
+      <AdSlot placement="page_in_body" />
 
       <section className="relative isolate overflow-hidden rounded-panel border border-white/10 bg-[#181412] p-6 text-white shadow-panel-dark sm:p-8 lg:p-10">
         <div
@@ -276,7 +276,7 @@ export default async function ToolPage({ params }: Props) {
         </div>
       </section>
 
-      <AdSlot />
+      <AdSlot placement="page_in_body" />
 
       <section className="group/about relative isolate overflow-hidden rounded-panel border border-[#ded7d3] bg-[#f6f3f1] p-6 shadow-panel sm:p-8 lg:p-10">
         <div
@@ -302,7 +302,7 @@ export default async function ToolPage({ params }: Props) {
               ))}
             </div>
           </div>
-          <AdSlot format="rectangle" className="min-h-56 bg-white/70" />
+          <AdSlot placement="page_sidebar" className="min-h-56 bg-white/70" />
         </div>
       </section>
     </div>

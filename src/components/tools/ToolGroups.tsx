@@ -337,7 +337,7 @@ export function ToolGroups({
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {popular.map((tool) => <ToolLink key={tool.slug} tool={tool} />)}
           </div>
-          {compact ? null : <AdSlot className="mt-10 sm:mt-12" />}
+          {compact ? null : <AdSlot placement="page_in_body" className="mt-10 sm:mt-12" />}
         </div>
       ) : null}
 
@@ -377,7 +377,7 @@ export function ToolGroups({
                   </button>
                 ) : null}
               </div>
-              {!compact && !normalizedQuery && active === "Semua" && (groupIndex === 2 || groupIndex === 6) ? <AdSlot /> : null}
+              {!compact && !normalizedQuery && active === "Semua" && (groupIndex === 2 || groupIndex === 6) ? <AdSlot placement="page_in_body" /> : null}
             </Fragment>
           );
         })}
