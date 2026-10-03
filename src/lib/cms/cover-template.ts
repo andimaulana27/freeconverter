@@ -35,11 +35,13 @@ function seedNumber(value: string) {
   return hash >>> 0;
 }
 
-const PALETTE: Record<CoverPalette, { bg: string; ink: string; mute: string; accent: string }> = {
+export const COVER_PALETTE_COLORS: Record<CoverPalette, { bg: string; ink: string; mute: string; accent: string }> = {
   paper: { bg: "#ffffff", ink: "#111111", mute: "#6b6b6b", accent: "#d92d28" },
   bone: { bg: "#f7f7f7", ink: "#111111", mute: "#6b6b6b", accent: "#d92d28" },
   ink: { bg: "#111111", ink: "#ffffff", mute: "#9a9a9a", accent: "#ff6a64" },
 };
+
+const PALETTE = COVER_PALETTE_COLORS;
 
 function pickFromSeed<T extends string>(seed: number, values: readonly T[], index = 0): T {
   return values[(seed + index) % values.length] as T;

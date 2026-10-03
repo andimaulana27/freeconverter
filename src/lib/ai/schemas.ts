@@ -80,3 +80,10 @@ export const seoPayloadSchema = z.object({
 export const healthPingSchema = z.object({
   ok: z.literal(true),
 });
+
+export const editorialReviewSchema = z.object({
+  verdict: z.enum(["pass", "revise", "hold"]),
+  summary: z.string().min(12).max(400),
+  issues: z.array(z.object({ field: z.string().min(2).max(40), message: z.string().min(8).max(220) })).max(8),
+  strengths: z.array(z.string().min(8).max(180)).max(5),
+});
