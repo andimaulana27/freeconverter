@@ -1,6 +1,6 @@
 # Blog, Admin CMS, Ads, and AI Architecture
 
-Status: Phase 7 complete; remaining follow-up is operational (Vault, CRON_SECRET, logged-in quality and batch tests)  
+Status: Phase 7 complete; operational closeout shipped (media library, Vault rotation, gated topic archives, signup lock). Product DNA and the convert rollout canvas match this status.  
 Last updated: 2026-10-03  
 Canvas: `blog-admin-ai-architecture.canvas.tsx`
 
@@ -44,9 +44,9 @@ Keep `Blog` out of the primary header, as requested. Add it only to the footer u
 
 ### Public routes
 
-- `/blog` — featured article, latest guides, and topic filters. Topic filters use `?topic=` and stay `noindex` until a topic archive is worth its own route.
+- `/blog` — featured article, latest guides, and topic filters. Topic filters use `?topic=` and stay `noindex` until that topic has two published indexable guides, then `/blog/topic/[slug]` is created and indexed.
 - `/blog/[slug]` — article detail with breadcrumbs, table of contents, related tools, related articles, and ads.
-- `/blog/topic/[slug]` — create only after a topic has enough useful articles.
+- `/blog/topic/[slug]` — public archive when a topic has at least two published indexable guides.
 - `/rss.xml` — published article feed.
 - `/sitemap.xml` — tools and published articles with accurate update dates.
 
@@ -77,12 +77,10 @@ Next.js App Router renders blog index and article pages as Server Components. Pu
 
 ### Admin application
 
-The admin area lives under `/admin` and uses Supabase Auth. Phase 1 ships login, MFA challenge, role-gated dashboard chrome, and `noindex` on every admin route. Phase 3 adds the CMS dashboard, post list, structured editor, authenticated preview, revisions, cover controls, and draft/review/publish/unpublish/archive/schedule actions. Phase 4 adds the ads manager for structured AdSense units, image creatives, and assignments to the fixed slots. Later phases add:
+The admin area lives under `/admin` and uses Supabase Auth. Phase 1 shipped login, MFA challenge, role-gated dashboard chrome, and `noindex` on every admin route. Phase 3 shipped the CMS dashboard, post list, structured editor, authenticated preview, revisions, cover controls, and draft/review/publish/unpublish/archive/schedule actions. Phase 4 shipped the ads manager for structured AdSense units, image creatives, and assignments to the fixed slots. Phases 5–6 shipped generation batches, job progress, model profiles, prompts, budgets, and key health. Phase 7 shipped editorial quality and `/admin/growth`. The operational closeout shipped `/admin/media` and Vault key rotation. Remaining product follow-up (not a new roadmap phase):
 
-- generation batches and job progress;
-- a standalone media library browser;
-- AI providers, models, prompts, budgets, and key health;
-- users, roles, and a richer audit UI.
+- a richer users, roles, and audit UI;
+- live Search Console OAuth if CSV ingest becomes too manual.
 
 ### Data and storage
 
@@ -233,12 +231,12 @@ MVP (Phase 1):
 - expose a protected connection test in a later phase;
 - record failures and disable generation after repeated authentication errors.
 
-Managed rotation:
+Managed rotation (operational closeout):
 
-- write new keys through a server action into Supabase Vault or a managed secret service;
+- write new keys through a server action into Supabase Vault;
 - store only the secret reference and masked metadata in application tables;
-- allow activation, priority changes, health tests, and revocation;
-- select a healthy active key server-side;
+- allow activation, health tests, and revocation;
+- select a healthy active key server-side, with the env key as last-resort fallback;
 - fail over only for availability or planned rotation, never to evade quotas;
 - record who changed a key and when;
 - prevent retrieval of the original plaintext value after creation.
@@ -406,14 +404,14 @@ Acceptance: published posts are indexable, drafts are private, and public layout
 - Published pages revalidate every 300 seconds. Phase 3 also calls `revalidatePath` on publish, archive, and saves to already-published posts.
 - Covers render only when the asset is public and stored in `blog-public`.
 - `noindex` posts can stay published and readable, and they are left out of the sitemap and RSS.
-- Three hand-reviewed launch guides are seeded. They are not an AI batch. `/blog/topic/[slug]` is still not built.
+- Three hand-reviewed launch guides are seeded. They are not an AI batch. `/blog/topic/[slug]` is gated to topics with two or more published indexable guides, so the three launch topics stay on `?topic=` until the library grows.
 
 #### Phase 2 routes
 
 - `/blog` — featured guide, remaining guides, topic chips, RSS link.
 - `/blog/[slug]` — breadcrumbs, prose, table of contents, in-article leaderboard after the first section, desktop sidebar rectangle, related tools, related guides, and a tool CTA.
 - `/rss.xml` — published guides with `noindex = false`.
-- `/sitemap.xml` — `/blog` plus those same guides, with `lastModified` from `updated_at`.
+- `/sitemap.xml` — `/blog`, published indexable guides, and topic archives that meet the two-guide minimum, with `lastModified` from `updated_at`.
 - Homepage `Latest guides` sits after the privacy section and before FAQ. Footer column AllYouConvert includes Blog. The primary header does not.
 
 #### Phase 2 verification
@@ -427,8 +425,8 @@ Acceptance: published posts are indexable, drafts are private, and public layout
 
 #### Phase 2 follow-up (does not block Phase 3)
 
-- Topic landing pages wait until a topic has more than a single guide.
-- Public Auth signup should still be disabled in the project settings, and TOTP should be enrolled on the first administrator.
+- Topic landing pages wait until a topic has more than a single guide. The gated `/blog/topic/[slug]` route now enforces that minimum.
+- Public Auth signup is locked in `supabase/config.toml`. TOTP should still be enrolled on the first administrator.
 
 ### Phase 3 — admin CMS
 
@@ -454,7 +452,7 @@ Acceptance: an editor can create, preview, revise, schedule, publish, and restor
 - Authenticated preview reuses `GuideArticle` inside `SiteShell` with `ads={false}` and `noindex`.
 - Due schedules are processed by `GET/POST /api/cron/publish` (Vercel cron `*/5 * * * *`, `Authorization: Bearer $CRON_SECRET`) and also when a publisher opens `/admin`.
 - Publish and archive call `revalidatePath` for `/`, `/blog`, the slug, sitemap, and RSS. Scheduled publish keeps the post’s `noindex` flag instead of forcing index.
-- A standalone media library page is not in this phase. Cover upload, template, focal point, alt text, and approval live in the post editor.
+- A standalone media library page is not in this phase. Cover upload, template, focal point, alt text, and approval live in the post editor. `/admin/media` shipped later in the operational closeout.
 
 #### Phase 3 schema
 
@@ -481,10 +479,10 @@ Additive remote migration `20261003021058_phase3_cms_media_and_redirects` (20 ap
 
 #### Phase 3 follow-up (does not block Phase 4)
 
-- Add a standalone media library browser for reuse across posts.
+- Standalone media library shipped in the operational closeout (`/admin/media`).
 - Set `CRON_SECRET` on Vercel before relying on production schedule execution.
 - Two-tab conflict handling is implemented; it was not exercised as a dual-session browser test.
-- Topic landing pages, Auth signup lock, and TOTP enrollment remain open.
+- Topic landing pages shipped as gated `/blog/topic/[slug]` (indexable only with 2+ published guides). Auth signup is locked in `supabase/config.toml`. TOTP enrollment remains a staff action.
 
 ### Phase 4 — ads manager
 
@@ -533,7 +531,7 @@ Additive remote migration `phase4_ads_manager` (still 20 application tables): tw
 
 - Env per-unit slot IDs can be removed after production assignments exist.
 - A logged-in click-through of `/admin/ads` was not available in this session; unauthenticated redirects and the nested assignment select were checked instead.
-- Auth leaked-password protection remains a project-settings WARN. Topic routes, signup lock, TOTP enrollment, CRON_SECRET, and the standalone media library remain open.
+- Auth leaked-password protection remains a project-settings WARN. TOTP enrollment and `CRON_SECRET` on Vercel remain staff/runtime setup.
 
 ### Phase 5 — AI generation MVP
 
@@ -607,7 +605,7 @@ Acceptance: refreshing or closing admin does not interrupt generation and failed
 - Optional illustrations enqueue `generation_media_jobs` after the draft is saved. A failed or rejected image does not discard the article. The post editor AI cover control stays in-request and does not create a media job.
 - Hourly cap is `site_settings.generation_hourly_job_limit` (24) so a 15-article batch fits. Default concurrency is 2 article jobs and 2 media jobs. Checkpoint timeout is 240 seconds. Manual retry resets attempts.
 - Default publishing mode remains `draft`. Authors cannot select scheduled or auto. Auto-publish stays off (`auto_publish_enabled = false`) until quality is proven. When a publisher selects scheduled or gated auto, passing drafts are staggered through existing `publishing_schedules`.
-- Vault multi-key rotation was listed on the original Phase 6 plan and remains follow-up. The env key plus masked `integration_secret_refs` row is unchanged.
+- Vault multi-key rotation shipped in the operational closeout. The env key remains last-resort fallback.
 
 #### Phase 6 schema
 
@@ -632,9 +630,9 @@ Additive remote migrations `phase6_durable_generation` and `phase6_media_job_fk_
 #### Phase 6 follow-up (does not block Phase 7)
 
 - Run a logged-in batch of several titles and confirm independent job progress, cancel, retry, media jobs, and audit events `generation.enqueue` / `generation.article` / `generation.media` / `generation.cancel`.
-- Add secure multi-key rotation and failover in Supabase Vault.
-- Set `CRON_SECRET` on Vercel if it is not already present for the publish cron.
-- Optional editorial-review pass and AI Gateway routing remain later work.
+- Secure multi-key rotation and failover in Supabase Vault shipped in the operational closeout.
+- Set `CRON_SECRET` on Vercel if it is not already present for the publish cron. The admin dashboard warns when it is missing.
+- Optional AI Gateway routing remains later work.
 
 ### Phase 7 — editorial quality and growth
 
@@ -683,7 +681,19 @@ Additive remote migrations `phase7_editorial_quality` and `phase7_metric_increme
 
 - Connect a live Search Console property OAuth if CSV ingest becomes too manual.
 - Run a logged-in quality scan plus AI review on a real draft and confirm `post.editorial_review` audit events.
-- Vault key rotation, CRON_SECRET, TOTP, signup lock, and the standalone media library remain open.
+- Staff TOTP enrollment remains a person-at-keyboard action. The dashboard now warns when the session is still `aal1`.
+- `CRON_SECRET` must still be present on Vercel for production ticks. The dashboard warns when it is missing in the current runtime.
+
+### Operational closeout — 2026-10-03
+
+Shipped after Phase 7 so the documented follow-ups are in code:
+
+- `/admin/media` lists blog Storage assets, supports upload, alt/focal edits, publisher approval, unused-file delete, and attaching a library cover from the post editor.
+- Super admins store a new Google key through `vault.create_secret`. `integration_secret_refs` keeps `vault:<uuid>` plus a masked suffix. The adapter selects the highest-priority active key, then falls back to `GOOGLE_GENERATIVE_AI_API_KEY`. Previous keys remain failover until deactivated. RPCs execute for `service_role` only.
+- `/blog/topic/[slug]` is indexable only when a public topic has at least two published, indexable guides. Thin topics stay `?topic=` and `noindex`. Sitemap includes qualifying topic URLs only.
+- Local/hosted Auth config locks public signup (`enable_signup = false` in `supabase/config.toml`). The app still has no signup UI.
+
+Verification: `npx tsc --noEmit` passed. Unauthenticated `/admin/media` redirected to `/admin/login?next=%2Fadmin%2Fmedia`. `/blog/topic/tutorials` 404s because each launch topic still has one guide. `/sitemap.xml` includes the three launch guides and no `/blog/topic/` URLs. Vault RPCs execute for `postgres` and `service_role` only. Security advisor still only reports the existing Auth leaked-password WARN.
 
 ## 14. Risks and guardrails
 
@@ -712,4 +722,4 @@ An implementation phase is not complete until both artifacts match the actual co
 
 ## 16. Immediate next step
 
-Operate Phase 7 with real batches: scan drafts before publish, ingest page-level Search Console totals when available, and use `/admin/growth` rather than article count to choose the next topic cluster. Keep Blog out of the primary header. Vault rotation and a logged-in generation click-through remain operational follow-up.
+Operate Phase 7 with real batches: scan drafts before publish, ingest page-level Search Console totals when available, and use `/admin/growth` rather than article count to choose the next topic cluster. Keep Blog out of the primary header. Enroll TOTP on the administrator account and confirm `CRON_SECRET` is set on Vercel.

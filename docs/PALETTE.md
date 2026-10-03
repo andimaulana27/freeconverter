@@ -1,8 +1,8 @@
 # Palette
 
-Locked 1 October 2026. Visual: canvas `freeconverter-palette`. Product rules: `docs/DNA.md`.
+Locked 1 October 2026. Visual: canvas `freeconverter-palette`. Product rules: `docs/DNA.md`. Brand recorded 3 October 2026 as AllYouConvert.
 
-FreeConverter is white, black, gray, and one red. Red is an action color, never a full-page background.
+AllYouConvert is white, black, gray, and one red. Red is an action color, never a full-page background.
 
 | Token | Hex | Use |
 |---|---|---|
