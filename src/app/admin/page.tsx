@@ -3,6 +3,7 @@ import Link from "next/link";
 import { AdminChrome } from "@/app/admin/AdminChrome";
 import { StatusBadge } from "@/components/cms/StatusBadge";
 import { ButtonLink } from "@/components/ui/Button";
+import { cronSecretConfigured } from "@/lib/ai/secrets";
 import { canManageAds, canManageSecrets, canPublish, canUseCms } from "@/lib/auth/roles";
 import { requireStaff } from "@/lib/auth/session";
 import { processDueSchedules } from "@/lib/cms/schedules";
@@ -50,8 +51,22 @@ export default async function AdminHomePage() {
   const totalPosts = posts.length;
   const publishedPercent = totalPosts ? Math.round((counts.published / totalPosts) * 100) : 0;
 
+  const cronReady = cronSecretConfigured();
+
   return (
     <AdminChrome email={session.email} role={session.role} currentAal={session.currentAal}>
+      {session.currentAal !== "aal2" ? (
+        <p className="mb-4 rounded-control border border-accent/30 bg-accent-soft px-3 py-2 text-sm text-accent-ink">
+          This account still signs in with a password only.{" "}
+          <Link href="/admin/security" className="font-semibold underline">Enroll an authenticator</Link>
+          {" "}before publishing more batches.
+        </p>
+      ) : null}
+      {canManageSecrets(session.role) && !cronReady ? (
+        <p className="mb-4 rounded-control border border-accent/30 bg-accent-soft px-3 py-2 text-sm text-accent-ink">
+          CRON_SECRET is not set on this server. Scheduled publish and generation workers will reject unauthenticated ticks until it is present.
+        </p>
+      ) : null}
       <section className="group relative isolate overflow-hidden rounded-[26px] border border-white/10 bg-[#181412] p-6 text-white shadow-panel-dark sm:p-8">
         <div
           className="pointer-events-none absolute inset-0 -z-20 opacity-30 [background-image:linear-gradient(rgba(255,255,255,0.05)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.05)_1px,transparent_1px)] [background-size:46px_46px]"
@@ -88,6 +103,9 @@ export default async function AdminHomePage() {
               <>
                 <ButtonLink href="/admin/generate" variant="secondary" size="sm" className="border-white/10 bg-white/[0.06] text-white hover:border-white/20 hover:bg-white/10">
                   Generate
+                </ButtonLink>
+                <ButtonLink href="/admin/media" variant="secondary" size="sm" className="border-white/10 bg-white/[0.06] text-white hover:border-white/20 hover:bg-white/10">
+                  Media
                 </ButtonLink>
                 <ButtonLink href="/admin/growth" variant="secondary" size="sm" className="border-white/10 bg-white/[0.06] text-white hover:border-white/20 hover:bg-white/10">
                   Growth
