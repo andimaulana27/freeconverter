@@ -61,7 +61,21 @@ function draftFrom(post: CmsPost) {
 }
 
 function inputClass() {
-  return "h-10 w-full rounded-control border border-line bg-bone px-3 text-sm text-ink outline-none focus:border-accent focus:shadow-glow";
+  return "h-11 w-full rounded-control border border-[#ddd6d2] bg-white px-3 text-sm text-ink outline-none transition duration-180 focus:border-accent focus:shadow-glow";
+}
+
+function coverSourceLabel(source: string) {
+  if (source === "upload") return "Uploaded image";
+  if (source === "template") return "Branded template";
+  if (source === "ai") return "AI illustration";
+  return "Cover image";
+}
+
+function formatEditorDate(value: string) {
+  return new Intl.DateTimeFormat("en-US", {
+    dateStyle: "medium",
+    timeStyle: "short",
+  }).format(new Date(value));
 }
 
 export function PostEditor({
@@ -201,17 +215,18 @@ export function PostEditor({
   }).slice(0, 8);
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-wrap items-start justify-between gap-4">
+    <div className="space-y-5">
+      <div className="flex flex-wrap items-end justify-between gap-5 rounded-[22px] border border-black/[0.07] bg-white p-6 shadow-tile">
         <div>
-          <p className="font-mono text-micro uppercase text-faint">Structured editor</p>
-          <h1 className="mt-1 text-2xl font-semibold tracking-tight">{draft.title || "Untitled guide"}</h1>
+          <p className="flex items-center gap-2 font-mono text-micro font-bold uppercase text-accent"><span className="h-px w-6 bg-accent" /> Structured editor</p>
+          <h1 className="mt-3 max-w-3xl text-3xl font-semibold tracking-[-0.05em]">{draft.title || "Untitled guide"}</h1>
           <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-mute">
             <StatusBadge status={post.status} />
-            <span>
-              {saveState === "saving" ? "Saving…" : saveState === "dirty" ? "Unsaved changes" : saveState === "conflict" ? "Conflict" : "Saved"}
+            <span className="flex items-center gap-1.5 font-mono text-[9px] uppercase tracking-[0.12em]">
+              <span className={`h-1.5 w-1.5 rounded-full ${saveState === "saved" ? "bg-[#55d69a]" : saveState === "error" || saveState === "conflict" ? "bg-accent" : "bg-warn"}`} />
+              {saveState === "saving" ? "Saving…" : saveState === "dirty" ? "Changes not saved yet" : saveState === "conflict" ? "Another version was saved" : "All changes saved"}
             </span>
-            {schedule ? <span>Scheduled {new Date(schedule.run_at).toISOString().slice(0, 16)} UTC · {schedule.action}</span> : null}
+            {schedule ? <span>{schedule.action === "publish" ? "Goes live" : "Comes offline"} {formatEditorDate(schedule.run_at)}</span> : null}
           </div>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -229,7 +244,7 @@ export function PostEditor({
 
       {message ? (
         <p role={saveState === "error" || saveState === "conflict" ? "alert" : "status"} className="rounded-control border border-line bg-bone px-3 py-2 text-sm">
-          {message}{" "}
+          {saveState === "conflict" ? "Someone else saved this guide after you opened it. Reload to use the latest version." : message}{" "}
           {saveState === "conflict" ? (
             <button type="button" className="font-semibold text-accent" onClick={() => router.refresh()}>
               Reload
@@ -238,13 +253,18 @@ export function PostEditor({
         </p>
       ) : null}
 
-      <section className="grid gap-4 rounded-tile border border-line bg-paper p-5 lg:grid-cols-2">
+      <section className="grid gap-4 rounded-[22px] border border-black/[0.07] bg-white p-5 shadow-tile lg:grid-cols-2 sm:p-6">
+        <div className="lg:col-span-2">
+          <p className="font-mono text-[9px] font-bold uppercase tracking-[0.14em] text-accent">Guide details</p>
+          <h2 className="mt-1 text-lg font-semibold tracking-[-0.03em]">Title, web address, and search preview</h2>
+          <p className="mt-1 text-xs text-mute">These details help readers and search engines understand the guide.</p>
+        </div>
         <label className="flex flex-col gap-1.5 text-xs font-medium text-mute lg:col-span-2">
           Title
           <input className={inputClass()} value={draft.title} onChange={(event) => setDraft({ ...draft, title: event.target.value })} />
         </label>
         <label className="flex flex-col gap-1.5 text-xs font-medium text-mute">
-          Slug
+          Web address
           <input
             className={inputClass()}
             value={draft.slug}
@@ -265,7 +285,7 @@ export function PostEditor({
         <label className="flex flex-col gap-1.5 text-xs font-medium text-mute lg:col-span-2">
           Excerpt
           <textarea
-            className="w-full rounded-control border border-line bg-bone px-3 py-2 text-sm text-ink outline-none focus:border-accent focus:shadow-glow"
+            className="w-full rounded-control border border-[#ddd6d2] bg-white px-3 py-2 text-sm text-ink outline-none transition focus:border-accent focus:shadow-glow"
             rows={3}
             value={draft.excerpt}
             onChange={(event) => setDraft({ ...draft, excerpt: event.target.value })}
@@ -273,23 +293,25 @@ export function PostEditor({
           <span className="text-[11px] text-faint">{draft.excerpt.trim().length}/{SEO_LIMITS.excerpt.max}</span>
         </label>
         <label className="flex flex-col gap-1.5 text-xs font-medium text-mute">
-          SEO title
+          Search result title
           <input className={inputClass()} value={draft.seoTitle} onChange={(event) => setDraft({ ...draft, seoTitle: event.target.value })} />
           <span className="text-[11px] text-faint">{(draft.seoTitle || draft.title).trim().length}/{SEO_LIMITS.seoTitle.max}</span>
         </label>
         <label className="flex flex-col gap-1.5 text-xs font-medium text-mute">
-          Meta description
+          Search result description
           <input className={inputClass()} value={draft.seoDescription} onChange={(event) => setDraft({ ...draft, seoDescription: event.target.value })} />
           <span className="text-[11px] text-faint">{(draft.seoDescription || draft.excerpt).trim().length}/{SEO_LIMITS.seoDescription.max}</span>
         </label>
         <label className="flex items-center gap-2 text-sm text-mute lg:col-span-2">
           <input type="checkbox" checked={draft.noindex} onChange={(event) => setDraft({ ...draft, noindex: event.target.checked })} />
-          Keep this guide noindex after publish
+          Hide this guide from search engines after publishing
         </label>
       </section>
 
-      <section className="rounded-tile border border-line bg-paper p-5">
-        <h2 className="text-sm font-semibold">Related tools</h2>
+      <section className="rounded-[22px] border border-black/[0.07] bg-white p-5 shadow-tile sm:p-6">
+        <p className="font-mono text-[9px] font-bold uppercase tracking-[0.14em] text-accent">Content links</p>
+        <h2 className="mt-1 text-lg font-semibold tracking-[-0.03em]">Related converter tools</h2>
+        <p className="mt-1 text-xs text-mute">Choose tools readers may want to open after finishing this guide.</p>
         <div className="mt-3 flex flex-wrap gap-2">
           {draft.toolSlugs.map((slug) => (
             <button
@@ -298,7 +320,7 @@ export function PostEditor({
               className="rounded-control border border-line px-2 py-1 text-xs"
               onClick={() => setDraft({ ...draft, toolSlugs: draft.toolSlugs.filter((item) => item !== slug) })}
             >
-              {slug} ×
+              {tools.find((tool) => tool.slug === slug)?.title ?? slug} ×
             </button>
           ))}
         </div>
@@ -329,8 +351,9 @@ export function PostEditor({
         ) : null}
       </section>
 
-      <section className="rounded-tile border border-line bg-paper p-5">
-        <h2 className="text-sm font-semibold">Cover</h2>
+      <section className="rounded-[22px] border border-black/[0.07] bg-white p-5 shadow-tile sm:p-6">
+        <p className="font-mono text-[9px] font-bold uppercase tracking-[0.14em] text-accent">Visual identity</p>
+        <h2 className="mt-1 text-lg font-semibold tracking-[-0.03em]">Cover</h2>
         <p className="mt-1 text-sm text-mute">Upload, generate a branded template, or add an optional text-free AI illustration behind the title.</p>
         {post.cover ? (
           <div className="mt-4 grid gap-4 lg:grid-cols-[16rem_minmax(0,1fr)]">
@@ -338,7 +361,7 @@ export function PostEditor({
             <img src={post.cover.url} alt={post.cover.alt_text || draft.title} className="aspect-[1.91/1] w-full rounded-card border border-line object-cover" />
             <div className="space-y-3">
               <p className="text-xs text-mute">
-                {post.cover.source} · {post.cover.approved_at ? "Approved" : "Needs approval"}
+                {coverSourceLabel(post.cover.source)} · {post.cover.approved_at ? "Approved and ready" : "Waiting for approval before publishing"}
               </p>
               <label className="flex flex-col gap-1.5 text-xs font-medium text-mute">
                 Alt text
@@ -346,7 +369,7 @@ export function PostEditor({
               </label>
               <div className="grid grid-cols-2 gap-3">
                 <label className="text-xs text-mute">
-                  Focal X {post.cover.focal_x}
+                  Horizontal crop focus
                   <input
                     type="range"
                     min="0"
@@ -365,7 +388,7 @@ export function PostEditor({
                   />
                 </label>
                 <label className="text-xs text-mute">
-                  Focal Y {post.cover.focal_y}
+                  Vertical crop focus
                   <input
                     type="range"
                     min="0"
@@ -402,7 +425,7 @@ export function PostEditor({
                     })
                   }
                 >
-                  Save alt / focal point
+                  Save image details
                 </Button>
                 {canPublish && !post.cover.approved_at ? (
                   <Button type="button" size="sm" onClick={() => void approveCover({ postId: post.id, expectedUpdatedAt: post.updated_at }).then((result) => result.ok && setPost(result.post))}>
@@ -475,15 +498,18 @@ export function PostEditor({
         </div>
       </section>
 
-      <section className="rounded-tile border border-line bg-paper p-5">
-        <h2 className="text-sm font-semibold">Body</h2>
+      <section className="rounded-[22px] border border-black/[0.07] bg-white p-5 shadow-tile sm:p-6">
+        <p className="font-mono text-[9px] font-bold uppercase tracking-[0.14em] text-accent">Article structure</p>
+        <h2 className="mt-1 text-lg font-semibold tracking-[-0.03em]">Body</h2>
         <div className="mt-4">
           <BlockEditor blocks={draft.blocks} onChange={(blocks) => setDraft({ ...draft, blocks })} />
         </div>
       </section>
 
-      <section className="rounded-tile border border-line bg-paper p-5">
-        <h2 className="text-sm font-semibold">Quality gate</h2>
+      <section className="rounded-[22px] border border-black/[0.07] bg-white p-5 shadow-tile sm:p-6">
+        <p className="font-mono text-[9px] font-bold uppercase tracking-[0.14em] text-accent">Readiness</p>
+        <h2 className="mt-1 text-lg font-semibold tracking-[-0.03em]">Ready to publish checklist</h2>
+        <p className="mt-1 text-xs text-mute">Resolve each item below before making the guide public.</p>
         {issues.length ? (
           <ul className="mt-3 list-disc space-y-1 pl-5 text-sm text-mute">
             {issues.map((issue) => (
@@ -495,8 +521,10 @@ export function PostEditor({
         )}
       </section>
 
-      <section className="rounded-tile border border-line bg-paper p-5">
-        <h2 className="text-sm font-semibold">Publishing</h2>
+      <section className="relative isolate overflow-hidden rounded-[22px] border border-white/10 bg-[#181412] p-5 text-white shadow-panel-dark sm:p-6 [&_label]:text-white/55 [&_p]:text-white/55">
+        <div className="pointer-events-none absolute inset-y-0 right-0 -z-10 w-80 opacity-25 [background-image:radial-gradient(circle,rgba(255,106,100,0.7)_1px,transparent_1.2px)] [background-size:10px_10px] [mask-image:linear-gradient(to_left,black,transparent)]" aria-hidden />
+        <p className="font-mono text-[9px] font-bold uppercase tracking-[0.14em] text-accent-light">Release control</p>
+        <h2 className="mt-1 text-lg font-semibold tracking-[-0.03em]">Make this guide public</h2>
         <div className="mt-4 flex flex-wrap gap-2">
           {post.status !== "review" ? (
             <Button type="button" variant="secondary" loading={busy} onClick={() => void runStatus("review")}>
@@ -528,13 +556,13 @@ export function PostEditor({
               ) : null}
             </>
           ) : (
-            <p className="text-sm text-mute">Publishing is limited to editors and super admins.</p>
+            <p className="text-sm text-mute">You can prepare and submit this guide for review. An editor will publish it.</p>
           )}
         </div>
         {canPublish ? (
           <div className="mt-4 flex flex-wrap items-end gap-2">
             <label className="flex flex-col gap-1.5 text-xs font-medium text-mute">
-              Schedule (local time)
+              Date and time
               <input className={inputClass()} type="datetime-local" value={scheduleAt} onChange={(event) => setScheduleAt(event.target.value)} />
             </label>
             <Button type="button" variant="secondary" loading={busy} onClick={() => void runStatus("schedule", { runAt: scheduleAt, scheduleAction: "publish" })}>
