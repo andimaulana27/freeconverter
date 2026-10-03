@@ -1,7 +1,8 @@
 import type { ReactNode } from "react";
-import { roleLabel, type StaffRole } from "@/lib/auth/roles";
+import { AdminNav } from "@/app/admin/AdminNav";
 import { signOutAdmin } from "@/app/admin/actions";
-import { Button, ButtonLink } from "@/components/ui/Button";
+import { Button } from "@/components/ui/Button";
+import { canUseCms, roleLabel, type StaffRole } from "@/lib/auth/roles";
 
 export function AdminChrome({
   email,
@@ -15,30 +16,35 @@ export function AdminChrome({
   children: ReactNode;
 }) {
   return (
-    <div className="mx-auto flex min-h-screen w-full max-w-5xl flex-col px-5 py-8 sm:px-6">
-      <header className="mb-8 border-b border-line pb-4">
-        <div className="flex flex-wrap items-center justify-between gap-4">
+    <div className="min-h-screen lg:grid lg:grid-cols-[15.5rem_minmax(0,1fr)]">
+      <aside className="border-b border-line bg-paper px-5 py-5 lg:sticky lg:top-0 lg:h-screen lg:border-b-0 lg:border-r lg:px-5 lg:py-6">
+        <div className="flex items-start justify-between gap-4 lg:block">
           <div>
             <p className="font-mono text-micro font-bold uppercase tracking-[0.16em] text-accent">Admin</p>
-            <h1 className="mt-1 text-lg font-semibold tracking-tight">AllYouConvert</h1>
+            <p className="mt-1 text-base font-semibold tracking-tight">AllYouConvert</p>
           </div>
-          <div className="flex flex-wrap items-center gap-3 text-sm">
-            <span className="text-mute">{email}</span>
-            <span className="rounded-control border border-line bg-paper px-2 py-1 text-xs font-semibold">{roleLabel(role)}</span>
-            <span className="text-xs text-faint">{currentAal.toUpperCase()}</span>
-            <form action={signOutAdmin}>
-              <Button type="submit" variant="secondary" size="sm">
-                Sign out
-              </Button>
-            </form>
-          </div>
+          <form action={signOutAdmin} className="lg:hidden">
+            <Button type="submit" variant="secondary" size="sm">
+              Sign out
+            </Button>
+          </form>
         </div>
-        <nav aria-label="Admin navigation" className="mt-4 flex flex-wrap gap-2">
-          <ButtonLink href="/admin">Dashboard</ButtonLink>
-          <ButtonLink href="/admin/security">Security</ButtonLink>
-        </nav>
-      </header>
-      {children}
+        <div className="mt-5">
+          <AdminNav showCms={canUseCms(role)} />
+        </div>
+        <div className="mt-6 hidden text-xs text-mute lg:block">
+          <p className="truncate text-sm text-ink">{email}</p>
+          <p className="mt-1">
+            {roleLabel(role)} · {currentAal.toUpperCase()}
+          </p>
+          <form action={signOutAdmin} className="mt-4">
+            <Button type="submit" variant="secondary" size="sm">
+              Sign out
+            </Button>
+          </form>
+        </div>
+      </aside>
+      <div className="min-w-0 px-5 py-6 sm:px-8">{children}</div>
     </div>
   );
 }
