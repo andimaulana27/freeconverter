@@ -1,6 +1,6 @@
 # Blog, Admin CMS, Ads, and AI Architecture
 
-Status: Phase 3 complete; Phase 4 is next  
+Status: Phase 4 complete; Phase 5 is next  
 Last updated: 2026-10-03  
 Canvas: `blog-admin-ai-architecture.canvas.tsx`
 
@@ -77,10 +77,9 @@ Next.js App Router renders blog index and article pages as Server Components. Pu
 
 ### Admin application
 
-The admin area lives under `/admin` and uses Supabase Auth. Phase 1 ships login, MFA challenge, role-gated dashboard chrome, and `noindex` on every admin route. Phase 3 adds the CMS dashboard, post list, structured editor, authenticated preview, revisions, cover controls, and draft/review/publish/unpublish/archive/schedule actions. Later phases add:
+The admin area lives under `/admin` and uses Supabase Auth. Phase 1 ships login, MFA challenge, role-gated dashboard chrome, and `noindex` on every admin route. Phase 3 adds the CMS dashboard, post list, structured editor, authenticated preview, revisions, cover controls, and draft/review/publish/unpublish/archive/schedule actions. Phase 4 adds the ads manager for structured AdSense units, image creatives, and assignments to the fixed slots. Later phases add:
 
 - generation batches and job progress;
-- advertising creatives and placements;
 - a standalone media library browser;
 - AI providers, models, prompts, budgets, and key health;
 - users, roles, and a richer audit UI.
@@ -351,7 +350,7 @@ Public post visibility requires `status = published`, `published_at <= now()`, a
 
 Storage buckets: `blog-public` (public images), `blog-private` (authenticated CMS readers), `ad-creatives` (public images, ad-manager writes).
 
-Seeds: 8 placement keys, 5 prompt templates, 5 model profiles (`gemini-3.5-flash-lite` for titles; `gemini-3.8-flash` for outline, draft, SEO, review), 1 Google env secret ref, 6 site settings including `default_publishing_mode = draft` and `auto_publish_enabled = false`.
+Seeds: 8 placement keys, 5 prompt templates, 5 model profiles (`gemini-3.5-flash-lite` for titles; `gemini-3.8-flash` for outline, draft, SEO, review), 1 Google env secret ref, 6 site settings including `default_publishing_mode = draft` and `auto_publish_enabled = false`. Phase 4 later added two converter placement keys and public `adsense_client_id`.
 
 #### Phase 1 routes and clients
 
@@ -486,7 +485,8 @@ Additive remote migration `20261003021058_phase3_cms_media_and_redirects` (20 ap
 
 ### Phase 4 — ads manager
 
-Status: planned
+Status: complete  
+Completed: 2026-10-03
 
 - build creative, placement, assignment, preview, scheduling, and activation controls;
 - support structured AdSense units and manual image creatives;
@@ -494,6 +494,43 @@ Status: planned
 - verify layout stability, mobile behavior, and footer stopping rules.
 
 Acceptance: an ad manager can update creatives without shipping code or injecting arbitrary scripts.
+
+#### Phase 4 decisions
+
+- Existing converter in-page units were not in the original 8-key registry. Phase 4 added `page_in_body` (728×90 / 320×100 swap) and `page_sidebar` (300×250, hide on small screens) so every current `AdSlot` has a placement key.
+- `SiteShell` loads cached public ad config (`ads-public`, 60s) and provides it to every public slot. Article previews still use `ads={false}` and do not load the AdSense script.
+- AdSense paste is parsed into `ca-pub-` client ID, numeric slot ID, width, and height. The original snippet is discarded. The approved Google script loads once when an active AdSense unit exists.
+- Super admins store a verified public `site_settings.adsense_client_id`. Ad managers cannot write that setting. Per-unit env slot IDs remain a fallback only until a CMS assignment wins.
+- Image creatives upload to the `ad-creatives` bucket with `rel="sponsored"` links. Empty creatives reserve or collapse space from the placement fallback.
+- Drafts may be incomplete. Activating an AdSense unit without a slot ID, or an image without media/URL/alt, is blocked in application code and by `app.guard_ad_creative_activation`.
+- Placement keys and desktop sizes stay super-admin policy. Ad managers assign creatives with priority and start/end windows.
+
+#### Phase 4 schema
+
+Additive remote migration `phase4_ads_manager` (still 20 application tables): two placement keys, public `adsense_client_id`, fallback/AdSense/URL checks, and the activation trigger. RLS remains ENABLE + FORCE.
+
+#### Phase 4 routes
+
+- `/admin/ads` — placement board, live winner, assign, creative list, verified client (super admin).
+- `/admin/ads/new` — create an AdSense, image, or empty draft.
+- `/admin/ads/[id]` — structured fields, image upload, snippet parse, status, assignments, reserved-frame preview (no live AdSense).
+- `/admin/ads/preview` — placement-boundary schematic.
+- Public `AdSlot` instances now take a `placement` key: homepage rails, page rails, pre-footer, article in-body/sidebar, homepage showcase, converter in-page leaderboards, and converter sidebar.
+
+#### Phase 4 verification
+
+- Anon REST: 10 `ad_placements` readable; active empty probe `phase4-ads-verification-live` visible with its assignment; draft `phase4-ads-verification-draft` hidden; `integration_secret_refs` denied (401). Probe rows were deleted afterward.
+- Activating an AdSense creative without a slot ID raised `Active AdSense creatives require a slot ID`.
+- Unauthenticated `/admin/ads` and `/admin/ads/preview` 307 to login. `/admin/login` has no ad frames.
+- Homepage HTML: 3 advertisement asides (showcase, in-page, pre-footer), no AdSense script without a client ID, Blog in the footer only. Header links stay converter categories.
+- `/blog/convert-png-to-jpg-in-the-browser` keeps 3 ad frames (in-body, sidebar, pre-footer). `/png-to-jpg` keeps 4 (two in-page, sidebar, pre-footer). Side rails stay client-gated to wide viewports and `absolute bottom-0` inside `main`, so they stop before the footer.
+- `npx tsc --noEmit` passed after the ads manager landed.
+
+#### Phase 4 follow-up (does not block Phase 5)
+
+- Env per-unit slot IDs can be removed after production assignments exist.
+- A logged-in click-through of `/admin/ads` was not available in this session; unauthenticated redirects and the nested assignment select were checked instead.
+- Auth leaked-password protection remains a project-settings WARN. Topic routes, signup lock, TOTP enrollment, CRON_SECRET, and the standalone media library remain open.
 
 ### Phase 5 — AI generation MVP
 
@@ -560,4 +597,4 @@ An implementation phase is not complete until both artifacts match the actual co
 
 ## 16. Immediate next step
 
-Begin Phase 4: ad manager for structured AdSense units and manual image creatives, wired to the existing fixed-size slots. Keep Blog out of the primary header. After implementation, update this document and the Canvas together.
+Begin Phase 5: AI generation MVP with a server-only provider adapter, structured title/outline/draft/SEO output, and a branded cover. Keep Blog out of the primary header. After implementation, update this document and the Canvas together.
