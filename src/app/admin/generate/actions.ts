@@ -12,7 +12,7 @@ import {
   retryMediaJob,
   saveTitleSelections,
 } from "@/lib/ai/pipeline";
-import { assertGenerationAvailable, readGenerationHealth, testGoogleConnection } from "@/lib/ai/secrets";
+import { assertGenerationAvailable, readGenerationHealth, rotateGoogleApiKey, setGoogleSecretActive, testGoogleConnection } from "@/lib/ai/secrets";
 import { fetchBatch } from "@/lib/ai/server";
 import { kickGenerationWorker } from "@/lib/ai/worker";
 import { ARTICLE_TYPES, type ArticleType, type GenerationActionResult, type PublishingMode, type TitleCandidate } from "@/lib/ai/types";
@@ -184,6 +184,35 @@ export async function testGoogleConnectionAction(): Promise<GenerationActionResu
     client: session.supabase,
     role: session.role,
     actorId: session.user.id,
+  });
+  if (!result.ok) return result;
+  const health = await readGenerationHealth(session.supabase, session.role);
+  return { ok: true, message: result.message, health };
+}
+
+export async function rotateGoogleKeyAction(apiKey: string): Promise<GenerationActionResult> {
+  const session = await requireStaff("/admin/generate");
+  if (!canManageSecrets(session.role)) return { ok: false, error: "Only a super admin can rotate the provider key.", code: "forbidden" };
+  const result = await rotateGoogleApiKey({
+    client: session.supabase,
+    role: session.role,
+    actorId: session.user.id,
+    apiKey,
+  });
+  if (!result.ok) return result;
+  const health = await readGenerationHealth(session.supabase, session.role);
+  return { ok: true, message: result.message, health };
+}
+
+export async function setGoogleSecretActiveAction(secretRef: string, active: boolean): Promise<GenerationActionResult> {
+  const session = await requireStaff("/admin/generate");
+  if (!canManageSecrets(session.role)) return { ok: false, error: "Only a super admin can change key activation.", code: "forbidden" };
+  const result = await setGoogleSecretActive({
+    client: session.supabase,
+    role: session.role,
+    actorId: session.user.id,
+    secretRef,
+    active,
   });
   if (!result.ok) return result;
   const health = await readGenerationHealth(session.supabase, session.role);

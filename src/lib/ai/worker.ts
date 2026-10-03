@@ -4,7 +4,7 @@ import { randomUUID } from "node:crypto";
 import { isRetryableGenerationError, processArticleJob } from "@/lib/ai/article-job";
 import { processMediaJob } from "@/lib/ai/media-job";
 import { sanitizeAiError } from "@/lib/ai/provider";
-import { recordProviderResult } from "@/lib/ai/secrets";
+import { recordProviderResult, resolveGoogleApiKey } from "@/lib/ai/secrets";
 import {
   backoffIso,
   claimGenerationJobs,
@@ -62,6 +62,7 @@ async function failOrRetryMedia(client: ReturnType<typeof createServiceSupabaseC
 
 export async function processGenerationQueue(): Promise<WorkerTickResult> {
   const client = createServiceSupabaseClient();
+  await resolveGoogleApiKey(client);
   const settings = await loadWorkerSettings(client);
   const workerId = `gen-${randomUUID().slice(0, 8)}`;
   const result: WorkerTickResult = {

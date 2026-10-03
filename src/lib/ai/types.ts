@@ -184,6 +184,18 @@ export type WorkerSettings = {
   defaultPublishingMode: PublishingMode;
 };
 
+export type SecretRefSummary = {
+  id: string;
+  secretRef: string;
+  kind: "env" | "vault";
+  maskedSuffix: string;
+  health: SecretHealth;
+  priority: number;
+  isActive: boolean;
+  lastTestedAt: string | null;
+  lastError: string | null;
+};
+
 export type GenerationHealth = {
   configured: boolean;
   health: SecretHealth | null;
@@ -191,6 +203,8 @@ export type GenerationHealth = {
   lastError: string | null;
   lastTestedAt: string | null;
   disabled: boolean;
+  source: "env" | "vault" | null;
+  keys: SecretRefSummary[];
 };
 
 export type GenerationActionResult =
