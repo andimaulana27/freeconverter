@@ -1,7 +1,7 @@
 import "server-only";
 
 import { redirect } from "next/navigation";
-import { canPublish, canUseCms, readUserRole, type StaffRole } from "@/lib/auth/roles";
+import { canManageAds, canPublish, canUseCms, readUserRole, type StaffRole } from "@/lib/auth/roles";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 
 export async function getStaffSession() {
@@ -48,5 +48,11 @@ export async function requireCms(nextPath = "/admin/posts") {
 export async function requirePublisher(nextPath = "/admin") {
   const session = await requireStaff(nextPath);
   if (!canPublish(session.role)) redirect("/admin");
+  return session;
+}
+
+export async function requireAds(nextPath = "/admin/ads") {
+  const session = await requireStaff(nextPath);
+  if (!canManageAds(session.role)) redirect("/admin");
   return session;
 }
