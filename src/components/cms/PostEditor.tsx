@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import {
   approveCover,
   changePostStatus,
+  generateAiIllustrationCover,
   generateTemplateCover,
   removeCover,
   saveDraft,
@@ -330,7 +331,7 @@ export function PostEditor({
 
       <section className="rounded-tile border border-line bg-paper p-5">
         <h2 className="text-sm font-semibold">Cover</h2>
-        <p className="mt-1 text-sm text-mute">Upload, generate a branded template, or leave empty. AI illustration stays in Phase 5.</p>
+        <p className="mt-1 text-sm text-mute">Upload, generate a branded template, or add an optional text-free AI illustration behind the title.</p>
         {post.cover ? (
           <div className="mt-4 grid gap-4 lg:grid-cols-[16rem_minmax(0,1fr)]">
             {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -448,7 +449,27 @@ export function PostEditor({
           >
             Auto template
           </Button>
-          <Button type="button" variant="ghost" size="sm" disabled>
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            loading={busy}
+            onClick={() =>
+              void generateAiIllustrationCover({
+                postId: post.id,
+                expectedUpdatedAt: post.updated_at,
+                title: draft.title,
+              }).then((result) => {
+                if (!result.ok) {
+                  setMessage(result.error);
+                  return;
+                }
+                skipAutosave.current = true;
+                setPost(result.post);
+                setCoverAlt(result.post.cover?.alt_text ?? coverAlt);
+              })
+            }
+          >
             AI illustration
           </Button>
         </div>

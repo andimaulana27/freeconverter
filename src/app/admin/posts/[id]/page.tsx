@@ -14,6 +14,8 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
+export const maxDuration = 180;
+
 export default async function EditPostPage({ params }: Props) {
   const { id } = await params;
   const session = await requireCms(`/admin/posts/${id}`);

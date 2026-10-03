@@ -47,9 +47,14 @@ export default async function AdminHomePage() {
           <h1 className="mt-1 text-2xl font-semibold tracking-tight">Dashboard</h1>
         </div>
         {cms ? (
-          <ButtonLink href="/admin/posts/new" variant="primary" size="sm">
-            New guide
-          </ButtonLink>
+          <div className="flex flex-wrap gap-2">
+            <ButtonLink href="/admin/generate" variant="secondary" size="sm">
+              Generate
+            </ButtonLink>
+            <ButtonLink href="/admin/posts/new" variant="primary" size="sm">
+              New guide
+            </ButtonLink>
+          </div>
         ) : null}
       </div>
 

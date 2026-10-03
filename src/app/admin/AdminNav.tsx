@@ -7,6 +7,7 @@ import { cn } from "@/lib/cn";
 const LINKS = [
   { href: "/admin", label: "Dashboard", match: "exact" as const },
   { href: "/admin/posts", label: "Guides", match: "prefix" as const },
+  { href: "/admin/generate", label: "Generate", match: "prefix" as const },
   { href: "/admin/ads", label: "Ads", match: "prefix" as const },
   { href: "/admin/security", label: "Security", match: "prefix" as const },
 ];
@@ -14,7 +15,7 @@ const LINKS = [
 export function AdminNav({ showCms, showAds }: { showCms: boolean; showAds: boolean }) {
   const pathname = usePathname();
   const links = LINKS.filter((link) => {
-    if (link.href === "/admin/posts") return showCms;
+    if (link.href === "/admin/posts" || link.href === "/admin/generate") return showCms;
     if (link.href === "/admin/ads") return showAds;
     return true;
   });

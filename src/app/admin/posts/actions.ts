@@ -14,6 +14,7 @@ import {
   savePostContent,
   setCoverRelation,
   uniqueSlug,
+  upsertPublicCover,
   writeAudit,
 } from "@/lib/cms/server";
 import { canonicalPathForSlug, slugify } from "@/lib/cms/slug";
@@ -355,76 +356,66 @@ export async function generateTemplateCover(input: {
   }
 
   const svg = brandedCoverSvg(input.title || post.title, post.topic?.name ?? "GUIDE");
-  const path = `covers/${post.id}/template.svg`;
   const body = new Blob([svg], { type: "image/svg+xml" });
-  const { error: uploadError } = await session.supabase.storage.from("blog-public").upload(path, body, {
-    contentType: "image/svg+xml",
-    upsert: true,
-  });
-  if (uploadError) return { ok: false, error: uploadError.message };
-
-  const publisher = canPublish(session.role);
-  const altText = `Branded cover for ${input.title || post.title}`;
-  const existing = await session.supabase
-    .from("media_assets")
-    .select("id")
-    .eq("bucket", "blog-public")
-    .eq("path", path)
-    .maybeSingle();
-
-  let mediaId = existing.data?.id ? String(existing.data.id) : null;
-  if (mediaId) {
-    const { error } = await session.supabase
-      .from("media_assets")
-      .update({
-        alt_text: altText,
-        visibility: "public",
-        source: "template",
-        generation_status: "ready",
-        template_key: "brand-bar",
-        variant: "hero",
-        seed: post.id,
-        approved_at: publisher ? new Date().toISOString() : null,
-        approved_by: publisher ? session.user.id : null,
-      })
-      .eq("id", mediaId);
-    if (error) return { ok: false, error: error.message };
-  } else {
-    const { data, error } = await session.supabase
-      .from("media_assets")
-      .insert({
-        bucket: "blog-public",
-        path,
-        mime_type: "image/svg+xml",
-        byte_size: body.size,
-        alt_text: altText,
-        visibility: "public",
-        owner_id: session.user.id,
-        source: "template",
-        generation_status: "ready",
-        template_key: "brand-bar",
-        variant: "hero",
-        seed: post.id,
-        approved_at: publisher ? new Date().toISOString() : null,
-        approved_by: publisher ? session.user.id : null,
-      })
-      .select("id")
-      .single();
-    if (error || !data) return { ok: false, error: error?.message ?? "Cover record failed." };
-    mediaId = String(data.id);
+  try {
+    const mediaId = await upsertPublicCover(session.supabase, {
+      postId: post.id,
+      path: `covers/${post.id}/template.svg`,
+      body,
+      contentType: "image/svg+xml",
+      altText: `Branded cover for ${input.title || post.title}`,
+      actorId: session.user.id,
+      source: "template",
+      approve: canPublish(session.role),
+      templateKey: "brand-bar",
+      seed: post.id,
+      width: 1200,
+      height: 630,
+    });
+    await session.supabase.from("blog_posts").update({ updated_by: session.user.id }).eq("id", post.id);
+    await writeAudit(session.supabase, {
+      actorId: session.user.id,
+      action: "post.cover_template",
+      entityType: "blog_post",
+      entityId: post.id,
+      metadata: { mediaAssetId: mediaId },
+    });
+  } catch (error) {
+    return { ok: false, error: error instanceof Error ? error.message : "Cover generation failed." };
   }
-
-  await setCoverRelation(session.supabase, post.id, mediaId);
-  await session.supabase.from("blog_posts").update({ updated_by: session.user.id }).eq("id", post.id);
-  await writeAudit(session.supabase, {
-    actorId: session.user.id,
-    action: "post.cover_template",
-    entityType: "blog_post",
-    entityId: post.id,
-    metadata: { mediaAssetId: mediaId },
-  });
   const next = await fetchPost(session.supabase, post.id);
   return next ? { ok: true, post: next } : { ok: false, error: "Guide not found." };
+}
+
+export async function generateAiIllustrationCover(input: {
+  postId: string;
+  expectedUpdatedAt: string;
+  title: string;
+}): Promise<CmsActionResult> {
+  const session = await requireCms(`/admin/posts/${input.postId}`);
+  const post = await fetchPost(session.supabase, input.postId);
+  if (!post) return { ok: false, error: "Guide not found." };
+  if (post.updated_at !== input.expectedUpdatedAt) {
+    return { ok: false, error: "This guide was updated in another tab. Reload before generating a cover.", code: "conflict", post };
+  }
+  const { assertGenerationAvailable } = await import("@/lib/ai/secrets");
+  const { generateAiCoverForPost } = await import("@/lib/ai/pipeline");
+  const available = await assertGenerationAvailable(session.supabase, session.role);
+  if (!available.ok) return { ok: false, error: available.error };
+  try {
+    const next = await generateAiCoverForPost({
+      client: session.supabase,
+      role: session.role,
+      actorId: session.user.id,
+      postId: post.id,
+      title: input.title || post.title,
+      kicker: post.topic?.name ?? "GUIDE",
+    });
+    await session.supabase.from("blog_posts").update({ updated_by: session.user.id }).eq("id", post.id);
+    return next ? { ok: true, post: next } : { ok: false, error: "Guide not found." };
+  } catch (error) {
+    return { ok: false, error: error instanceof Error ? error.message : "AI illustration failed. The article draft was left unchanged." };
+  }
 }
 
 export async function updateCoverMeta(input: {
