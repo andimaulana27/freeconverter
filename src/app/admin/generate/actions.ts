@@ -1,16 +1,38 @@
 "use server";
 
-import { canManageSecrets } from "@/lib/auth/roles";
+import { after } from "next/server";
+import { canManageSecrets, canPublish } from "@/lib/auth/roles";
 import { requireCms, requireStaff } from "@/lib/auth/session";
-import { createTitleBatch, enforceGenerationBudget, generateSelectedArticle, saveTitleSelections } from "@/lib/ai/pipeline";
+import {
+  cancelGenerationBatch,
+  createTitleBatch,
+  enforceGenerationBudget,
+  enqueueSelectedArticles,
+  retryGenerationJob,
+  retryMediaJob,
+  saveTitleSelections,
+} from "@/lib/ai/pipeline";
 import { assertGenerationAvailable, readGenerationHealth, testGoogleConnection } from "@/lib/ai/secrets";
 import { fetchBatch } from "@/lib/ai/server";
-import { ARTICLE_TYPES, type ArticleType, type GenerationActionResult, type TitleCandidate } from "@/lib/ai/types";
+import { kickGenerationWorker } from "@/lib/ai/worker";
+import { ARTICLE_TYPES, type ArticleType, type GenerationActionResult, type PublishingMode, type TitleCandidate } from "@/lib/ai/types";
 import { filterKnownToolSlugs } from "@/lib/ai/validate";
 import { sanitizeAiError } from "@/lib/ai/provider";
 
 function asArticleType(value: string): ArticleType {
   return ARTICLE_TYPES.includes(value as ArticleType) ? (value as ArticleType) : "tool_tutorial";
+}
+
+function asPublishingMode(value: string | undefined, publisher: boolean): PublishingMode {
+  if (!publisher) return "draft";
+  if (value === "scheduled" || value === "auto") return value;
+  return "draft";
+}
+
+function kickWorker() {
+  after(() => {
+    void kickGenerationWorker();
+  });
 }
 
 export async function createTitleBatchAction(input: {
@@ -53,8 +75,9 @@ export async function createTitleBatchAction(input: {
 export async function saveTitlesAction(input: {
   batchId: string;
   titles: TitleCandidate[];
-  selectedIndex: number | null;
+  selectedIndexes: number[];
   includeIllustration: boolean;
+  publishingMode?: PublishingMode;
 }): Promise<GenerationActionResult> {
   const session = await requireCms(`/admin/generate/${input.batchId}`);
   const batch = await fetchBatch(session.supabase, input.batchId);
@@ -63,41 +86,95 @@ export async function saveTitlesAction(input: {
     client: session.supabase,
     batchId: input.batchId,
     titles: input.titles,
-    selectedIndex: input.selectedIndex,
+    selectedIndexes: input.selectedIndexes,
     includeIllustration: input.includeIllustration,
+    publishingMode: asPublishingMode(input.publishingMode, canPublish(session.role)),
   });
   return { ok: true, batchId: input.batchId };
 }
 
-export async function generateArticleAction(input: {
+export async function enqueueArticlesAction(input: {
   batchId: string;
-  selectedIndex: number;
+  selectedIndexes: number[];
   titles: TitleCandidate[];
   includeIllustration: boolean;
+  publishingMode?: PublishingMode;
 }): Promise<GenerationActionResult> {
   const session = await requireCms(`/admin/generate/${input.batchId}`);
   const available = await assertGenerationAvailable(session.supabase, session.role);
   if (!available.ok) return available;
-  const budget = await enforceGenerationBudget(session.supabase, session.user.id, 1);
+  const count = [...new Set(input.selectedIndexes)].length;
+  const budget = await enforceGenerationBudget(session.supabase, session.user.id, count);
   if (!budget.ok) return budget;
-  await saveTitleSelections({
-    client: session.supabase,
-    batchId: input.batchId,
-    titles: input.titles,
-    selectedIndex: input.selectedIndex,
-    includeIllustration: input.includeIllustration,
-  });
   try {
-    return await generateSelectedArticle({
+    const result = await enqueueSelectedArticles({
       client: session.supabase,
       role: session.role,
       actorId: session.user.id,
       batchId: input.batchId,
-      selectedIndex: input.selectedIndex,
+      selectedIndexes: input.selectedIndexes,
+      titles: input.titles,
+      includeIllustration: input.includeIllustration,
+      publishingMode: asPublishingMode(input.publishingMode, canPublish(session.role)),
+    });
+    kickWorker();
+    return result;
+  } catch (error) {
+    return { ok: false, error: sanitizeAiError(error) };
+  }
+}
+
+export async function cancelBatchAction(input: { batchId: string }): Promise<GenerationActionResult> {
+  const session = await requireCms(`/admin/generate/${input.batchId}`);
+  try {
+    return await cancelGenerationBatch({
+      client: session.supabase,
+      actorId: session.user.id,
+      batchId: input.batchId,
     });
   } catch (error) {
     return { ok: false, error: sanitizeAiError(error) };
   }
+}
+
+export async function retryJobAction(input: { jobId: string; batchId: string }): Promise<GenerationActionResult> {
+  const session = await requireCms(`/admin/generate/${input.batchId}`);
+  const available = await assertGenerationAvailable(session.supabase, session.role);
+  if (!available.ok) return available;
+  try {
+    const result = await retryGenerationJob({
+      client: session.supabase,
+      actorId: session.user.id,
+      jobId: input.jobId,
+    });
+    kickWorker();
+    return result;
+  } catch (error) {
+    return { ok: false, error: sanitizeAiError(error) };
+  }
+}
+
+export async function retryMediaJobAction(input: { mediaJobId: string; batchId: string }): Promise<GenerationActionResult> {
+  const session = await requireCms(`/admin/generate/${input.batchId}`);
+  const available = await assertGenerationAvailable(session.supabase, session.role);
+  if (!available.ok) return available;
+  try {
+    const result = await retryMediaJob({
+      client: session.supabase,
+      actorId: session.user.id,
+      mediaJobId: input.mediaJobId,
+    });
+    kickWorker();
+    return result;
+  } catch (error) {
+    return { ok: false, error: sanitizeAiError(error) };
+  }
+}
+
+export async function kickGenerationWorkerAction(): Promise<GenerationActionResult> {
+  await requireCms("/admin/generate");
+  kickWorker();
+  return { ok: true, message: "Worker started." };
 }
 
 export async function testGoogleConnectionAction(): Promise<GenerationActionResult> {
