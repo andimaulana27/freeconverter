@@ -1,5 +1,5 @@
 import type { MetadataRoute } from "next";
-import { listPublishedPosts } from "@/lib/blog/queries";
+import { listPublishedPosts, listTopicArchives } from "@/lib/blog/queries";
 import { tools } from "@/lib/tools";
 import { siteUrl } from "@/lib/site";
 
@@ -23,6 +23,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.8,
     }));
   let guideRoutes: MetadataRoute.Sitemap = [];
+  let topicRoutes: MetadataRoute.Sitemap = [];
   try {
     const posts = await listPublishedPosts();
     guideRoutes = posts.filter((post) => !post.noindex).map((post) => ({
@@ -31,8 +32,15 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: "monthly",
       priority: 0.5,
     }));
+    const archives = await listTopicArchives();
+    topicRoutes = archives.map((topic) => ({
+      url: `${origin}/blog/topic/${topic.slug}`,
+      changeFrequency: "weekly",
+      priority: 0.45,
+    }));
   } catch {
     guideRoutes = [];
+    topicRoutes = [];
   }
-  return [...staticRoutes, ...toolRoutes, ...guideRoutes];
+  return [...staticRoutes, ...toolRoutes, ...guideRoutes, ...topicRoutes];
 }

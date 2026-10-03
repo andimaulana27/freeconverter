@@ -3,7 +3,7 @@ import Link from "next/link";
 import { GuideCard } from "@/components/blog/GuideCard";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { blogBreadcrumbJsonLd, blogIndexJsonLd, blogIndexMetadata } from "@/lib/blog/metadata";
-import { listPublishedPosts } from "@/lib/blog/queries";
+import { listPublishedPosts, listTopicArchives } from "@/lib/blog/queries";
 
 export const revalidate = 300;
 
@@ -23,7 +23,7 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
 
 export default async function BlogIndexPage({ searchParams }: Props) {
   const { topic: rawTopic } = await searchParams;
-  const posts = await listPublishedPosts();
+  const [posts, archives] = await Promise.all([listPublishedPosts(), listTopicArchives()]);
   const requested = topicSlug(rawTopic);
   const activeTopic = requested && posts.some((post) => post.topic?.slug === requested) ? requested : null;
   const visible = activeTopic ? posts.filter((post) => post.topic?.slug === activeTopic) : posts;
@@ -31,6 +31,7 @@ export default async function BlogIndexPage({ searchParams }: Props) {
   const topics = posts.flatMap((post) => (post.topic ? [post.topic] : [])).filter((topic, index, all) => (
     all.findIndex((item) => item.slug === topic.slug) === index
   ));
+  const archiveSlugs = new Set(archives.map((topic) => topic.slug));
 
   return (
     <div className="flex flex-col gap-10 sm:gap-12">
@@ -60,10 +61,11 @@ export default async function BlogIndexPage({ searchParams }: Props) {
           </Link>
           {topics.map((topic) => {
             const active = topic.slug === activeTopic;
+            const href = archiveSlugs.has(topic.slug) ? `/blog/topic/${topic.slug}` : `/blog?topic=${topic.slug}`;
             return (
               <Link
                 key={topic.slug}
-                href={`/blog?topic=${topic.slug}`}
+                href={href}
                 aria-current={active ? "page" : undefined}
                 className={`rounded-control border px-3 py-2 text-xs font-semibold transition ${active ? "border-accent bg-accent text-white" : "border-[#e5dfdc] bg-white text-mute hover:border-[#d3cac6] hover:text-ink"}`}
               >

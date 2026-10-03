@@ -33,6 +33,31 @@ export function blogIndexMetadata(topic: string | null): Metadata {
   };
 }
 
+export function blogTopicMetadata(input: {
+  name: string;
+  slug: string;
+  description: string | null;
+  seoTitle: string | null;
+  seoDescription: string | null;
+}): Metadata {
+  const title = input.seoTitle || `${input.name} guides`;
+  const description = input.seoDescription || input.description || `Reviewed ${input.name.toLowerCase()} guides from ${SITE_NAME}.`;
+  const path = `/blog/topic/${input.slug}`;
+  return {
+    title,
+    description,
+    alternates: { canonical: path },
+    robots: { index: true, follow: true },
+    openGraph: {
+      title: `${title} · ${SITE_NAME}`,
+      description,
+      url: path,
+      siteName: SITE_NAME,
+      type: "website",
+    },
+  };
+}
+
 export function blogPostMetadata(post: BlogPost): Metadata {
   const title = post.seoTitle || post.title;
   const description = post.seoDescription || post.excerpt;

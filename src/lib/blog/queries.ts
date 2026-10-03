@@ -10,6 +10,15 @@ export type BlogTopic = {
   name: string;
 };
 
+export type BlogTopicArchive = BlogTopic & {
+  description: string | null;
+  seoTitle: string | null;
+  seoDescription: string | null;
+  count: number;
+};
+
+export const TOPIC_ARCHIVE_MIN = 2;
+
 export type BlogPostSummary = {
   id: string;
   slug: string;
@@ -231,4 +240,60 @@ export function relatedGuides(posts: BlogPostSummary[], current: BlogPostSummary
   });
   scored.sort((a, b) => b.score - a.score || b.post.publishedAt.localeCompare(a.post.publishedAt));
   return scored.slice(0, limit).map((item) => item.post);
+}
+
+export const listPublicTopics = cache(async (): Promise<BlogTopic[]> => {
+  const posts = await listPublishedPosts();
+  return posts
+    .flatMap((post) => (post.topic ? [post.topic] : []))
+    .filter((topic, index, all) => all.findIndex((item) => item.slug === topic.slug) === index);
+});
+
+export const listTopicArchives = cache(async (): Promise<BlogTopicArchive[]> => {
+  const supabase = publicClient();
+  if (!supabase) return [];
+  const posts = (await listPublishedPosts()).filter((post) => !post.noindex && post.topic);
+  const counts = new Map<string, BlogTopicArchive>();
+  for (const post of posts) {
+    const topic = post.topic;
+    if (!topic) continue;
+    const current = counts.get(topic.slug);
+    if (current) {
+      current.count += 1;
+      continue;
+    }
+    counts.set(topic.slug, {
+      slug: topic.slug,
+      name: topic.name,
+      description: null,
+      seoTitle: null,
+      seoDescription: null,
+      count: 1,
+    });
+  }
+  const { data, error } = await supabase
+    .from("blog_topics")
+    .select("slug, name, description, seo_title, seo_description, is_public")
+    .eq("is_public", true);
+  if (error) throw new Error(error.message);
+  for (const row of data ?? []) {
+    const archive = counts.get(String(row.slug));
+    if (!archive) continue;
+    archive.name = String(row.name ?? archive.name);
+    archive.description = typeof row.description === "string" ? row.description : null;
+    archive.seoTitle = typeof row.seo_title === "string" ? row.seo_title : null;
+    archive.seoDescription = typeof row.seo_description === "string" ? row.seo_description : null;
+  }
+  return [...counts.values()].filter((topic) => topic.count >= TOPIC_ARCHIVE_MIN).sort((a, b) => a.name.localeCompare(b.name));
+});
+
+export const getTopicArchive = cache(async (slug: string): Promise<BlogTopicArchive | null> => {
+  if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug)) return null;
+  const archives = await listTopicArchives();
+  return archives.find((topic) => topic.slug === slug) ?? null;
+});
+
+export async function listPublishedPostsForTopic(slug: string) {
+  const posts = await listPublishedPosts();
+  return posts.filter((post) => post.topic?.slug === slug);
 }
