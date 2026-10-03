@@ -44,7 +44,7 @@ export default async function AdminHomePage() {
           <li>Unpublished posts visible to this session: {draftCount ?? 0}</li>
         </ul>
         <p className="mt-4 text-sm text-mute">
-          Public blog, editor, ads manager, and generation workflows land in later phases. This screen only proves Auth, roles, and RLS.
+          The public guide library is live. The editor, ads manager, and generation workflows land in later phases.
         </p>
       </section>
     </AdminChrome>
