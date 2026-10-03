@@ -408,3 +408,74 @@ export async function setCoverRelation(client: StaffClient, postId: string, medi
   const { error } = await client.from("blog_posts").update({ cover_asset_id: mediaAssetId }).eq("id", postId);
   if (error) throw new Error(error.message);
 }
+
+export async function upsertPublicCover(
+  client: StaffClient,
+  input: {
+    postId: string;
+    path: string;
+    body: Blob;
+    contentType: string;
+    altText: string;
+    actorId: string;
+    source: MediaSource;
+    approve: boolean;
+    templateKey?: string | null;
+    seed?: string | null;
+    provider?: string | null;
+    modelId?: string | null;
+    promptHash?: string | null;
+    width?: number | null;
+    height?: number | null;
+    variant?: string | null;
+  },
+) {
+  const { error: uploadError } = await client.storage.from("blog-public").upload(input.path, input.body, {
+    contentType: input.contentType,
+    upsert: true,
+  });
+  if (uploadError) throw new Error(uploadError.message);
+
+  const approvedAt = input.approve ? new Date().toISOString() : null;
+  const existing = await client.from("media_assets").select("id").eq("bucket", "blog-public").eq("path", input.path).maybeSingle();
+  const fields = {
+    mime_type: input.contentType,
+    byte_size: input.body.size,
+    alt_text: input.altText,
+    visibility: "public" as const,
+    source: input.source,
+    generation_status: "ready" as const,
+    template_key: input.templateKey ?? null,
+    variant: input.variant ?? "hero",
+    seed: input.seed ?? null,
+    provider: input.provider ?? null,
+    model_id: input.modelId ?? null,
+    prompt_hash: input.promptHash ?? null,
+    width: input.width ?? null,
+    height: input.height ?? null,
+    approved_at: approvedAt,
+    approved_by: input.approve ? input.actorId : null,
+  };
+
+  let mediaId = existing.data?.id ? String(existing.data.id) : null;
+  if (mediaId) {
+    const { error } = await client.from("media_assets").update(fields).eq("id", mediaId);
+    if (error) throw new Error(error.message);
+  } else {
+    const { data, error } = await client
+      .from("media_assets")
+      .insert({
+        bucket: "blog-public",
+        path: input.path,
+        owner_id: input.actorId,
+        ...fields,
+      })
+      .select("id")
+      .single();
+    if (error || !data) throw new Error(error?.message ?? "Cover record failed.");
+    mediaId = String(data.id);
+  }
+
+  await setCoverRelation(client, input.postId, mediaId);
+  return mediaId;
+}
