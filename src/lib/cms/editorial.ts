@@ -203,7 +203,7 @@ export function evaluateEditorialQuality(input: PublishDraft, peers: EditorialPe
   const cover = input.cover;
   let contrastInk: number | null = null;
   let contrastAccent: number | null = null;
-  let palette: CoverPalette | null = cover ? paletteFromVariant(cover.variant) : null;
+  const palette: CoverPalette | null = cover ? paletteFromVariant(cover.variant) : null;
   const template = cover?.template_key ?? null;
   if (cover) {
     if (!cover.alt_text?.trim() || cover.alt_text.trim().length < 12) {
