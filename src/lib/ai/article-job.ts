@@ -19,7 +19,8 @@ import type { GenerationTrace, TitleCandidate, TokenStep, VisualBrief } from "@/
 import { TOPIC_SLUG_BY_TYPE } from "@/lib/ai/types";
 import { bodyFromGenerated, fallbackVisualBrief, filterKnownToolSlugs, mergeFaq, validateGeneratedDraft } from "@/lib/ai/validate";
 import { canPublish, isStaffRole, type StaffRole } from "@/lib/auth/roles";
-import { postSnapshot, validateForPublish } from "@/lib/cms/quality";
+import { postSnapshot } from "@/lib/cms/quality";
+import { evaluatePostQuality, recordAlert, saveQualityReport } from "@/lib/cms/editorial-server";
 import { createPublishSchedule } from "@/lib/cms/schedules";
 import { fetchPost, insertRevision, listTopics, uniqueSlug, writeAudit, type StaffClient } from "@/lib/cms/server";
 import { canonicalPathForSlug, slugify } from "@/lib/cms/slug";
@@ -52,8 +53,8 @@ function asTitle(jobTitle: string | null, batchTitles: TitleCandidate[]): TitleC
   };
 }
 
-function visualFromUnknown(value: unknown, title: string, kicker: string): VisualBrief {
-  const fallback = fallbackVisualBrief(title, kicker);
+function visualFromUnknown(value: unknown, title: string, kicker: string, seed = title): VisualBrief {
+  const fallback = fallbackVisualBrief(title, kicker, seed);
   if (!value || typeof value !== "object") return fallback;
   const raw = value as Record<string, unknown>;
   return {
@@ -203,11 +204,11 @@ export async function processArticleJob(client: StaffClient, jobId: string) {
       const seoTitle = seoResult.output.seoTitle.trim() || title.slice(0, 70);
       const seoDescription = seoResult.output.seoDescription.trim() || excerpt.slice(0, 160);
       const visualBrief: VisualBrief = {
-        ...fallbackVisualBrief(title, topic?.name ?? "GUIDE"),
+        ...fallbackVisualBrief(title, topic?.name ?? "GUIDE", slug),
         ...seoResult.output.visualBrief,
         titleLines: seoResult.output.visualBrief.titleLines.length
           ? seoResult.output.visualBrief.titleLines
-          : fallbackVisualBrief(title, topic?.name ?? "GUIDE").titleLines,
+          : fallbackVisualBrief(title, topic?.name ?? "GUIDE", slug).titleLines,
       };
 
       await updateJob(client, jobId, { stage: "validation" });
@@ -249,7 +250,7 @@ export async function processArticleJob(client: StaffClient, jobId: string) {
       ? draftPayload.toolSlugs.filter((item): item is string => typeof item === "string")
       : focusTools;
     const body = draftPayload.body;
-    const visualBrief = visualFromUnknown(draftPayload.visualBrief, title, String(draftPayload.topicName ?? "GUIDE"));
+    const visualBrief = visualFromUnknown(draftPayload.visualBrief, title, String(draftPayload.topicName ?? "GUIDE"), slug);
     const topicId = typeof draftPayload.topicId === "string" ? draftPayload.topicId : null;
     const issues = Array.isArray(draftPayload.issues)
       ? (draftPayload.issues as { field: string; message: string }[])
@@ -322,18 +323,8 @@ export async function processArticleJob(client: StaffClient, jobId: string) {
     }
 
     const tokens = trace.steps.reduce((sum, step) => sum + step.totalTokens, 0);
-    await updateJob(client, jobId, {
-      stage: "saved",
-      status: "completed",
-      post_id: postId,
-      draft: draftPayload,
-      validation: { issues, coverError: typeof draftPayload.coverError === "string" ? draftPayload.coverError : null },
-      token_usage: trace,
-      cost_estimate_usd: estimateTokenUsd(tokens),
-      error: null,
-    });
-
-    const publishIssues = validateForPublish({
+    const { report } = await evaluatePostQuality(client, {
+      id: post.id,
       title,
       slug,
       excerpt,
@@ -341,11 +332,41 @@ export async function processArticleJob(client: StaffClient, jobId: string) {
       seoDescription,
       body,
       toolSlugs,
+      topicId,
       cover: post.cover ?? null,
     });
+    await saveQualityReport(client, { postId, report, actorId });
+    const allIssues = [...issues, ...report.blocking];
+    await updateJob(client, jobId, {
+      stage: "saved",
+      status: "completed",
+      post_id: postId,
+      draft: { ...draftPayload, issues: allIssues, links: report.links, similar: report.similar, qualityScore: report.score },
+      validation: {
+        issues: allIssues,
+        warnings: report.warnings,
+        similar: report.similar,
+        links: report.links,
+        coverError: typeof draftPayload.coverError === "string" ? draftPayload.coverError : null,
+      },
+      token_usage: trace,
+      cost_estimate_usd: estimateTokenUsd(tokens),
+      error: null,
+    });
+
+    const publishIssues = [...allIssues];
     const canAuto =
       batchStart.publishing_mode === "auto" && settings.autoPublishEnabled && canPublish(role) && publishIssues.length === 0;
     const canSchedule = batchStart.publishing_mode === "scheduled" && canPublish(role) && publishIssues.length === 0;
+    if (batchStart.publishing_mode !== "draft" && publishIssues.length) {
+      await recordAlert(client, {
+        kind: "quality_hold",
+        severity: "warning",
+        message: publishIssues[0]?.message ?? "Generated draft held by quality gates.",
+        entityType: "blog_post",
+        entityId: postId,
+      });
+    }
     if ((canAuto || canSchedule) && post.status === "draft") {
       const jobs = await client
         .from("generation_jobs")
