@@ -155,6 +155,17 @@ export const listPublishedPosts = cache(async (): Promise<BlogPostSummary[]> => 
   });
 });
 
+export const getPublishedSlugRedirect = cache(async (slug: string): Promise<string | null> => {
+  const supabase = publicClient();
+  if (!supabase || !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug)) return null;
+  const { data, error } = await supabase.from("blog_slug_redirects").select("to_slug").eq("from_slug", slug).maybeSingle();
+  if (error) throw new Error(error.message);
+  const target = typeof data?.to_slug === "string" ? data.to_slug : null;
+  if (!target) return null;
+  const live = await getPublishedPost(target);
+  return live ? target : null;
+});
+
 export const getPublishedPost = cache(async (slug: string): Promise<BlogPost | null> => {
   const supabase = publicClient();
   if (!supabase || !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug)) return null;
