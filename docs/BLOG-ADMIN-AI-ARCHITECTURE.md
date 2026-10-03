@@ -1,6 +1,6 @@
 # Blog, Admin CMS, Ads, and AI Architecture
 
-Status: Phase 6 complete; Phase 7 is next  
+Status: Phase 7 complete; remaining follow-up is operational (Vault, CRON_SECRET, logged-in quality and batch tests)  
 Last updated: 2026-10-03  
 Canvas: `blog-admin-ai-architecture.canvas.tsx`
 
@@ -131,7 +131,7 @@ Recommended post states are `draft`, `review`, `scheduled`, `published`, and `ar
 - `admin_profiles` stores display information and product permissions linked to Supabase Auth users.
 - `site_settings` stores non-secret defaults such as publishing cadence and homepage guide count.
 - `audit_logs` records admin mutations, publishing events, key changes, ad changes, and generation actions.
-- `content_metrics` can later aggregate impressions, tool clicks, converter starts, and search performance without blocking the initial release.
+- `content_metrics_daily` stores privacy-safe day-and-path aggregates (guide views, tool starts, guide-to-tool clicks, optional Search Console impressions/clicks). No reader identifiers or search queries are stored.
 
 ## 6. Authentication, authorization, and RLS
 
@@ -638,7 +638,8 @@ Additive remote migrations `phase6_durable_generation` and `phase6_media_job_fk_
 
 ### Phase 7 — editorial quality and growth
 
-Status: planned
+Status: complete  
+Completed: 2026-10-03
 
 - add similarity detection, intent collision checks, fact validation, and editorial review;
 - add visual similarity, contrast, alt-text, brand-consistency, and media performance checks;
@@ -648,6 +649,41 @@ Status: planned
 - add rollback and alerting for publishing or ad failures.
 
 Acceptance: growth decisions use quality, search, and converter data rather than article count alone.
+
+#### Phase 7 decisions
+
+- Deterministic quality runs on publish, schedule, generation save, and an editor scan. Jaccard similarity on title/body tokens plus shared-tool title overlap blocks near-duplicates. Fact checks use the local tool catalog and reject in-browser claims for `vps` tools plus unsupported privacy language.
+- Optional AI editorial review uses the seeded `editorial_review` / `gemini-3.8-flash` profile. A `hold` verdict writes an operational alert; it does not auto-publish.
+- Cover checks use branded palettes for WCAG contrast, alt-text length, file-size limits, template membership, and repeated template+palette combinations. Template and AI covers store `palette:motif:hero` in `media_assets.variant`, chosen from a post/slug seed so live covers do not all share `paper:rule`.
+- Internal-link suggestions come from catalog clusters and published posts that share tools or topics. Editors can insert them as a list block after the stored draft is saved.
+- Product metrics are path-level daily counters. `/api/metrics/event` allowlists `guide_view`, `tool_start`, and `guide_tool_click`, rejects `/admin` paths, and increments through `public.increment_content_metric` (service_role only). Guide views and guide-to-tool clicks are stored on the guide path. Session storage prevents repeat `guide_view` / `tool_start` counts in one browser session. Search Console is a super-admin CSV ingest of page/date/impressions/clicks only. Writes honor `growth_metrics_enabled`.
+- Rollback takes a live or scheduled guide offline (`archived` + `noindex`) and records `post.rollback`. Schedule failures and inactive-ad assignments write `operational_alerts`.
+
+#### Phase 7 schema
+
+Additive remote migrations `phase7_editorial_quality` and `phase7_metric_increment` (24 application tables): `content_quality_reports`, `content_metrics_daily`, `operational_alerts`. ENABLE + FORCE RLS. Anon has no grants. Authenticated reads are staff/CMS scoped; metric table writes are super-admin in RLS. Product increments use `app`/`public.increment_content_metric` with execute granted only to `service_role`. Settings: `quality_similarity_threshold = 0.42`, `growth_metrics_enabled = true`.
+
+#### Phase 7 routes
+
+- `/admin/growth` — 14-day metric totals, cadence notes, GSC ingest (super admin), open alerts, recent quality scores. `noindex`.
+- `/admin/posts/[id]` — quality panel: scan, AI review, insert links, take live guide offline.
+- `/api/metrics/event` — POST only; 40 requests/minute/IP; allowlisted keys and paths; no `/admin`.
+- Publish cron also scans for inactive creatives on live assignments.
+
+#### Phase 7 verification
+
+- `npx tsc --noEmit` passed after quality, metrics, growth UI, increment RPC, and generation wiring.
+- Remote migrations applied to AllYouConvert: three new tables with ENABLE + FORCE RLS; anon has no table privileges; `increment_content_metric` execute is `service_role` only; settings `quality_similarity_threshold = 0.42` and `growth_metrics_enabled = true`.
+- Security advisor: no new findings (existing Auth leaked-password WARN unchanged). Performance advisor: unused-index INFO on a quiet database (indexes kept).
+- `POST /api/metrics/event` returned 400 for an unknown key, `{ok:false}` for `/admin/posts` and a converter path used as `guide_view`, and `{ok:true}` for `/blog/convert-png-to-jpg-in-the-browser` `guide_view`. The matching `content_metrics_daily` row was written as source `product`.
+- Unauthenticated `/admin/growth` redirected to `/admin/login?next=%2Fadmin%2Fgrowth`. `/api/cron/publish` returned 401 without a secret.
+- Homepage primary nav stays converter categories; Blog remains footer-only. Latest guides still render before FAQ. The PNG guide keeps related-tool cards and an `Open the tool` CTA.
+
+#### Phase 7 follow-up
+
+- Connect a live Search Console property OAuth if CSV ingest becomes too manual.
+- Run a logged-in quality scan plus AI review on a real draft and confirm `post.editorial_review` audit events.
+- Vault key rotation, CRON_SECRET, TOTP, signup lock, and the standalone media library remain open.
 
 ## 14. Risks and guardrails
 
@@ -676,4 +712,4 @@ An implementation phase is not complete until both artifacts match the actual co
 
 ## 16. Immediate next step
 
-Begin Phase 7: editorial quality and growth. Add similarity detection, fact validation, visual checks, internal-link suggestions, and privacy-safe search/converter metrics. Keep Blog out of the primary header. After implementation, update this document and the Canvas together.
+Operate Phase 7 with real batches: scan drafts before publish, ingest page-level Search Console totals when available, and use `/admin/growth` rather than article count to choose the next topic cluster. Keep Blog out of the primary header. Vault rotation and a logged-in generation click-through remain operational follow-up.
