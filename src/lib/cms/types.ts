@@ -50,6 +50,17 @@ export type CmsMediaAsset = {
   url: string;
 };
 
+export type CmsMediaUsage = {
+  postId: string;
+  slug: string;
+  title: string;
+  role: string;
+};
+
+export type CmsMediaListItem = CmsMediaAsset & {
+  usage: CmsMediaUsage[];
+};
+
 export type CmsPost = {
   id: string;
   slug: string;

@@ -13,13 +13,14 @@ import {
   updateCoverMeta,
   uploadCover,
 } from "@/app/admin/posts/actions";
+import { attachExistingCover } from "@/app/admin/media/actions";
 import { BlockEditor, blocksFromBody, toBlogBlocks, type DraftBlock } from "@/components/cms/BlockEditor";
 import { QualityPanel } from "@/components/cms/QualityPanel";
 import { StatusBadge } from "@/components/cms/StatusBadge";
 import { Button, ButtonLink } from "@/components/ui/Button";
 import { SEO_LIMITS, validateForPublish } from "@/lib/cms/quality";
 import { slugify } from "@/lib/cms/slug";
-import type { CatalogTool, CmsPost, CmsSchedule, CmsTopic, EditorPayload, QualityReportRow } from "@/lib/cms/types";
+import type { CatalogTool, CmsMediaAsset, CmsPost, CmsSchedule, CmsTopic, EditorPayload, QualityReportRow } from "@/lib/cms/types";
 
 type SaveState = "saved" | "dirty" | "saving" | "conflict" | "error";
 
@@ -86,6 +87,7 @@ export function PostEditor({
   canPublish,
   schedule,
   qualityReport,
+  libraryAssets,
 }: {
   post: CmsPost;
   topics: CmsTopic[];
@@ -93,6 +95,7 @@ export function PostEditor({
   canPublish: boolean;
   schedule: CmsSchedule | null;
   qualityReport: QualityReportRow | null;
+  libraryAssets: CmsMediaAsset[];
 }) {
   const router = useRouter();
   const [post, setPost] = useState(initialPost);
@@ -498,6 +501,44 @@ export function PostEditor({
           >
             AI illustration
           </Button>
+          {libraryAssets.filter((asset) => asset.id !== post.cover?.id).length ? (
+            <label className="inline-flex h-10 items-center gap-2 rounded-control border border-line bg-paper px-3 text-sm text-mute">
+              Library
+              <select
+                className="max-w-[12rem] bg-transparent text-sm text-ink outline-none"
+                defaultValue=""
+                onChange={(event) => {
+                  const mediaAssetId = event.target.value;
+                  event.target.value = "";
+                  if (!mediaAssetId) return;
+                  void attachExistingCover({
+                    postId: post.id,
+                    mediaAssetId,
+                    expectedUpdatedAt: post.updated_at,
+                  }).then((result) => {
+                    if (!result.ok) {
+                      setMessage(result.error);
+                      return;
+                    }
+                    skipAutosave.current = true;
+                    setPost(result.post);
+                    setCoverAlt(result.post.cover?.alt_text ?? coverAlt);
+                  });
+                }}
+              >
+                <option value="">Use existing image</option>
+                {libraryAssets
+                  .filter((asset) => asset.id !== post.cover?.id)
+                  .map((asset) => (
+                    <option key={asset.id} value={asset.id}>
+                      {asset.alt_text || asset.path}
+                    </option>
+                  ))}
+              </select>
+            </label>
+          ) : (
+            <ButtonLink href="/admin/media" variant="ghost" size="sm">Open library</ButtonLink>
+          )}
         </div>
       </section>
 

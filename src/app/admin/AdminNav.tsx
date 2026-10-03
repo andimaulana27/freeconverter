@@ -7,6 +7,7 @@ import { cn } from "@/lib/cn";
 const LINKS = [
   { href: "/admin", label: "Dashboard", note: "Overview & activity", icon: "dashboard", match: "exact" as const },
   { href: "/admin/posts", label: "Guides", note: "Editorial workflow", icon: "guides", match: "prefix" as const },
+  { href: "/admin/media", label: "Media", note: "Covers and shared images", icon: "media", match: "prefix" as const },
   { href: "/admin/generate", label: "AI assistant", note: "Batch drafts and job progress", icon: "generate", match: "prefix" as const },
   { href: "/admin/growth", label: "Growth", note: "Quality, search, converter starts", icon: "growth", match: "prefix" as const },
   { href: "/admin/ads", label: "Ads", note: "Creative placement", icon: "ads", match: "prefix" as const },
@@ -16,7 +17,7 @@ const LINKS = [
 export function AdminNav({ showCms, showAds }: { showCms: boolean; showAds: boolean }) {
   const pathname = usePathname();
   const links = LINKS.filter((link) => {
-    if (link.href === "/admin/posts" || link.href === "/admin/generate" || link.href === "/admin/growth") return showCms;
+    if (link.href === "/admin/posts" || link.href === "/admin/generate" || link.href === "/admin/growth" || link.href === "/admin/media") return showCms;
     if (link.href === "/admin/ads") return showAds;
     return true;
   });
@@ -82,6 +83,15 @@ function NavIcon({ name }: { name: string }) {
       <svg viewBox="0 0 20 20" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden>
         <path d="M3.5 14.5 8 10l3 3 5.5-6.5" strokeLinecap="round" strokeLinejoin="round" />
         <path d="M3.5 16.5h13" strokeLinecap="round" />
+      </svg>
+    );
+  }
+  if (name === "media") {
+    return (
+      <svg viewBox="0 0 20 20" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden>
+        <rect x="3" y="4.5" width="14" height="11" rx="2" />
+        <path d="m6 12 2.2-2.2 2.3 2.3L13 10.5 17 14.5" strokeLinejoin="round" />
+        <circle cx="7.2" cy="8" r="1" />
       </svg>
     );
   }

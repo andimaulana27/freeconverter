@@ -7,6 +7,7 @@ import { canonicalPathForSlug, isValidSlug, slugify } from "@/lib/cms/slug";
 import type {
   CmsActionResult,
   CmsMediaAsset,
+  CmsMediaListItem,
   CmsPost,
   CmsPostSummary,
   CmsRevision,
@@ -116,6 +117,7 @@ export function revalidatePublicBlog(slug: string, extraSlugs: string[] = []) {
   revalidatePath("/blog");
   revalidatePath(`/blog/${slug}`);
   extraSlugs.forEach((item) => revalidatePath(`/blog/${item}`));
+  revalidatePath("/blog/topic/[slug]", "page");
   revalidatePath("/sitemap.xml");
   revalidatePath("/rss.xml");
 }
@@ -478,4 +480,80 @@ export async function upsertPublicCover(
 
   await setCoverRelation(client, input.postId, mediaId);
   return mediaId;
+}
+
+export async function listMediaAssets(
+  client: StaffClient,
+  filters: { source?: MediaSource | "all"; approved?: "all" | "yes" | "no"; q?: string } = {},
+): Promise<CmsMediaListItem[]> {
+  let query = client
+    .from("media_assets")
+    .select(COVER_SELECT)
+    .in("bucket", ["blog-public", "blog-private"])
+    .order("updated_at", { ascending: false })
+    .limit(120);
+  if (filters.source && filters.source !== "all") query = query.eq("source", filters.source);
+  if (filters.approved === "yes") query = query.not("approved_at", "is", null);
+  if (filters.approved === "no") query = query.is("approved_at", null);
+  if (filters.q) {
+    const q = filters.q.replace(/[%_,.()]/g, "").slice(0, 80);
+    if (q) query = query.or(`alt_text.ilike.%${q}%,path.ilike.%${q}%`);
+  }
+  const { data, error } = await query;
+  if (error) throw new Error(error.message);
+  const assets = ((data ?? []) as Record<string, unknown>[]).flatMap((row) => {
+    const media = asMedia(row);
+    return media ? [media] : [];
+  });
+  if (!assets.length) return [];
+  const ids = assets.map((asset) => asset.id);
+  const { data: relations, error: relationError } = await client
+    .from("blog_post_media")
+    .select("media_asset_id, role, post:blog_posts!blog_post_media_post_id_fkey ( id, slug, title )")
+    .in("media_asset_id", ids);
+  if (relationError) throw new Error(relationError.message);
+  const usageByAsset = new Map<string, CmsMediaListItem["usage"]>();
+  for (const row of relations ?? []) {
+    const mediaId = String((row as { media_asset_id?: string }).media_asset_id ?? "");
+    const post = one((row as { post?: { id?: string; slug?: string; title?: string } | { id?: string; slug?: string; title?: string }[] }).post);
+    if (!mediaId || !post?.id || !post.slug || !post.title) continue;
+    const list = usageByAsset.get(mediaId) ?? [];
+    list.push({
+      postId: String(post.id),
+      slug: String(post.slug),
+      title: String(post.title),
+      role: String((row as { role?: string }).role ?? "cover"),
+    });
+    usageByAsset.set(mediaId, list);
+  }
+  return assets.map((asset) => ({ ...asset, usage: usageByAsset.get(asset.id) ?? [] }));
+}
+
+export async function fetchMediaAsset(client: StaffClient, id: string) {
+  const { data, error } = await client.from("media_assets").select(COVER_SELECT).eq("id", id).maybeSingle();
+  if (error) throw new Error(error.message);
+  const media = asMedia((data ?? null) as Record<string, unknown> | null);
+  if (!media) return null;
+  const { data: relations, error: relationError } = await client
+    .from("blog_post_media")
+    .select("media_asset_id, role, post:blog_posts!blog_post_media_post_id_fkey ( id, slug, title )")
+    .eq("media_asset_id", id);
+  if (relationError) throw new Error(relationError.message);
+  const usage: CmsMediaListItem["usage"] = [];
+  for (const row of relations ?? []) {
+    const post = one((row as { post?: { id?: string; slug?: string; title?: string } | { id?: string; slug?: string; title?: string }[] }).post);
+    if (!post?.id || !post.slug || !post.title) continue;
+    usage.push({
+      postId: String(post.id),
+      slug: String(post.slug),
+      title: String(post.title),
+      role: String((row as { role?: string }).role ?? "cover"),
+    });
+  }
+  return { ...media, usage };
+}
+
+export async function listReusableCovers(client: StaffClient) {
+  const items = await listMediaAssets(client, { approved: "yes" });
+  return items.filter((item) => item.bucket === "blog-public" && item.visibility === "public");
 }
