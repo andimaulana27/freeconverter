@@ -7,14 +7,24 @@ import { Button } from "@/components/ui/Button";
 export type DraftBlock = BlogBlock & { key: string };
 
 const TYPES: { type: DraftBlock["type"]; label: string }[] = [
-  { type: "paragraph", label: "Paragraph" },
-  { type: "heading", label: "Heading" },
-  { type: "list", label: "List" },
-  { type: "steps", label: "Steps" },
-  { type: "faq", label: "FAQ" },
-  { type: "note", label: "Note" },
-  { type: "cta", label: "Tool CTA" },
+  { type: "paragraph", label: "Text paragraph" },
+  { type: "heading", label: "Section heading" },
+  { type: "list", label: "Bullet or numbered list" },
+  { type: "steps", label: "Step-by-step instructions" },
+  { type: "faq", label: "Questions and answers" },
+  { type: "note", label: "Highlighted note" },
+  { type: "cta", label: "Tool recommendation" },
 ];
+
+const TYPE_LABEL: Record<DraftBlock["type"], string> = {
+  paragraph: "Text paragraph",
+  heading: "Section heading",
+  list: "List",
+  steps: "Step-by-step",
+  faq: "Questions and answers",
+  note: "Highlighted note",
+  cta: "Tool recommendation",
+};
 
 function newKey() {
   return crypto.randomUUID();
@@ -59,7 +69,7 @@ function Field({
   multiline?: boolean;
   rows?: number;
 }) {
-  const className = "w-full rounded-control border border-line bg-bone px-3 py-2 text-sm text-ink outline-none focus:border-accent focus:shadow-glow";
+  const className = "w-full rounded-control border border-[#ddd6d2] bg-white px-3 py-2 text-sm text-ink outline-none transition focus:border-accent focus:shadow-glow";
   return (
     <label className="flex flex-col gap-1.5 text-xs font-medium text-mute">
       {label}
@@ -88,17 +98,17 @@ function BlockCard({
   onRemove: () => void;
 }) {
   return (
-    <article className="rounded-card border border-line bg-paper p-4">
+    <article className="rounded-[18px] border border-black/[0.07] bg-[#faf8f7] p-4 transition duration-280 hover:border-black/15">
       <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
         <p className="font-mono text-micro uppercase text-faint">
-          {index + 1}. {block.type}
+          {index + 1}. {TYPE_LABEL[block.type]}
         </p>
         <div className="flex gap-1">
           <Button type="button" variant="ghost" size="sm" disabled={index === 0} onClick={() => onMove(-1)}>
-            Up
+            Move up
           </Button>
           <Button type="button" variant="ghost" size="sm" disabled={index === total - 1} onClick={() => onMove(1)}>
-            Down
+            Move down
           </Button>
           <Button type="button" variant="ghost" size="sm" onClick={onRemove}>
             Remove
@@ -111,14 +121,14 @@ function BlockCard({
       {block.type === "heading" ? (
         <div className="grid gap-3 sm:grid-cols-[8rem_minmax(0,1fr)]">
           <label className="flex flex-col gap-1.5 text-xs font-medium text-mute">
-            Level
+            Heading size
             <select
-              className="h-10 rounded-control border border-line bg-bone px-3 text-sm text-ink outline-none focus:border-accent"
+              className="h-10 rounded-control border border-[#ddd6d2] bg-white px-3 text-sm text-ink outline-none focus:border-accent"
               value={block.level}
               onChange={(event) => onChange({ ...block, level: event.target.value === "3" ? 3 : 2 })}
             >
-              <option value="2">H2</option>
-              <option value="3">H3</option>
+              <option value="2">Main section</option>
+              <option value="3">Smaller subsection</option>
             </select>
           </label>
           <Field label="Heading" value={block.text} onChange={(text) => onChange({ ...block, text })} />
@@ -133,7 +143,7 @@ function BlockCard({
           {block.items.map((item, itemIndex) => (
             <div key={`${block.key}-item-${itemIndex}`} className="flex gap-2">
               <input
-                className="h-10 flex-1 rounded-control border border-line bg-bone px-3 text-sm text-ink outline-none focus:border-accent"
+                className="h-10 flex-1 rounded-control border border-[#ddd6d2] bg-white px-3 text-sm text-ink outline-none focus:border-accent"
                 value={item}
                 onChange={(event) => {
                   const items = [...block.items];
@@ -159,7 +169,7 @@ function BlockCard({
       {block.type === "steps" ? (
         <div className="space-y-4">
           {block.items.map((item, itemIndex) => (
-            <div key={`${block.key}-step-${itemIndex}`} className="grid gap-2 rounded-control border border-line p-3">
+            <div key={`${block.key}-step-${itemIndex}`} className="grid gap-2 rounded-control border border-[#e5ddda] bg-white p-3">
               <Field
                 label={`Step ${itemIndex + 1} title`}
                 value={item.title}
@@ -197,7 +207,7 @@ function BlockCard({
       {block.type === "faq" ? (
         <div className="space-y-4">
           {block.items.map((item, itemIndex) => (
-            <div key={`${block.key}-faq-${itemIndex}`} className="grid gap-2 rounded-control border border-line p-3">
+            <div key={`${block.key}-faq-${itemIndex}`} className="grid gap-2 rounded-control border border-[#e5ddda] bg-white p-3">
               <Field
                 label="Question"
                 value={item.question}
@@ -235,9 +245,9 @@ function BlockCard({
       {block.type === "cta" ? (
         <div className="grid gap-3">
           <Field label="Title" value={block.title} onChange={(title) => onChange({ ...block, title })} />
-          <Field label="Copy" value={block.text} multiline onChange={(text) => onChange({ ...block, text })} />
+          <Field label="Description" value={block.text} multiline onChange={(text) => onChange({ ...block, text })} />
           <Field label="Button label" value={block.label} onChange={(label) => onChange({ ...block, label })} />
-          <Field label="Internal path" value={block.href} onChange={(href) => onChange({ ...block, href })} />
+          <Field label="Tool link" value={block.href} onChange={(href) => onChange({ ...block, href })} />
         </div>
       ) : null}
     </article>
@@ -276,7 +286,7 @@ export function BlockEditor({ blocks, onChange }: { blocks: DraftBlock[]; onChan
       ))}
       <div className="flex flex-wrap items-center gap-2">
         <select
-          className="h-10 rounded-control border border-line bg-bone px-3 text-sm text-ink outline-none focus:border-accent"
+          className="h-10 rounded-control border border-[#ddd6d2] bg-white px-3 text-sm text-ink outline-none focus:border-accent"
           value={pendingType}
           onChange={(event) => setPendingType(event.target.value as DraftBlock["type"])}
         >
@@ -287,7 +297,7 @@ export function BlockEditor({ blocks, onChange }: { blocks: DraftBlock[]; onChan
           ))}
         </select>
         <Button type="button" variant="secondary" onClick={() => onChange([...blocks, emptyBlock(pendingType)])}>
-          Add block
+          Add section
         </Button>
       </div>
     </div>
