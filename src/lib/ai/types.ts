@@ -40,6 +40,8 @@ export type CoverPalette = (typeof COVER_PALETTES)[number];
 export const COVER_MOTIFS = ["rule", "corner", "grid"] as const;
 export type CoverMotif = (typeof COVER_MOTIFS)[number];
 
+export type PublishingMode = "draft" | "scheduled" | "auto";
+
 export type TitleCandidate = {
   title: string;
   slugSuggestion: string;
@@ -59,6 +61,15 @@ export type BatchProgress = {
   includeIllustration?: boolean;
   titles?: TitleCandidate[];
   selectedIndex?: number;
+  selectedIndexes?: number[];
+  jobsTotal?: number;
+  jobsCompleted?: number;
+  jobsFailed?: number;
+  jobsCancelled?: number;
+  mediaTotal?: number;
+  mediaCompleted?: number;
+  mediaFailed?: number;
+  lastHeartbeatAt?: string;
 };
 
 export type TokenStep = {
@@ -105,9 +116,11 @@ export type GenerationBatch = {
   topic: string;
   article_type: ArticleType;
   requested_count: number;
-  publishing_mode: "draft" | "scheduled" | "auto";
+  publishing_mode: PublishingMode;
   status: GenerationBatchStatus;
   progress: BatchProgress;
+  cancel_requested: boolean;
+  cost_estimate_usd: number | null;
   created_by: string | null;
   created_at: string;
   updated_at: string;
@@ -123,11 +136,52 @@ export type GenerationJob = {
   stage: GenerationJobStage;
   status: GenerationJobStatus;
   attempts: number;
+  max_attempts: number;
   error: string | null;
   token_usage: GenerationTrace;
   post_id: string | null;
+  cancel_requested: boolean;
+  next_attempt_at: string | null;
+  heartbeat_at: string | null;
+  cost_estimate_usd: number | null;
   created_at: string;
   updated_at: string;
+};
+
+export type GenerationMediaJob = {
+  id: string;
+  batch_id: string;
+  generation_job_id: string | null;
+  post_id: string | null;
+  media_asset_id: string | null;
+  kind: "cover_illustration";
+  status: GenerationJobStatus;
+  attempts: number;
+  max_attempts: number;
+  error: string | null;
+  token_usage: GenerationTrace;
+  cancel_requested: boolean;
+  next_attempt_at: string | null;
+  heartbeat_at: string | null;
+  prompt_hash: string | null;
+  seed: string | null;
+  payload: Record<string, unknown>;
+  moderation: Record<string, unknown> | null;
+  cost_estimate_usd: number | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type WorkerSettings = {
+  hourlyJobLimit: number;
+  maxAttempts: number;
+  articleConcurrency: number;
+  mediaConcurrency: number;
+  staleSeconds: number;
+  jobTimeoutSeconds: number;
+  autoPublishEnabled: boolean;
+  autoPublishStaggerMinutes: number;
+  defaultPublishingMode: PublishingMode;
 };
 
 export type GenerationHealth = {
@@ -140,7 +194,15 @@ export type GenerationHealth = {
 };
 
 export type GenerationActionResult =
-  | { ok: true; batchId?: string; jobId?: string; postId?: string; message?: string; health?: GenerationHealth }
+  | {
+      ok: true;
+      batchId?: string;
+      jobId?: string;
+      postId?: string;
+      queued?: number;
+      message?: string;
+      health?: GenerationHealth;
+    }
   | { ok: false; error: string; code?: "forbidden" | "validation" | "unconfigured" | "disabled" | "rate_limited" };
 
 export const ARTICLE_TYPE_LABELS: Record<ArticleType, string> = {
