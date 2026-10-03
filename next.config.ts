@@ -10,6 +10,15 @@ export default function config(phase: string): NextConfig {
 
   return {
     reactStrictMode: true,
+    images: {
+      remotePatterns: [
+        {
+          protocol: "https",
+          hostname: "*.supabase.co",
+          pathname: "/storage/v1/object/public/**",
+        },
+      ],
+    },
     poweredByHeader: false,
     distDir: development ? ".next-dev" : ".next",
     allowedDevOrigins: ["127.0.0.1"],
