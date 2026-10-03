@@ -7,7 +7,7 @@ import { ShotHit, ShotKick, ShotLane } from "@/components/convert/ShotRoute";
 import { AdSlot } from "@/components/layout/AdSlot";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { ToolIcon } from "@/components/tools/ToolIcon";
-import { breadcrumbJsonLd, toolHeadline, toolJsonLd, toolMetadata } from "@/lib/seo";
+import { breadcrumbJsonLd, toolHeadline, toolJsonLd, toolMetadata, toolSeoName } from "@/lib/seo";
 import { SITE_NAME } from "@/lib/site";
 import { conversionSource, getTool, relatedTools, siblingConversions, toolBlurb, tools } from "@/lib/tools";
 
@@ -76,7 +76,7 @@ export default async function ToolPage({ params }: Props) {
       />
 
       <section>
-        <h1 className="sr-only">{headline}</h1>
+        <h1 className="sr-only">{toolSeoName(tool)}</h1>
         <div className="overflow-hidden rounded-panel border border-[#dcd4d0] bg-white shadow-panel">
           <div className="flex items-center gap-4 bg-[#181412] px-5 py-4 text-white sm:px-7">
             <div className="flex items-center gap-3">

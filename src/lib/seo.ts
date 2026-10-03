@@ -7,6 +7,18 @@ export function toolHeadline(tool: ToolDef) {
   return tool.title;
 }
 
+function isConversion(tool: ToolDef) {
+  return tool.slug.includes("-to-") || / to /i.test(tool.title);
+}
+
+export function toolSeoName(tool: ToolDef) {
+  return isConversion(tool) ? `Free ${tool.title} Converter` : `Free ${tool.title} Tool`;
+}
+
+export function toolDocumentTitle(tool: ToolDef) {
+  return `${toolSeoName(tool)} · ${SITE_NAME}`;
+}
+
 export function toolDescription(tool: ToolDef) {
   const where = tool.need === "browser" ? "in your browser. Nothing is uploaded." : "when the dedicated worker is online.";
   return `${toolBlurb(tool)} ${SITE_NAME} handles ${formatList(tool.inputs)} to ${tool.output.toUpperCase()} ${where}`;
@@ -103,24 +115,24 @@ export function homeMetadata(): Metadata {
 }
 
 export function toolMetadata(tool: ToolDef): Metadata {
-  const headline = toolHeadline(tool);
+  const documentTitle = toolDocumentTitle(tool);
   const description = toolDescription(tool);
   const path = `/${tool.slug}`;
   return {
-    title: headline,
+    title: { absolute: documentTitle },
     description,
     alternates: { canonical: path },
     robots: { index: tool.need === "browser", follow: true },
     openGraph: {
-      title: headline,
+      title: documentTitle,
       description,
       url: path,
       siteName: SITE_NAME,
-      images: [{ url: "/opengraph-image", width: 1200, height: 630, alt: `${headline} on ${SITE_NAME}` }],
+      images: [{ url: "/opengraph-image", width: 1200, height: 630, alt: `${toolSeoName(tool)} on ${SITE_NAME}` }],
     },
     twitter: {
       card: "summary_large_image",
-      title: `${headline} · ${SITE_NAME}`,
+      title: documentTitle,
       description,
       images: ["/opengraph-image"],
     },
@@ -144,12 +156,11 @@ export function websiteJsonLd() {
 }
 
 export function toolJsonLd(tool: ToolDef) {
-  const headline = toolHeadline(tool);
   const url = absUrl(`/${tool.slug}`);
   return {
     "@context": "https://schema.org",
     "@type": "WebApplication",
-    name: headline,
+    name: toolSeoName(tool),
     url,
     applicationCategory: "MultimediaApplication",
     operatingSystem: "Any",
