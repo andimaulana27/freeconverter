@@ -10,6 +10,7 @@ import { blogArticleJsonLd, blogBreadcrumbJsonLd, blogFaqJsonLd, guideDateLabel 
 import type { BlogPost, BlogPostSummary } from "@/lib/blog/queries";
 import { toolHeadline } from "@/lib/seo";
 import { SITE_NAME } from "@/lib/site";
+import { ProductSignal } from "@/components/metrics/ProductSignal";
 import { getTool, toolBlurb } from "@/lib/tools";
 
 function ArrowIcon() {
@@ -54,6 +55,7 @@ export function GuideArticle({
   return (
     <div className="flex flex-col gap-10 sm:gap-12">
       {jsonLd.length ? <JsonLd data={jsonLd} /> : null}
+      {preview ? null : <ProductSignal path={post.canonicalPath} keyName="guide_view" />}
 
       {preview ? (
         <p className="rounded-control border border-accent/20 bg-accent-soft px-3 py-2 text-sm text-accent-ink">
@@ -159,8 +161,10 @@ export function GuideArticle({
           </div>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {tools.map((tool, index) => (
-              <Link
+              <ProductSignal
                 key={tool.slug}
+                path={post.canonicalPath}
+                keyName="guide_tool_click"
                 href={`/${tool.slug}`}
                 className="group rounded-card border border-[#e5dfdc] bg-white p-5 shadow-tile transition duration-280 hover:-translate-y-1 hover:border-[#d3cac6]"
               >
@@ -168,7 +172,7 @@ export function GuideArticle({
                 <h3 className="mt-4 text-sm font-semibold text-ink">{toolHeadline(tool)}</h3>
                 <p className="mt-1 text-[11px] leading-5 text-mute">{toolBlurb(tool)}</p>
                 {tool.need === "vps" ? <p className="mt-2 font-mono text-micro uppercase text-warn">Waiting for the dedicated worker</p> : null}
-              </Link>
+              </ProductSignal>
             ))}
           </div>
         </section>
@@ -193,13 +197,15 @@ export function GuideArticle({
             ? "This matching tool runs in the browser. There is no account step."
             : "Pick the route that matches the file, then follow the processing note on that page."}
         </p>
-        <Link
+        <ProductSignal
+          path={post.canonicalPath}
+          keyName="guide_tool_click"
           href={primaryTool ? `/${primaryTool.slug}` : "/#converter"}
           className="mt-6 inline-flex items-center gap-3 rounded-control bg-accent px-5 py-3.5 text-sm font-semibold text-white shadow-action transition duration-180 hover:-translate-y-0.5 hover:bg-accent-ink"
         >
           {primaryTool ? "Open the tool" : "Open the workbench"}
           <ArrowIcon />
-        </Link>
+        </ProductSignal>
       </section>
     </div>
   );

@@ -117,6 +117,19 @@ export function DropEngine({ tool, variant = "default" }: Props) {
   const active = tool ?? homeTool;
   const slug = active?.slug;
   const droppedExt = files[0] ? extOf(files[0].name) : "";
+
+  useEffect(() => {
+    if (!slug || files.length === 0) return;
+    const onceKey = `ayc-metric:tool_start:${slug}`;
+    if (sessionStorage.getItem(onceKey)) return;
+    sessionStorage.setItem(onceKey, "1");
+    void fetch("/api/metrics/event", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ path: `/${slug}`, key: "tool_start" }),
+      keepalive: true,
+    });
+  }, [slug, files.length]);
   const source = workspaceSource(active, droppedExt);
   const mergePdf = !tool && source === "pdf" && files.length > 1;
   const formatOptions = useMemo(
