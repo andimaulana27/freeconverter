@@ -6,10 +6,13 @@ import { AdSlot } from "@/components/layout/AdSlot";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { ToolIcon } from "@/components/tools/ToolIcon";
 import { ToolGroups } from "@/components/tools/ToolGroups";
+import { LatestGuides } from "@/components/blog/LatestGuides";
+import { BLOG_REVALIDATE_SECONDS } from "@/lib/blog/queries";
 import { homeMetadata, websiteJsonLd } from "@/lib/seo";
 import { getTool, tools, type ToolDef } from "@/lib/tools";
 
 export const metadata: Metadata = homeMetadata();
+export const revalidate = BLOG_REVALIDATE_SECONDS;
 
 const CATEGORY_LINKS = [
   { slug: "image-compressor", label: "Images", note: "Convert & edit" },
@@ -425,6 +428,8 @@ export default function HomePage() {
           </div>
         </div>
       </section>
+
+      <LatestGuides />
 
       <section className="relative isolate overflow-hidden rounded-panel border border-[#ded7d3] bg-[#f6f3f1] p-6 shadow-panel sm:p-8 lg:p-10">
         <div
